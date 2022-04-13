@@ -11,7 +11,7 @@ public class Game : MonoBehaviour
     public int Com;
     public Image ResultImage;
     public bool Is_Button = false;//버튼이 켜져있는지
-    public bool Result = true;//결과
+    public bool Is_Result = true;//결과가 나왔는가
 
     public Sprite[] spr;//sprite 배열
     SpriteRenderer spriteRenderer;
@@ -55,28 +55,28 @@ public class Game : MonoBehaviour
     //승패결정
     int Win()
     {
-        return (Com - Player) % 3;
+        return (Com - Player+3) % 3;//mod연산시 음수 주의
     }
     // Update is called once per frame
     void Update()//매 프레임마다 반복
     {
         output();
         //승패 가르기
-        if (Is_Button && Result)
+        if (Is_Button && Is_Result)
         {
-            if (Win() == 1)
+            if (Win() == 1)//승리
             {
                 Debug.Log("WIN");
             }
-            else if (Win() == 2)
+            else if (Win() == 2)//패배
             {
                 Debug.Log("LOSE");
             }
-            else
+            else if(Win()==0)//무승부
             {
                 Debug.Log("DRAW");
             }
-            Result = false;
+            Is_Result = false;
         }
     }
 }
