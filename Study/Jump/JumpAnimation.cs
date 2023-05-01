@@ -35,7 +35,7 @@ public class Move : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            rend.flipX = true;
+            rend.flipX = true;//이미지가 왼쪽을 바라보게
             this.gameObject.transform.Translate(-speed * Time.deltaTime, 0, 0);
         }
     }
@@ -43,7 +43,7 @@ public class Move : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            rend.flipX = false;
+            rend.flipX = false;//이미지가 오른쪽을 바라보게
             this.gameObject.transform.Translate(speed * Time.deltaTime, 0, 0);
         }
     }
