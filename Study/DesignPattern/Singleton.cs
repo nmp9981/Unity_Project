@@ -1,39 +1,83 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-public class OtherComponent : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    private static OtherComponent instance;//오직 변수 1개, 외부에서 수정X
-    public static OtherComponent Instance{
+    private static GameManager _instance;//전체게임 총괄
+    SoundManager _soundManager = new SoundManager();//사운드
+    UIManager _uiManager = new UIManager();//UI
+    public static GameManager Instance
+    {
         get
         {
-            if (instance == null)
-            {
-                var obj = FindObjectOfType<OtherComponent>();//또다른 오브젝트 있는지 검사
-                if (obj != null)//객체 존재
-                {
-                    instance = obj;
-                }else//없어서 새로 만들어야함
-                {
-                    var newObj = new GameObject().AddComponent<OtherComponent>();
-                    instance = newObj;
-                }
-            }
-            return instance;
+            init();//초기화
+            return _instance;
         }
+    }
+    //귀는 1개
+    public static SoundManager Sound
+    {
+        get
+        {
+            return Instance._soundManager;
+        }
+    }
+    //UI도 1개
+    public static UIManager UI
+    {
+        get { return Instance._uiManager; }
+    }
+    static void init()
+    {
+        if (_instance == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm == null)//없으면 새로 만든다.
+            {
+                gm = new GameObject { name = "GameManager" };
+                gm.AddComponent<GameManager>();
+            }
+            DontDestroyOnLoad(gm);//씬이 바뀌어도 파괴X
+
+            _instance = gm.GetComponent<GameManager>();
+
+            _instance._soundManager.init();//사운드 매니저 초기화
+            _instance._uiManager.init();//UIManager 초기화
+
+            //재화
+            _instance.money = 10;
+            _instance.StartCoroutine(_instance.GetMoney());
+        }
+    }
+    // Start is called before the first frame update
+    void Awake()
+    {
+        init();
     }
 
-    //게임에 단 1개 생성
-    private void Awake()
+    // Update is called once per frame
+    void Update()
     {
-        var objs = FindObjectOfType<OtherComponent>();//오브젝트 개수
-        if(objs != null)//이미 있다면
-        {
-            Destroy(gameObject);
-            return;
-        }
-        DontDestroyOnLoad(instance);//씬 변경에도 그대로
+
     }
-    
+    IEnumerator GetMoney()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.5f);
+            Money += 5;
+        }
+    }
+    #region 공유데이터
+    int startHP = 10;
+    int money = 8;
+    public static readonly int[] GETMONEY = new int[5] {5,10,20,50,100};
+    public static readonly string NAME = "대사희";//수정불가
+
+    public int StartHP { get { return Instance.startHP; }set { Instance.startHP = value; } }//선언변수는 대문자
+    public int Money { get { return Instance.money; }set { Instance.money = value;Instance._uiManager.PointUpdate(); } }
+    #endregion
 }
