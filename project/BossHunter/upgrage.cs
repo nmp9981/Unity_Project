@@ -8,6 +8,7 @@ public class Upgrage : MonoBehaviour
     Manager manager;
     SkillManager skillManager;
     [SerializeField]GameObject messageBox;
+    [SerializeField] GameObject skillIndex;
     Color tripleColor;
     Color doubleColor;
     Color avengerColor;
@@ -24,6 +25,7 @@ public class Upgrage : MonoBehaviour
         avengerColor = skillManager.avengerSkill.color;
         avengerColor.a = 0.3f;
         messageBox.SetActive(false);//처음엔 메세지창 끄기
+        skillIndex.SetActive(false);
     }
 
     public void Upgrade()
@@ -70,6 +72,18 @@ public class Upgrage : MonoBehaviour
     public void OffMessageBox()
     {
         messageBox.SetActive(false);
+        Time.timeScale = 1.0f;//다시 정상 시간으로
+    }
+    //메세지 켜기(스킬창)
+    public void OnSkillIndex()
+    {
+        skillIndex.SetActive(true);
+        Time.timeScale = 0.0f;//일시 정지
+    }
+    //메세지 끄기(스킬창)
+    public void OffSkillIndex()
+    {
+        skillIndex.SetActive(false);
         Time.timeScale = 1.0f;//다시 정상 시간으로
     }
 }
