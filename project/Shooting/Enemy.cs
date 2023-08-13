@@ -26,6 +26,10 @@ public class Enemy : MonoBehaviour
 
     public ObjectManager objectManager;
 
+    public int PatternIndex;//패턴 번호
+    public int curPatternCount;//패턴 횟수
+    public int[] maxPatternCount;//최대 패턴 횟수
+
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -41,7 +45,7 @@ public class Enemy : MonoBehaviour
         {
             case "B":
                 health = 300;
-                Invoke("Stop", 2);
+                Invoke("StopBoss", 2);
                 break;
             case "S":
                 health = 4;
@@ -58,7 +62,7 @@ public class Enemy : MonoBehaviour
     private void StopBoss()
     {
         //stop함수가 2번 사용되지 않도록
-        if (!gameObject.activeSelf) return;
+        if (!gameObject.activeSelf) return;//활성화일때만 밑 로직 적용
 
         Rigidbody2D rigid = GetComponent<Rigidbody2D>();
         rigid.velocity = Vector2.zero;
@@ -69,7 +73,126 @@ public class Enemy : MonoBehaviour
     //보스 패턴
     void Think()
     {
+        PatternIndex = PatternIndex == 3 ? 0 : PatternIndex+1;//패턴 인덱스 늘리기
+        curPatternCount = 0;//패턴 변경시 실행횟수 초기화
+        
+        switch (PatternIndex)
+        {
+            case 0:
+                FireFoward();
+                break;
+            case 1:
+                FireShot();
+                break;
+            case 2:
+                FireArc();
+                break;
+            case 3:
+                FireAround();
+                break;
+        }
+    }
+    //각 보스 패턴
+    void FireFoward()
+    {
+        //4발쏘기
+        GameObject bullet1 = objectManager.MakeObj("BulletBossA");//총알 생성
+        bullet1.transform.position = transform.position + Vector3.left * 0.4f;
+        GameObject bullet2 = objectManager.MakeObj("BulletBossA");//총알 생성
+        bullet2.transform.position = transform.position + Vector3.left * 0.6f;
+        GameObject bullet3 = objectManager.MakeObj("BulletBossA");//총알 생성
+        bullet3.transform.position = transform.position + Vector3.right * 0.4f;
+        GameObject bullet4 = objectManager.MakeObj("BulletBossA");//총알 생성
+        bullet4.transform.position = transform.position + Vector3.right * 0.6f;
 
+        Rigidbody2D rigid1 = bullet1.GetComponent<Rigidbody2D>();
+        Rigidbody2D rigid2 = bullet2.GetComponent<Rigidbody2D>();
+        Rigidbody2D rigid3 = bullet3.GetComponent<Rigidbody2D>();
+        Rigidbody2D rigid4 = bullet4.GetComponent<Rigidbody2D>();
+
+        rigid1.AddForce(Vector2.down * 5.0f, ForceMode2D.Impulse);//단위벡터로 (안그러면 크기 1을 넘어가 빠르게 쏘짐)
+        rigid2.AddForce(Vector2.down * 5.0f, ForceMode2D.Impulse);
+        rigid3.AddForce(Vector2.down * 5.0f, ForceMode2D.Impulse);
+        rigid4.AddForce(Vector2.down * 5.0f, ForceMode2D.Impulse);
+
+        //카운터 증가
+        curPatternCount++;
+
+        if(curPatternCount < maxPatternCount[PatternIndex])
+        {
+            Invoke("FireFoward", 2);
+        }else Invoke("Think", 3);
+    }
+    void FireShot()
+    {
+        //5발 공격
+        for(int i = 0; i < 5; i++)
+        {
+            GameObject bullet = objectManager.MakeObj("BulletBossB");
+            bullet.transform.position = transform.position;//적의 위치가 시작위치
+
+            Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
+            Vector2 dirVec = player.transform.position-transform.position;//캐릭터 향한 방향
+            Vector2 ranVec = new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(0f, 2.0f));//랜덤 벡터
+            dirVec += ranVec;
+            rigid.AddForce(dirVec.normalized * 3, ForceMode2D.Impulse);
+
+        }
+        curPatternCount++;
+
+        if (curPatternCount < maxPatternCount[PatternIndex])
+        {
+            Invoke("FireShot", 3.5f);
+        }
+        else Invoke("Think", 3);
+    }
+    void FireArc()
+    {
+        //부채꼴 공격
+        GameObject bullet = objectManager.MakeObj("BulletBossA");
+        bullet.transform.position = transform.position;//적의 위치가 시작위치
+        bullet.transform.rotation = Quaternion.identity;//회전 초기화
+
+        Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
+        Vector2 dirVec = new Vector2(Mathf.Sin(10.0f*Mathf.PI*curPatternCount/maxPatternCount[PatternIndex]),-1.0f);
+        rigid.AddForce(dirVec.normalized * 5, ForceMode2D.Impulse);
+
+        curPatternCount++;
+
+        if (curPatternCount < maxPatternCount[PatternIndex])
+        {
+            Invoke("FireArc", 0.15f);
+        }
+        else Invoke("Think", 3);
+    }
+    void FireAround()
+    {
+        //원 공격
+        int roundNumA = 30;
+        int roundNumB = 20;
+        int roundNum = curPatternCount % 2 == 0 ? roundNumA : roundNumB;//랜덤 횟수
+        for(int i = 0; i < roundNum; i++)
+        {
+            GameObject bullet = objectManager.MakeObj("BulletBossA");
+            bullet.transform.position = transform.position;//적의 위치가 시작위치
+            bullet.transform.rotation = Quaternion.identity;//회전 초기화
+
+            Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
+            Vector2 dirVec = new Vector2(Mathf.Cos(2.0f * Mathf.PI * i/roundNum), Mathf.Sin(2.0f * Mathf.PI * i / roundNum));
+            rigid.AddForce(dirVec.normalized * 2, ForceMode2D.Impulse);
+
+            //날아가는 방향으로 방향 바꾸기
+            Vector3 rotVec = Vector3.forward * 360 * i / roundNum+Vector3.forward*90;
+            bullet.transform.Rotate(rotVec);
+        }
+
+        curPatternCount++;
+
+        if (curPatternCount < maxPatternCount[PatternIndex])
+        {
+            Invoke("FireAround", 0.7f);
+        }
+        else Invoke("Think", 3);
     }
     void Update()
     {
@@ -124,6 +247,7 @@ public class Enemy : MonoBehaviour
         if (health <= 0) return;//예외처리, 이미 죽은건 드랍X
 
         health -= dmg;
+        Debug.Log(health);
         if (enemyName == "B")//보스
         {
             anim.SetTrigger("OnHit");
