@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    GameManager gameManager;
     public string enemyName;
     public float speed;
     public int health;
@@ -33,6 +34,7 @@ public class Enemy : MonoBehaviour
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        gameManager = GetComponent<GameManager>();
 
         if (enemyName == "B")
         {
@@ -174,7 +176,7 @@ public class Enemy : MonoBehaviour
         for(int i = 0; i < roundNum; i++)
         {
             GameObject bullet = objectManager.MakeObj("BulletBossA");
-            bullet.transform.position = transform.position;//적의 위치가 시작위치
+            bullet.transform.position = this.gameObject.transform.position;//적의 위치가 시작위치
             bullet.transform.rotation = Quaternion.identity;//회전 초기화
 
             Rigidbody2D rigid = bullet.GetComponent<Rigidbody2D>();
@@ -289,7 +291,9 @@ public class Enemy : MonoBehaviour
 
             this.gameObject.SetActive(false);//사망
             transform.rotation = Quaternion.identity;//기본 회전값 0
-            //Destroy(this.gameObject);//사망
+            
+            //Boss가 죽음 -> 스테이지 종료
+            if(enemyName == "B") gameManager.StageEnd();
         }
     }
     void ReturnSprite()
