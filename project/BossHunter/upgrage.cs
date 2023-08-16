@@ -13,6 +13,17 @@ public class Upgrage : MonoBehaviour
     Color doubleColor;
     Color avengerColor;
 
+    //각 스킬 레벨
+    const int maxSkillLv = 20;
+    public int luckySevenLv;
+    public int tripleThrowLv;
+    public int avengerLv;
+    public int skillPoint;
+    [SerializeField] Text luckySevenLvText;
+    [SerializeField] Text tripleThrowLvText;
+    [SerializeField] Text avengerLvText;
+    [SerializeField] Text skillPointText;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -26,6 +37,10 @@ public class Upgrage : MonoBehaviour
         avengerColor.a = 0.3f;
         messageBox.SetActive(false);//처음엔 메세지창 끄기
         skillIndex.SetActive(false);
+
+        luckySevenLv = 0;
+        tripleThrowLv = 0;
+        avengerLv = 0;
     }
 
     public void Upgrade()
@@ -78,6 +93,11 @@ public class Upgrage : MonoBehaviour
     public void OnSkillIndex()
     {
         skillIndex.SetActive(true);
+        //정보들
+        luckySevenLvText.text = "LV : " + luckySevenLv;
+        tripleThrowLvText.text = "LV : " + tripleThrowLv;
+        avengerLvText.text = "LV : " + avengerLv;
+        skillPointText.text = "Point : " + skillPoint;
         Time.timeScale = 0.0f;//일시 정지
     }
     //메세지 끄기(스킬창)
@@ -85,5 +105,74 @@ public class Upgrage : MonoBehaviour
     {
         skillIndex.SetActive(false);
         Time.timeScale = 1.0f;//다시 정상 시간으로
+    }
+
+    //스킬 레벨업
+    public void LuckySevenLevelUp()
+    {
+        if (skillPoint < 1) return;//스킬 포인트 부족
+        if (luckySevenLv < maxSkillLv)
+        {
+            luckySevenLv++;
+            skillPoint--;
+            luckySevenLvText.text = "LV : " + luckySevenLv;
+            skillPointText.text = "Point : " + skillPoint;
+
+            //투명도 변경
+            if (luckySevenLv == 1)
+            {
+                doubleColor.a = 1;
+                skillManager.doubleSkill.color = doubleColor;
+            }
+        }
+        if (luckySevenLv == maxSkillLv) luckySevenLvText.text = "LV : Max";
+    }
+    public void TripleStepLevelUp()
+    {
+        if (skillPoint < 1) return;//스킬 포인트 부족
+        if (luckySevenLv < maxSkillLv)//선행 스킬 부족
+        {
+            OnMessage();
+            return;
+        }
+        if (tripleThrowLv < maxSkillLv)
+        {
+            tripleThrowLv++;
+            skillPoint--;
+            tripleThrowLvText.text = "LV : " + tripleThrowLv;
+            skillPointText.text = "Point : " + skillPoint;
+
+            //투명도 변경
+            if (tripleThrowLv == 1)
+            {
+                tripleColor.a = 1.0f;
+                skillManager.tripleSkill.color = tripleColor;//색의 구조체 자체를 변경해야함(수정 내용 반영)
+            }
+        }
+        if(tripleThrowLv == maxSkillLv) tripleThrowLvText.text = "LV : Max";
+    }
+    public void AvengerLevelUp()
+    {
+        if (skillPoint < 1) return;//스킬 포인트 부족
+        if (tripleThrowLv < 10)//선행 스킬 부족
+        {
+            OnMessage();
+            return;
+        }
+        if (avengerLv < maxSkillLv)
+        {
+            avengerLv++;
+            skillPoint--;
+            avengerLvText.text = "LV : " + avengerLv;
+            skillPointText.text = "Point : " + skillPoint;
+
+            //투명도 변경
+            if (avengerLv == 1)
+            {
+                avengerColor.a = 1.0f;
+                skillManager.avengerSkill.color = avengerColor;//색의 구조체 자체를 변경해야함(수정 내용 반영)
+            }
+        }
+        if (avengerLv == maxSkillLv) avengerLvText.text = "LV : Max";
     }
 }
