@@ -5,9 +5,12 @@ using UnityEngine.UI;
 
 public class BossHit : MonoBehaviour
 {
+    Upgrage upgrade;
     Manager manager;
     SkillManager skillmgr;
 
+    const int Per100 = 100;
+    const int WorkManShip = 80;//숙련도
     private float delayTime = 0.7f;
     int weight;//가중치
     [SerializeField] Text damage;
@@ -18,6 +21,8 @@ public class BossHit : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        upgrade = GameObject.Find("Upgrade").GetComponent<Upgrage>();//Upgrade 스크립트에서 변수 가져오기
+
         damage.text = "";
         damage2.text = "";
         damage3.text = "";
@@ -35,25 +40,25 @@ public class BossHit : MonoBehaviour
         if(collision.gameObject.tag == "Dragger")//충돌시 데미지띄우고 경험치 먹기
         {
             StartCoroutine(LookDamage());
-            weight = 10;
+            weight = 100;
             isHit = true;
         }else if(collision.gameObject.tag == "Double")//충돌시 데미지띄우고 경험치 먹기
         {
             StartCoroutine(LookDoubleDamage());
             isHit = true;
-            weight = 12;
+            weight = 120+4*(upgrade.luckySevenLv/4);//메소, 경험치 획득 보너스
         }
         else if (collision.gameObject.tag == "Triple")//충돌시 데미지띄우고 경험치 먹기
         {
             StartCoroutine(LookTripleDamage());
             isHit = true;
-            weight = 15;
+            weight = 150+5*(upgrade.tripleThrowLv/3);
         }
         else if (collision.gameObject.tag == "Avenger")//충돌시 데미지띄우고 경험치 먹기
         {
             StartCoroutine(LookAvengerDamage());
             isHit = true;
-            weight = 18;
+            weight = 180+5*(upgrade.avengerLv/3);
         }
     }
     
@@ -61,9 +66,10 @@ public class BossHit : MonoBehaviour
     {
         if (isHit)
         {
-            manager.meso += (manager.getMoney*weight/10);
-            manager.curExp += (manager.userAttack*weight/10);
+            manager.meso += (manager.getMoney*weight/Per100);
+            manager.curExp += (manager.userAttack*weight/Per100);
             isHit = false;
+            manager.LevelUP();//일정 경험치를 넘으면 자동 레벨업
         }
     }
     
@@ -77,7 +83,8 @@ public class BossHit : MonoBehaviour
     
     IEnumerator LookDoubleDamage()
     {
-        int doubleDamage = Random.Range(manager.userAttack*11/10, manager.userAttack*13/10);
+        int perDamage = 50+5*upgrade.luckySevenLv;//퍼뎀
+        int doubleDamage = Random.Range(manager.userAttack*perDamage*WorkManShip/Per100, manager.userAttack*perDamage)/Per100;
         damage.text = doubleDamage.ToString();
         damage2.text = doubleDamage.ToString();
         Debug.Log(damage2.transform.position);
@@ -88,7 +95,8 @@ public class BossHit : MonoBehaviour
     
     IEnumerator LookTripleDamage()
     {
-        int tripleDamage = Random.Range(manager.userAttack*8/7, manager.userAttack * 3 / 2);
+        int perDamage = 110+4*upgrade.tripleThrowLv;//퍼뎀
+        int tripleDamage = Random.Range(manager.userAttack*perDamage*WorkManShip/Per100, manager.userAttack * perDamage)/Per100;
         damage.text = tripleDamage.ToString();
         damage2.text = tripleDamage.ToString();
         damage3.text = tripleDamage.ToString();
@@ -99,7 +107,8 @@ public class BossHit : MonoBehaviour
     }
     IEnumerator LookAvengerDamage()
     {
-        int avengerDamage = Random.Range(manager.userAttack * 5,manager.userAttack*6);
+        int perDamage = 540+11*upgrade.avengerLv;//퍼뎀
+        int avengerDamage = Random.Range(manager.userAttack * perDamage*WorkManShip/Per100,manager.userAttack*perDamage)/Per100;
         damage.text = avengerDamage.ToString();
         yield return new WaitForSecondsRealtime(delayTime);
         damage.text = "";
