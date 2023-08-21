@@ -8,6 +8,12 @@ public class GamaManager : MonoBehaviour
 {
     private static GamaManager _instance;//전체 게임 총괄
 
+    UIManager _uiManager = new UIManager();
+    DataManager _dataManager = new DataManager();
+    ResourceManager _reSourceManager = new ResourceManager();
+    AttackManager _attackManager = new AttackManager();
+    ObjectManager _objectManager = new ObjectManager();
+
     //싱글톤
     public static GamaManager Instance
     {
@@ -17,6 +23,13 @@ public class GamaManager : MonoBehaviour
             return _instance;
         }
     }
+
+    //UI는 1개
+    public static UIManager UI{get { return Instance._uiManager; }}
+    public static DataManager Data { get { return Instance._dataManager; } }
+    public static ResourceManager Resource { get { return Instance._reSourceManager; } }
+    public static AttackManager Attack { get { return Instance._attackManager; } }
+    public static ObjectManager Object { get { return Instance._objectManager; } }
 
     //초기화(싱글톤 적용)
     static void Init()
@@ -32,6 +45,12 @@ public class GamaManager : MonoBehaviour
             DontDestroyOnLoad(gameManager);//파괴 방지
 
             _instance = gameManager.GetComponent<GamaManager>();
+            _instance._uiManager.Init();//UI초기화
+
+            //재화
+            _instance.money = 0;
+            _instance.StartCoroutine(_instance.GetMoney());
+
         }
     }
     // Start is called before the first frame update
@@ -45,4 +64,28 @@ public class GamaManager : MonoBehaviour
     {
         
     }
+    IEnumerator GetMoney()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(0.5f);
+            Money += 5;
+        }
+        
+    }
+    #region 공유데이터
+    int money = 0;
+    int attack = 1;
+    int score = 0;
+    int life = 5;
+    float playerSpeed = 3.0f;//이동속도
+    public static readonly int[] GETMOBEY = new int[5] { 1, 2, 3, 4, 5 };
+    public static readonly string Name = "대사희";
+
+    public float PlayerSpeed { get { return Instance.playerSpeed; }set { Instance.playerSpeed = value; } }
+    public int startAttack { get { return Instance.attack; }set { Instance.attack = value; } }
+    public int Money { get { return Instance.money; }set { Instance.money = value; } }
+    public int Score { get { return Instance.score; } set { Instance.score = value; } }
+    public int Life { get { return Instance.life; }set { Instance.life = value; } }
+    #endregion 
 }
