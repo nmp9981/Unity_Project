@@ -4,11 +4,16 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
+    public ObjectManager objectManager;
+    
     public int health;
     public string enemyName;
     public Sprite[] spriteImage;
 
-    float coolTime = 0.2f;
+    public GameObject bullet1;
+
+    float enemySpeed = 1.7f;
+    float coolTime = 1.0f;
     float curTime;
     float shootSpeed = 5.0f;
 
@@ -17,7 +22,7 @@ public class EnemyManager : MonoBehaviour
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-
+        
     }
 
     //컴포넌트 활성화할때 호출
@@ -34,15 +39,31 @@ public class EnemyManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        MoveEnemy();//이동
         Shoot();//총알 쏘기
         Reload();//장전
+    }
+    //이동
+    private void MoveEnemy()
+    {
+        this.gameObject.transform.Translate(Vector3.down * enemySpeed*Time.deltaTime);
     }
     //총알 쏘기
     void Shoot()
     {
         if (coolTime > curTime) return;//쿨타임 안됨
-
+        
         curTime = 0.0f;
+        switch (enemyName)
+        {
+            case "EnemyA":
+                GameObject bullet1 = objectManager.MakeGameObject("EnemyBulletA");//총알 소환
+                bullet1.transform.position = this.gameObject.transform.position;
+
+                Rigidbody2D rigid = bullet1.GetComponent<Rigidbody2D>();
+                rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//앞으로 쏘기
+                break;
+        }
     }
 
     //장전
