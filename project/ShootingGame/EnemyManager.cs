@@ -22,7 +22,7 @@ public class EnemyManager : MonoBehaviour
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
+        objectManager = GameObject.Find("ObjectManager").GetComponent<ObjectManager>();
     }
 
     //컴포넌트 활성화할때 호출
