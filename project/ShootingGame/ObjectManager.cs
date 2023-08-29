@@ -9,11 +9,13 @@ public class ObjectManager : MonoBehaviour
     //프리팹 준비
     public GameObject playerBulletA_Prefab;//플레이어 총알
     public GameObject enemyA_Prefab;//적기
+    public GameObject enemyB_Prefab;
     public GameObject enemyBulletA_Prefab;//적 총알
 
     //오브젝트 배열
     GameObject[] playerBulletA;
     GameObject[] enemyA;
+    GameObject[] enemyB;
     GameObject[] enemyBulletA;
 
     //타겟 오브젝트
@@ -24,6 +26,7 @@ public class ObjectManager : MonoBehaviour
     {
         playerBulletA = new GameObject[bulletMaxCount];
         enemyA = new GameObject[enemyMaxCount];
+        enemyB = new GameObject[enemyMaxCount];
         enemyBulletA = new GameObject[bulletMaxCount];
         Generate();//생성
     }
@@ -49,12 +52,16 @@ public class ObjectManager : MonoBehaviour
             enemyA[i] = Instantiate(enemyA_Prefab);//프리팹 필요
             enemyA[i].SetActive(false);//처음엔 비활성화
         }
+        for (int i = 0; i < enemyB.Length; i++)
+        {
+            enemyB[i] = Instantiate(enemyB_Prefab);//프리팹 필요
+            enemyB[i].SetActive(false);//처음엔 비활성화
+        }
     }
-
+   
     //오브젝트 생성
     public GameObject MakeGameObject(string type)
     {
-        Debug.Log(type);
         switch (type)
         {
             case "BulletPlayerA":
@@ -63,11 +70,14 @@ public class ObjectManager : MonoBehaviour
             case "EnemyA":
                 targetPool = enemyA;
                 break;
+            case "EnemyB":
+                targetPool = enemyB;
+                break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
                 break;
         }
-        Debug.Log(targetPool);
+        
         for(int i = 0; i < targetPool.Length; i++)
         {
             //활성화후 넘김
@@ -90,6 +100,9 @@ public class ObjectManager : MonoBehaviour
             case "EnemyA":
                 targetPool = enemyA;
                 break;
+            case "EnemyB":
+                targetPool = enemyB;
+                break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
                 break;
@@ -97,4 +110,3 @@ public class ObjectManager : MonoBehaviour
         return targetPool;
     }
 }
-
