@@ -4,18 +4,19 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
-    public ObjectManager objectManager;
+    ObjectManager objectManager;
     
     public int health;
+    public int attack;
     public string enemyName;
     public Sprite[] spriteImage;
 
     public GameObject bullet1;
 
     float enemySpeed = 1.7f;
-    float coolTime = 1.0f;
+    float coolTime = 2.0f;
     float curTime;
-    float shootSpeed = 5.0f;
+    float shootSpeed = 2.5f;
 
     SpriteRenderer spriteRenderer;//이미지 변경
     // Start is called before the first frame update
@@ -24,7 +25,7 @@ public class EnemyManager : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         objectManager = GameObject.Find("ObjectManager").GetComponent<ObjectManager>();
     }
-
+    
     //컴포넌트 활성화할때 호출
     private void OnEnable()
     {
@@ -32,6 +33,11 @@ public class EnemyManager : MonoBehaviour
         {
             case "EnemyA":
                 health = 4;
+                attack = 1;
+                break;
+            case "EnemyB":
+                health = 7;
+                attack = 2;
                 break;
         }
         
@@ -62,6 +68,13 @@ public class EnemyManager : MonoBehaviour
 
                 Rigidbody2D rigid = bullet1.GetComponent<Rigidbody2D>();
                 rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//앞으로 쏘기
+                break;
+            case "EnemyB":
+                GameObject bullet2 = objectManager.MakeGameObject("EnemyBulletA");//총알 소환
+                bullet2.transform.position = this.gameObject.transform.position;
+
+                Rigidbody2D rigid2 = bullet2.GetComponent<Rigidbody2D>();
+                rigid2.AddForce(Vector3.down * (shootSpeed+0.5f), ForceMode2D.Impulse);//앞으로 쏘기
                 break;
         }
     }
@@ -99,7 +112,7 @@ public class EnemyManager : MonoBehaviour
         }
         else if(collision.tag == "PlayerBullet")//캐릭터한테 맞음
         {
-            OnHit(1);
+            OnHit(GamaManager.Instance.startAttack);
             collision.gameObject.SetActive(false);//총알이 사라짐
         }
     }
