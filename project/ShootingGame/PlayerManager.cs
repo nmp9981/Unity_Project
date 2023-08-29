@@ -6,12 +6,13 @@ using UnityEngine.UI;
 public class PlayerManager : MonoBehaviour
 {
     GamaManager gamaManager;
+    
     [SerializeField] GameObject HpSlider;
     [SerializeField] GameObject HPBar;
     [SerializeField] Text HPInfo;
-
+    
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         
     }
@@ -26,10 +27,14 @@ public class PlayerManager : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        //적 총알에 맞음
-        if(collision.tag == "EnemyBullet")
+        //적 or 적 총알에 맞음
+        if(collision.tag == "EnemyBullet" || collision.tag == "Enemy")
         {
+            if (collision.tag == "Enemy") GamaManager.Instance.HP -= 1;//적 몸체에 맞으면 추가 데미지
+
             GamaManager.Instance.HP -= 1;
+            this.gameObject.SetActive(false);//피격하면 잠시 무적
+            Invoke("ChangeImage", 0.3f);
         }
 
         if(GamaManager.Instance.HP <= 0)
@@ -37,4 +42,9 @@ public class PlayerManager : MonoBehaviour
             GamaManager.Instance.GameOver();
         }
     }
+    void ChangeImage()
+    {
+        this.gameObject.SetActive(true);//원래대로
+    }
 }
+
