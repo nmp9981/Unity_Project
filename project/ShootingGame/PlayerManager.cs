@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class PlayerManager : MonoBehaviour
 {
     GamaManager gamaManager;
+    ItemManager itemManager;
     
     [SerializeField] GameObject HpSlider;
     [SerializeField] GameObject HPBar;
@@ -14,7 +15,7 @@ public class PlayerManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        
+        itemManager = GameObject.Find("ItemManager").GetComponent<ItemManager>();
     }
 
     // Update is called once per frame
@@ -36,7 +37,12 @@ public class PlayerManager : MonoBehaviour
             this.gameObject.SetActive(false);//피격하면 잠시 무적
             Invoke("ChangeImage", 0.3f);
         }
-
+        //득템
+        if(collision.tag == "Item")
+        {
+            itemManager.GetItem(collision.gameObject.name);
+            collision.gameObject.SetActive(false);//충돌한 오브젝트 비활성화
+        }
         if(GamaManager.Instance.HP <= 0)
         {
             GamaManager.Instance.GameOver();
@@ -47,4 +53,3 @@ public class PlayerManager : MonoBehaviour
         this.gameObject.SetActive(true);//원래대로
     }
 }
-
