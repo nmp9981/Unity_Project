@@ -13,6 +13,7 @@ public class GamaManager : MonoBehaviour
     ResourceManager _reSourceManager = new ResourceManager();
     AttackManager _attackManager = new AttackManager();
     ObjectManager _objectManager = new ObjectManager();
+    ResPawnManager _reSpawnManager = new ResPawnManager();
 
     //싱글톤
     public static GamaManager Instance
@@ -73,11 +74,18 @@ public class GamaManager : MonoBehaviour
         }
         
     }
+    public void GameOver()
+    {
+        Time.timeScale = 0.0f;
+    }
     #region 공유데이터
     int money = 0;
-    int attack = 1;
+    int attack = 2;
+    int hitDamage = 1;
     int score = 0;
-    int life = 5;
+    int fullHP = 14;
+    int hp = 14;
+    int healHP = 2;
     float playerSpeed = 3.0f;//이동속도
     public static readonly int[] GETMOBEY = new int[5] { 1, 2, 3, 4, 5 };
     public static readonly string Name = "대사희";
@@ -86,6 +94,9 @@ public class GamaManager : MonoBehaviour
     public int startAttack { get { return Instance.attack; }set { Instance.attack = value; } }
     public int Money { get { return Instance.money; }set { Instance.money = value; } }
     public int Score { get { return Instance.score; } set { Instance.score = value; } }
-    public int Life { get { return Instance.life; }set { Instance.life = value; } }
+    public int FullHP { get { return Instance.fullHP; }set { Instance.fullHP = value; } }
+    public int HP { get { return Instance.hp; } set { Instance.hp = value; } }
+    public int HitDamage { get { return Instance.hitDamage; } set { Instance.hitDamage = value; } }
+    public int HealHP { get { return healHP; } }
     #endregion 
 }
