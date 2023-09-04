@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EnemyManager : MonoBehaviour
 {
     ObjectManager objectManager;
-    
+    UIManager uiManager;
+    DamageText damageText;
+
     public int health;
     public int attack;
     public string enemyName;
@@ -22,8 +25,11 @@ public class EnemyManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        uiManager = GameObject.Find("UIManager").GetComponent<UIManager>();
+        damageText = GameObject.Find("DamageText").GetComponent<DamageText>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         objectManager = GameObject.Find("ObjectManager").GetComponent<ObjectManager>();
+        
     }
     
     //컴포넌트 활성화할때 호출
@@ -88,8 +94,12 @@ public class EnemyManager : MonoBehaviour
     private void OnHit(int dmg)
     {
         health -= dmg;
-        if(health <= 0)//사망 처리
+        Debug.Log(dmg);
+        damageText.DamageTextOn(dmg,this.gameObject.transform.position);
+        if (health <= 0)//사망 처리
         {
+            uiManager.getScore(enemyName);
+            DropItem();//아이템 드랍
             this.gameObject.SetActive(false);
             transform.rotation = Quaternion.identity;//기본 회전값 0
         }
@@ -99,6 +109,7 @@ public class EnemyManager : MonoBehaviour
             Invoke("ChangeImage", 0.1f);
         }
     }
+    
     void ChangeImage()
     {
         spriteRenderer.sprite = spriteImage[0];//원래대로
@@ -110,10 +121,41 @@ public class EnemyManager : MonoBehaviour
             this.gameObject.SetActive(false);
             transform.rotation = Quaternion.identity;
         }
-        else if(collision.tag == "PlayerBullet")//캐릭터한테 맞음
+        else if(collision.tag == "PlayerBullet")//캐릭터 총알한테 맞음
         {
             OnHit(GamaManager.Instance.startAttack);
             collision.gameObject.SetActive(false);//총알이 사라짐
         }
     }
+    //드랍 아이템
+    void DropItem()
+    {
+        //드랍울 설정
+        int dropProb = Random.Range(0, 100);
+        
+        if(dropProb >= 77)
+        {
+            GameObject powerUp = objectManager.MakeGameObject("PowerItem");//파워 업
+            powerUp.transform.position = this.gameObject.transform.position;
+
+            Rigidbody2D rigid = powerUp.GetComponent<Rigidbody2D>();
+            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+        }else if(dropProb >= 52)
+        {
+            GameObject posion = objectManager.MakeGameObject("PosionItem");//회복
+            posion.transform.position = this.gameObject.transform.position;
+
+            Rigidbody2D rigid = posion.GetComponent<Rigidbody2D>();
+            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+        }
+        else
+        {
+            GameObject coin = objectManager.MakeGameObject("PosionItem");//돈
+            coin.transform.position = this.gameObject.transform.position;
+
+            Rigidbody2D rigid = coin.GetComponent<Rigidbody2D>();
+            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+        }
+    }
+
 }
