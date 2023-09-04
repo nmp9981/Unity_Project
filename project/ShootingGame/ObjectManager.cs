@@ -12,7 +12,9 @@ public class ObjectManager : MonoBehaviour
     public GameObject playerBulletA_Prefab;//플레이어 총알
     public GameObject enemyA_Prefab;//적기
     public GameObject enemyB_Prefab;
+    public GameObject enemyC_Prefab;
     public GameObject enemyBulletA_Prefab;//적 총알
+    public GameObject enemyBulletB_Prefab;
     public GameObject powerPrebab;//파워 아이템
     public GameObject posionPrebab;//포션 아이템
     public GameObject coinPrefab;//코인 아이템
@@ -21,7 +23,9 @@ public class ObjectManager : MonoBehaviour
     GameObject[] playerBulletA;
     GameObject[] enemyA;
     GameObject[] enemyB;
+    GameObject[] enemyC;
     GameObject[] enemyBulletA;
+    GameObject[] enemyBulletB;
     GameObject[] powerItem;
     GameObject[] posionItem;
     GameObject[] coinItem;
@@ -35,7 +39,9 @@ public class ObjectManager : MonoBehaviour
         playerBulletA = new GameObject[bulletMaxCount];
         enemyA = new GameObject[enemyMaxCount];
         enemyB = new GameObject[enemyMaxCount];
+        enemyC = new GameObject[enemyMaxCount];
         enemyBulletA = new GameObject[bulletMaxCount];
+        enemyBulletB = new GameObject[bulletMaxCount];
         powerItem = new GameObject[itemMaxCount];
         posionItem = new GameObject[itemMaxCount];
         coinItem = new GameObject[itemMaxCount];
@@ -57,6 +63,11 @@ public class ObjectManager : MonoBehaviour
             enemyBulletA[i] = Instantiate(enemyBulletA_Prefab);
             enemyBulletA[i].SetActive(false);
         }
+        for(int i = 0; i < enemyBulletB.Length; i++)
+        {
+            enemyBulletB[i] = Instantiate(enemyBulletB_Prefab);
+            enemyBulletB[i].SetActive(false);
+        }
         //적
         for (int i = 0; i < enemyA.Length; i++)
         {
@@ -67,6 +78,11 @@ public class ObjectManager : MonoBehaviour
         {
             enemyB[i] = Instantiate(enemyB_Prefab);//프리팹 필요
             enemyB[i].SetActive(false);//처음엔 비활성화
+        }
+        for(int i = 0; i < enemyC.Length; i++)
+        {
+            enemyC[i] = Instantiate(enemyC_Prefab);//프리팹 필요
+            enemyC[i].SetActive(false);//처음엔 비활성화
         }
         //아이템
         for(int i = 0; i < powerItem.Length; i++)
@@ -100,8 +116,14 @@ public class ObjectManager : MonoBehaviour
             case "EnemyB":
                 targetPool = enemyB;
                 break;
+            case "EnemyC":
+                targetPool = enemyC;
+                break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
+                break;
+            case "EnemyBulletB":
+                targetPool = enemyBulletB;
                 break;
             case "PowerItem":
                 targetPool = powerItem;
@@ -138,8 +160,14 @@ public class ObjectManager : MonoBehaviour
             case "EnemyB":
                 targetPool = enemyB;
                 break;
+            case "EnemyC":
+                targetPool = enemyC;
+                break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
+                break;
+            case "EnemyBulletB":
+                targetPool = enemyBulletB;
                 break;
             case "PowerItem":
                 targetPool = powerItem;
