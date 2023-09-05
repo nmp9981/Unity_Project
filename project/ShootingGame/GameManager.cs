@@ -74,10 +74,8 @@ public class GamaManager : MonoBehaviour
         }
         
     }
-    public void GameOver()
-    {
-        Time.timeScale = 0.0f;
-    }
+    
+
     #region 공유데이터
     int money = 0;
     int attack = 2;
@@ -86,7 +84,9 @@ public class GamaManager : MonoBehaviour
     int fullHP = 14;
     int hp = 14;
     int healHP = 2;
+    int stage = 1;
     float playerSpeed = 3.0f;//이동속도
+    public static readonly int[] GETDAMAGE = new int[3] { 1,2,4 };
     public static readonly int[] GETMOBEY = new int[5] { 1, 2, 3, 4, 5 };
     public static readonly string Name = "대사희";
 
@@ -98,5 +98,7 @@ public class GamaManager : MonoBehaviour
     public int HP { get { return Instance.hp; } set { Instance.hp = value; } }
     public int HitDamage { get { return Instance.hitDamage; } set { Instance.hitDamage = value; } }
     public int HealHP { get { return healHP; } }
+    public int Stage { get { return Instance.stage; } set { Instance.stage = value; } }
     #endregion 
 }
+
