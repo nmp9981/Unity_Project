@@ -45,6 +45,14 @@ public class EnemyManager : MonoBehaviour
                 health = 7;
                 attack = 2;
                 break;
+            case "EnemyC":
+                health = 13;
+                attack = 4;
+                break;
+            case "EnemyD":
+                health = 22;
+                attack = 6;
+                break;
         }
         
     }
@@ -82,6 +90,20 @@ public class EnemyManager : MonoBehaviour
                 Rigidbody2D rigid2 = bullet2.GetComponent<Rigidbody2D>();
                 rigid2.AddForce(Vector3.down * (shootSpeed+0.5f), ForceMode2D.Impulse);//앞으로 쏘기
                 break;
+            case "EnemyC":
+                GameObject bullet3 = objectManager.MakeGameObject("EnemyBulletB");//총알 소환
+                bullet3.transform.position = this.gameObject.transform.position;
+
+                Rigidbody2D rigid3 = bullet3.GetComponent<Rigidbody2D>();
+                rigid3.AddForce(Vector3.down * (shootSpeed + 0.3f), ForceMode2D.Impulse);//앞으로 쏘기
+                break;
+            case "EnemyD":
+                GameObject bullet4 = objectManager.MakeGameObject("EnemyBulletB");//총알 소환
+                bullet4.transform.position = this.gameObject.transform.position;
+
+                Rigidbody2D rigid4 = bullet4.GetComponent<Rigidbody2D>();
+                rigid4.AddForce(Vector3.down * (shootSpeed + 0.4f), ForceMode2D.Impulse);//앞으로 쏘기
+                break;
         }
     }
 
@@ -94,8 +116,6 @@ public class EnemyManager : MonoBehaviour
     private void OnHit(int dmg)
     {
         health -= dmg;
-        Debug.Log(dmg);
-        damageText.DamageTextOn(dmg,this.gameObject.transform.position);
         if (health <= 0)//사망 처리
         {
             uiManager.getScore(enemyName);
@@ -133,14 +153,14 @@ public class EnemyManager : MonoBehaviour
         //드랍울 설정
         int dropProb = Random.Range(0, 100);
         
-        if(dropProb >= 77)
+        if(dropProb >= 84)
         {
             GameObject powerUp = objectManager.MakeGameObject("PowerItem");//파워 업
             powerUp.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = powerUp.GetComponent<Rigidbody2D>();
             rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
-        }else if(dropProb >= 52)
+        }else if(dropProb >= 67)
         {
             GameObject posion = objectManager.MakeGameObject("PosionItem");//회복
             posion.transform.position = this.gameObject.transform.position;
@@ -150,7 +170,7 @@ public class EnemyManager : MonoBehaviour
         }
         else
         {
-            GameObject coin = objectManager.MakeGameObject("PosionItem");//돈
+            GameObject coin = objectManager.MakeGameObject("CoinItem");//돈
             coin.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = coin.GetComponent<Rigidbody2D>();
