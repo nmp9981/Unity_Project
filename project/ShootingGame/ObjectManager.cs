@@ -20,6 +20,7 @@ public class ObjectManager : MonoBehaviour
     public GameObject powerPrebab;//파워 아이템
     public GameObject posionPrebab;//포션 아이템
     public GameObject coinPrefab;//코인 아이템
+    public GameObject HPUpPrefab;//HP증가 아이템
 
     //오브젝트 배열
     GameObject[] playerBulletA;
@@ -33,6 +34,7 @@ public class ObjectManager : MonoBehaviour
     GameObject[] powerItem;
     GameObject[] posionItem;
     GameObject[] coinItem;
+    GameObject[] hpUpPrefab;
 
     //타겟 오브젝트
     GameObject[] targetPool;
@@ -51,6 +53,7 @@ public class ObjectManager : MonoBehaviour
         powerItem = new GameObject[itemMaxCount];
         posionItem = new GameObject[itemMaxCount];
         coinItem = new GameObject[itemMaxCount];
+        hpUpPrefab = new GameObject[itemMaxCount];
         Generate();//생성
     }
 
@@ -116,6 +119,11 @@ public class ObjectManager : MonoBehaviour
             coinItem[i] = Instantiate(coinPrefab);
             coinItem[i].SetActive(false);
         }
+        for(int i = 0; i < hpUpPrefab.Length; i++)
+        {
+            hpUpPrefab[i] = Instantiate(HPUpPrefab);
+            hpUpPrefab[i].SetActive(false);
+        }
     }
    
     //오브젝트 생성
@@ -155,6 +163,9 @@ public class ObjectManager : MonoBehaviour
                 break;
             case "CoinItem":
                 targetPool = coinItem;
+                break;
+            case "HPUpItem":
+                targetPool = hpUpPrefab;
                 break;
         }
         for(int i = 0; i < targetPool.Length; i++)
@@ -205,6 +216,9 @@ public class ObjectManager : MonoBehaviour
                 break;
             case "CoinItem":
                 targetPool = coinItem;
+                break;
+            case "HPUpItem":
+                targetPool = hpUpPrefab;
                 break;
         }
         return targetPool;
