@@ -34,7 +34,7 @@ public class ObjectManager : MonoBehaviour
     GameObject[] powerItem;
     GameObject[] posionItem;
     GameObject[] coinItem;
-    GameObject[] hpUpPrefab;
+    GameObject[] hpUpItem;
 
     //타겟 오브젝트
     GameObject[] targetPool;
@@ -53,7 +53,7 @@ public class ObjectManager : MonoBehaviour
         powerItem = new GameObject[itemMaxCount];
         posionItem = new GameObject[itemMaxCount];
         coinItem = new GameObject[itemMaxCount];
-        hpUpPrefab = new GameObject[itemMaxCount];
+        hpUpItem = new GameObject[itemMaxCount];
         Generate();//생성
     }
 
@@ -119,10 +119,10 @@ public class ObjectManager : MonoBehaviour
             coinItem[i] = Instantiate(coinPrefab);
             coinItem[i].SetActive(false);
         }
-        for(int i = 0; i < hpUpPrefab.Length; i++)
+        for(int i = 0; i < hpUpItem.Length; i++)
         {
-            hpUpPrefab[i] = Instantiate(HPUpPrefab);
-            hpUpPrefab[i].SetActive(false);
+            hpUpItem[i] = Instantiate(HPUpPrefab);
+            hpUpItem[i].SetActive(false);
         }
     }
    
@@ -165,7 +165,7 @@ public class ObjectManager : MonoBehaviour
                 targetPool = coinItem;
                 break;
             case "HPUpItem":
-                targetPool = hpUpPrefab;
+                targetPool = hpUpItem;
                 break;
         }
         for(int i = 0; i < targetPool.Length; i++)
@@ -218,7 +218,7 @@ public class ObjectManager : MonoBehaviour
                 targetPool = coinItem;
                 break;
             case "HPUpItem":
-                targetPool = hpUpPrefab;
+                targetPool = hpUpItem;
                 break;
         }
         return targetPool;
