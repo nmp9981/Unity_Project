@@ -4,33 +4,29 @@ using UnityEngine;
 
 public class BackGroundScrolling : MonoBehaviour
 {
-    [SerializeField] Transform[] m_tfBackgrounds = null;
-    float m_speed = 3f;
+    [SerializeField] Transform[] m_tfBackgrounds;
+    
+    float viewHeight;//카메라 높이
 
-    float m_leftPosY = 0f;
-    float m_rightPosY = 0f;
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        float t_length = m_tfBackgrounds[0].GetComponent<SpriteRenderer>().sprite.bounds.size.y;
-        m_leftPosY = -t_length;
-        m_rightPosY = t_length;
+        viewHeight = Camera.main.orthographicSize*3;
     }
-
     // Update is called once per frame
     void Update()
     {
-        for(int i = 0; i < m_tfBackgrounds.Length; i++)
+        for (int i = 0; i < m_tfBackgrounds.Length; i++)
         {
-            m_tfBackgrounds[i].position += new Vector3(0, m_speed, 0) * Time.deltaTime;
+            //계속 내려감
+            m_tfBackgrounds[i].position += Vector3.down * GamaManager.Instance.PlayerSpeed * Time.deltaTime;
 
-            if (m_tfBackgrounds[i].position.y < m_leftPosY)
+            //위로 배경을 붙인다.
+            if (m_tfBackgrounds[i].position.y < -viewHeight)
             {
-                Vector3 t_selfPos = m_tfBackgrounds[i].position;
-                t_selfPos.Set(t_selfPos.x, t_selfPos.y + m_rightPosY, t_selfPos.z);
-                m_tfBackgrounds[i].position = t_selfPos;
+                Vector3 nextPos = m_tfBackgrounds[i].position;
+                nextPos = new Vector3(nextPos.x, nextPos.y + 2 * viewHeight, nextPos.z);
+                m_tfBackgrounds[i].position = nextPos;
             }
-            else m_tfBackgrounds[i].position = new Vector3(0,0, 0);
         }
     }
 }
