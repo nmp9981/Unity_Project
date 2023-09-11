@@ -8,6 +8,7 @@ public class ItemManager : MonoBehaviour
     
     public void GetItem(string type)
     {
+        Debug.Log(type);
         switch (type.Substring(0,4))
         {
             case "Coin":
@@ -16,9 +17,13 @@ public class ItemManager : MonoBehaviour
             case "Boom":
                 GamaManager.Instance.startAttack += 1;
                 break;
-            case "Posi":
-                GamaManager.Instance.HP += 2;
-                if(GamaManager.Instance.HP > GamaManager.Instance.FullHP) GamaManager.Instance.HP = GamaManager.Instance.FullHP
+            case "RedP":
+                GamaManager.Instance.HP += GamaManager.Instance.HealHP;
+                if (GamaManager.Instance.HP > GamaManager.Instance.FullHP) GamaManager.Instance.HP = GamaManager.Instance.FullHP;
+                break;
+            case "Blue"://최대 HP증가
+                GamaManager.Instance.FullHP += GamaManager.Instance.RaiseFullHP;
+                GamaManager.Instance.HP += 1;
                 break;
         }
     }
