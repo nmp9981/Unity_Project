@@ -153,14 +153,22 @@ public class EnemyManager : MonoBehaviour
         //드랍울 설정
         int dropProb = Random.Range(0, 100);
         
-        if(dropProb >= 84)
+        if(dropProb >= 96)
+        {
+            GameObject hpUp = objectManager.MakeGameObject("HPUpItem");//파워 업
+            hpUp.transform.position = this.gameObject.transform.position;
+
+            Rigidbody2D rigid = hpUp.GetComponent<Rigidbody2D>();
+            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+        }
+        else if(dropProb >= 81)
         {
             GameObject powerUp = objectManager.MakeGameObject("PowerItem");//파워 업
             powerUp.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = powerUp.GetComponent<Rigidbody2D>();
             rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
-        }else if(dropProb >= 67)
+        }else if(dropProb >= 64)
         {
             GameObject posion = objectManager.MakeGameObject("PosionItem");//회복
             posion.transform.position = this.gameObject.transform.position;
