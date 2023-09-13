@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class UIManager : MonoBehaviour
 {
     PlayerManager playerManager;
+    BackGroundScrolling backGroundScrolling;
     [SerializeField] GameObject _gameOver;//게임 오버
     public TextMeshProUGUI expPoint;
     public TextMeshProUGUI stagePoint;
@@ -16,6 +17,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         playerManager = GameObject.Find("Player").GetComponent<PlayerManager>();
+        backGroundScrolling = GameObject.Find("BackgroundManager").GetComponent<BackGroundScrolling>();
     }
     // Update is called once per frame
     void Update()
@@ -50,6 +52,7 @@ public class UIManager : MonoBehaviour
                 break;
         }
         GamaManager.Instance.HitMonster += 1;//몬스터를 잡음
+        Debug.Log(GamaManager.Instance.HitMonster + "스테이지"+ GamaManager.Instance.GoalMonster);
         if (GamaManager.Instance.HitMonster >= GamaManager.Instance.GoalMonster) NextStage();//스테이지 증가
     }
     //스테이지 증가
@@ -58,6 +61,8 @@ public class UIManager : MonoBehaviour
         GamaManager.Instance.Stage += 1;
         GamaManager.Instance.HitMonster = 0;
         GamaManager.Instance.GoalMonster = 5+GamaManager.Instance.Stage/2;
+        
+        backGroundScrolling.BackGroundChange(GamaManager.Instance.Stage);//배경 변화
     }
     //게임 오버
     public void GameOver()
@@ -76,6 +81,9 @@ public class UIManager : MonoBehaviour
         GamaManager.Instance.Stage = 1;//스테이지 초기화
         GamaManager.Instance.HitMonster = 0;
         GamaManager.Instance.GoalMonster = 5;
+        GamaManager.Instance.FullHP = 14;
+        GamaManager.Instance.startAttack = 2;//공격력 초기화
         GamaManager.Instance.HP = GamaManager.Instance.FullHP;//다시 풀피
+        backGroundScrolling.BackGroundChange(1);//배경 초기화
     }
 }
