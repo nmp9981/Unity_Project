@@ -14,7 +14,7 @@ public class ResPawnManager : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        enemySpawn = new string[] {"EnemyA", "EnemyB","EnemyC","EnemyD"};//적 목록
+        enemySpawn = new string[] {"EnemyA", "EnemyB","EnemyC","EnemyD","EnemyE","EnemyF"};//적 목록
         curTime = 0.0f;
         coolTime = 2.0f;
     }
@@ -34,8 +34,8 @@ public class ResPawnManager : MonoBehaviour
     //적 소환
     void SpawnEnemy()
     {
-        int minIndex = GamaManager.Instance.Stage>4?1:0;
-        int maxIndex = Mathf.Min(4, GamaManager.Instance.Stage);
+        int minIndex = GamaManager.Instance.Stage>8?4: GamaManager.Instance.Stage/3;
+        int maxIndex = Mathf.Min(6, GamaManager.Instance.Stage);
         int enemyIndex = Random.Range(minIndex, maxIndex);//생성 범위
         //생성
         int instiatePos = Random.Range(0, 6);//생성 위치
