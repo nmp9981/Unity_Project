@@ -50,6 +50,12 @@ public class UIManager : MonoBehaviour
             case "EnemyD":
                 GamaManager.Instance.Score += 9;
                 break;
+            case "EnemyE":
+                GamaManager.Instance.Score += 13;
+                break;
+            case "EnemyF":
+                GamaManager.Instance.Score += 18;
+                break;
         }
         GamaManager.Instance.HitMonster += 1;//몬스터를 잡음
         Debug.Log(GamaManager.Instance.HitMonster + "스테이지"+ GamaManager.Instance.GoalMonster);
@@ -83,6 +89,7 @@ public class UIManager : MonoBehaviour
         GamaManager.Instance.GoalMonster = 5;
         GamaManager.Instance.FullHP = 14;
         GamaManager.Instance.startAttack = 2;//공격력 초기화
+        GamaManager.Instance.PowerStack = 1;//총알 단계도 초기화
         GamaManager.Instance.HP = GamaManager.Instance.FullHP;//다시 풀피
         backGroundScrolling.BackGroundChange(1);//배경 초기화
     }
