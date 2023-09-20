@@ -15,6 +15,8 @@ public class ObjectManager : MonoBehaviour
     public GameObject enemyB_Prefab;
     public GameObject enemyC_Prefab;
     public GameObject enemyD_Prefab;
+    public GameObject enemyE_Prefab;
+    public GameObject enemyF_Prefab;
     public GameObject enemyBulletA_Prefab;//적 총알
     public GameObject enemyBulletB_Prefab;
     public GameObject powerPrebab;//파워 아이템
@@ -29,6 +31,8 @@ public class ObjectManager : MonoBehaviour
     GameObject[] enemyB;
     GameObject[] enemyC;
     GameObject[] enemyD;
+    GameObject[] enemyE;
+    GameObject[] enemyF;
     GameObject[] enemyBulletA;
     GameObject[] enemyBulletB;
     GameObject[] powerItem;
@@ -48,6 +52,8 @@ public class ObjectManager : MonoBehaviour
         enemyB = new GameObject[enemyMaxCount];
         enemyC = new GameObject[enemyMaxCount];
         enemyD = new GameObject[enemyMaxCount];
+        enemyE = new GameObject[enemyMaxCount];
+        enemyF = new GameObject[enemyMaxCount];
         enemyBulletA = new GameObject[bulletMaxCount];
         enemyBulletB = new GameObject[bulletMaxCount];
         powerItem = new GameObject[itemMaxCount];
@@ -103,6 +109,16 @@ public class ObjectManager : MonoBehaviour
             enemyD[i] = Instantiate(enemyD_Prefab);//프리팹 필요
             enemyD[i].SetActive(false);//처음엔 비활성화
         }
+        for (int i = 0; i < enemyE.Length; i++)
+        {
+            enemyE[i] = Instantiate(enemyE_Prefab);//프리팹 필요
+            enemyE[i].SetActive(false);//처음엔 비활성화
+        }
+        for (int i = 0; i < enemyF.Length; i++)
+        {
+            enemyF[i] = Instantiate(enemyF_Prefab);//프리팹 필요
+            enemyF[i].SetActive(false);//처음엔 비활성화
+        }
         //아이템
         for (int i = 0; i < powerItem.Length; i++)
         {
@@ -148,6 +164,12 @@ public class ObjectManager : MonoBehaviour
                 break;
             case "EnemyD":
                 targetPool = enemyD;
+                break;
+            case "EnemyE":
+                targetPool = enemyE;
+                break;
+            case "EnemyF":
+                targetPool = enemyF;
                 break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
@@ -201,6 +223,12 @@ public class ObjectManager : MonoBehaviour
                 break;
             case "EnemyD":
                 targetPool = enemyD;
+                break;
+            case "EnemyE":
+                targetPool = enemyE;
+                break;
+            case "EnemyF":
+                targetPool = enemyF;
                 break;
             case "EnemyBulletA":
                 targetPool = enemyBulletA;
