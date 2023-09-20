@@ -20,6 +20,7 @@ public class EnemyManager : MonoBehaviour
     float coolTime = 2.0f;
     float curTime;
     float shootSpeed = 2.5f;
+    float dropSpeed = 2.8f;
 
     SpriteRenderer spriteRenderer;//이미지 변경
     // Start is called before the first frame update
@@ -52,6 +53,14 @@ public class EnemyManager : MonoBehaviour
             case "EnemyD":
                 health = 22;
                 attack = 6;
+                break;
+            case "EnemyE":
+                health = 30;
+                attack = 8;
+                break;
+            case "EnemyF":
+                health = 42;
+                attack = 11;
                 break;
         }
         
@@ -103,6 +112,28 @@ public class EnemyManager : MonoBehaviour
 
                 Rigidbody2D rigid4 = bullet4.GetComponent<Rigidbody2D>();
                 rigid4.AddForce(Vector3.down * (shootSpeed + 0.4f), ForceMode2D.Impulse);//앞으로 쏘기
+                break;
+            case "EnemyE":
+                GameObject bullet51 = objectManager.MakeGameObject("EnemyBulletA");//총알 소환
+                GameObject bullet52 = objectManager.MakeGameObject("EnemyBulletA");//총알 소환
+                bullet51.transform.position = this.gameObject.transform.position+new Vector3(0.2f,0,0);
+                bullet52.transform.position = this.gameObject.transform.position + new Vector3(-0.2f, 0, 0); ;
+
+                Rigidbody2D rigid51 = bullet51.GetComponent<Rigidbody2D>();
+                rigid51.AddForce(Vector3.down * (shootSpeed+0.5f)+Vector3.left*shootSpeed, ForceMode2D.Impulse);//앞으로 쏘기
+                Rigidbody2D rigid52 = bullet52.GetComponent<Rigidbody2D>();
+                rigid52.AddForce(Vector3.down * (shootSpeed + 0.5f) + Vector3.right * shootSpeed, ForceMode2D.Impulse);//앞으로 쏘기
+                break;
+            case "EnemyF":
+                GameObject bullet61 = objectManager.MakeGameObject("EnemyBulletB");//총알 소환
+                GameObject bullet62 = objectManager.MakeGameObject("EnemyBulletB");//총알 소환
+                bullet61.transform.position = this.gameObject.transform.position + new Vector3(0.25f, 0, 0);
+                bullet62.transform.position = this.gameObject.transform.position + new Vector3(-0.25f, 0, 0); ;
+
+                Rigidbody2D rigid61 = bullet61.GetComponent<Rigidbody2D>();
+                rigid61.AddForce(Vector3.down * (shootSpeed + 0.7f) + Vector3.left * (shootSpeed-0.3f), ForceMode2D.Impulse);//앞으로 쏘기
+                Rigidbody2D rigid62 = bullet62.GetComponent<Rigidbody2D>();
+                rigid62.AddForce(Vector3.down * (shootSpeed + 0.7f) + Vector3.right * (shootSpeed-0.3f), ForceMode2D.Impulse);//앞으로 쏘기
                 break;
         }
     }
@@ -159,7 +190,7 @@ public class EnemyManager : MonoBehaviour
             hpUp.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = hpUp.GetComponent<Rigidbody2D>();
-            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+            rigid.AddForce(Vector3.down * dropSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
         }
         else if(dropProb >= 81)
         {
@@ -167,14 +198,14 @@ public class EnemyManager : MonoBehaviour
             powerUp.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = powerUp.GetComponent<Rigidbody2D>();
-            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+            rigid.AddForce(Vector3.down * dropSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
         }else if(dropProb >= 64)
         {
             GameObject posion = objectManager.MakeGameObject("PosionItem");//회복
             posion.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = posion.GetComponent<Rigidbody2D>();
-            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+            rigid.AddForce(Vector3.down * dropSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
         }
         else
         {
@@ -182,7 +213,7 @@ public class EnemyManager : MonoBehaviour
             coin.transform.position = this.gameObject.transform.position;
 
             Rigidbody2D rigid = coin.GetComponent<Rigidbody2D>();
-            rigid.AddForce(Vector3.down * shootSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
+            rigid.AddForce(Vector3.down * dropSpeed, ForceMode2D.Impulse);//밑으로 떨어짐
         }
     }
 
