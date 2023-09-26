@@ -9,9 +9,12 @@ public class Player : MonoBehaviour
     float vAxis;
     bool wDown;
     bool jDown;
+
     bool isJump;
+    bool isDodge;
 
     Vector3 moveVec;
+    Vector3 dodgeVec;//회피중 움직이지 않게
 
     Animator anim;
     Rigidbody rigid;
@@ -30,6 +33,7 @@ public class Player : MonoBehaviour
         Move();//이동
         Turn();//회전
         Jump();//점프
+        Dodge();//회피
     }
 
     //입력
@@ -44,6 +48,8 @@ public class Player : MonoBehaviour
     private void Move()
     {
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+
+        if (isDodge) moveVec = dodgeVec;//회피중일때는 회피방향으로
 
         transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
 
@@ -61,7 +67,8 @@ public class Player : MonoBehaviour
     //점프
     void Jump()
     {
-        if (jDown && !isJump)//점프키 누르고 점프 상태가 아닐때
+        //멈춤상태일때 점프
+        if (jDown && !isJump && moveVec==Vector3.zero && !isDodge)//점프키 누르고 점프 상태가 아닐때
         {
             rigid.AddForce(Vector3.up * 25, ForceMode.Impulse);//즉시점프
             anim.SetBool("isJump", true);
@@ -79,5 +86,26 @@ public class Player : MonoBehaviour
             anim.SetBool("isJump", false);//점프 완료
             isJump = false;
         }
+    }
+    //회피
+    void Dodge()
+    {
+        //움직인 상태일때
+        if (jDown && !isJump && moveVec!=Vector3.zero && !isDodge)//점프키 누르고 점프 상태가 아닐때
+        {
+            dodgeVec = moveVec;
+            speed *= 2;//회피는 이동속도가 2배
+            anim.SetTrigger("doDodge");
+            isDodge = true;
+
+            //회피중 점프 불가
+            Invoke("DodgeOut",0.5f);//회피 상태 종료
+        }
+    }
+    //회피상태 종료
+    void DodgeOut()
+    {
+        speed *= 0.5f;//원래 속도
+        isDodge = false;
     }
 }
