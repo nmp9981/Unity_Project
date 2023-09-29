@@ -219,6 +219,7 @@ public class Player : MonoBehaviour
                     if (health > maxHealth) health = maxHealth;
                     break;
                 case Item.Type.Grenade:
+                    grenades[hasGrenades].SetActive(true);//먹으면 활성화
                     hasGrenades += item.value;
                     if (hasGrenades > maxHasGrenades) hasGrenades = maxHasGrenades;
                     break;
