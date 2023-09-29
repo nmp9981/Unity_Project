@@ -7,6 +7,19 @@ public class Player : MonoBehaviour
     public float speed;
     public GameObject[] weapons;
     public bool[] hasWeapons;//장착 무기
+    public GameObject[] grenades;//공전무기
+    public int hasGrenades;
+
+    //변수 생성
+    public int ammo;
+    public int coin;
+    public int health;
+    
+    //각 수치의 최댓값
+    public int maxAmmo;
+    public int maxCoin;
+    public int maxHealth;
+    public int maxHasGrenades;
 
     float hAxis;
     float vAxis;
@@ -61,11 +74,11 @@ public class Player : MonoBehaviour
         vAxis = Input.GetAxisRaw("Vertical");
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");//단 1회 입력
-        iDown = Input.GetButtonDown("Interation");//E키
-        //장비교체
-        sDown1 = Input.GetButtonDown("Swap1");
-        sDown2 = Input.GetButtonDown("Swap2");
-        sDown3 = Input.GetButtonDown("Swap3");
+        iDown = Input.GetButtonDown("Interation");//e키
+        //장비교체(1~3키)
+        sDown1 = Input.GetButtonDown("Swap1");//1
+        sDown2 = Input.GetButtonDown("Swap2");//2
+        sDown3 = Input.GetButtonDown("Swap3");//3
     }
     //이동
     private void Move()
@@ -183,6 +196,34 @@ public class Player : MonoBehaviour
 
                 Destroy(nearObject);//먹었으면 사라짐
             }
+        }
+    }
+    //아이템 입수
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Item")
+        {
+            Item item = other.GetComponent<Item>();
+            switch (item.type)
+            {
+                case Item.Type.Ammo:
+                    ammo+=item.value;
+                    if (ammo > maxAmmo) ammo = maxAmmo;
+                    break;
+                case Item.Type.Coin:
+                    coin += item.value;
+                    if (coin > maxCoin) coin = maxCoin;
+                    break;
+                case Item.Type.Heart:
+                    health += item.value;
+                    if (health > maxHealth) health = maxHealth;
+                    break;
+                case Item.Type.Grenade:
+                    hasGrenades += item.value;
+                    if (hasGrenades > maxHasGrenades) hasGrenades = maxHasGrenades;
+                    break;
+            }
+            Destroy(other.gameObject);
         }
     }
     //아이템 감지
