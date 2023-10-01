@@ -224,7 +224,7 @@ public class Player : MonoBehaviour
                     if (hasGrenades > maxHasGrenades) hasGrenades = maxHasGrenades;
                     break;
             }
-            Destroy(other.gameObject);
+            Destroy(other.gameObject);//아이템 삭제
         }
     }
     //아이템 감지
