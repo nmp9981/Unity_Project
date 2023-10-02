@@ -27,6 +27,7 @@ public class Player : MonoBehaviour
     bool wDown;
     bool jDown;
     bool iDown;
+    bool fDown;
 
     //장비 교체 키
     bool sDown1;
@@ -36,6 +37,7 @@ public class Player : MonoBehaviour
     bool isJump;
     bool isDodge;
     bool isSwap;
+    bool isFireReady = true;
 
     Vector3 moveVec;
     Vector3 dodgeVec;//회피중 움직이지 않게
@@ -44,8 +46,9 @@ public class Player : MonoBehaviour
     Rigidbody rigid;
 
     GameObject nearObject;//감지된 아이템
-    GameObject equipWeapon;//장착중인 아이템
+    Weapon equipWeapon;//장착중인 아이템
     int equipWeaponIndex = -1;//장착중인 아이템 번호(처음부터 무기를 장착하면 안됨)
+    float fireDelay;//공격 딜레이
 
     // Start is called before the first frame update
     void Awake()
@@ -62,6 +65,7 @@ public class Player : MonoBehaviour
         Move();//이동
         Turn();//회전
         Jump();//점프
+        Attack();//공격
         Dodge();//회피
         Interation();//아이템 습득
         SwapWeapon();//무기교체
@@ -74,6 +78,7 @@ public class Player : MonoBehaviour
         vAxis = Input.GetAxisRaw("Vertical");
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");//단 1회 입력
+        fDown = Input.GetButtonDown("Fire1");
         iDown = Input.GetButtonDown("Interation");//e키
         //장비교체(1~3키)
         sDown1 = Input.GetButtonDown("Swap1");//1
@@ -87,7 +92,8 @@ public class Player : MonoBehaviour
 
         if (isDodge) moveVec = dodgeVec;//회피중일때는 회피방향으로
 
-        if (isSwap) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
+        //교체중 or 공격중이면 움직이지 않게
+        if (isSwap || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
         
         transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
 
@@ -123,6 +129,22 @@ public class Player : MonoBehaviour
         {
             anim.SetBool("isJump", false);//점프 완료
             isJump = false;
+        }
+    }
+    //공격
+    void Attack()
+    {
+        if (equipWeapon == null) return;//공격 하려면 무기는 장착해야함
+
+        fireDelay += Time.deltaTime;
+        isFireReady = equipWeapon.rate < fireDelay;//공속
+
+        //무기 발동조건(우클릭+쿨타임+회피x+교체x)
+        if(fDown && isFireReady && !isDodge && !isSwap)
+        {
+            equipWeapon.Use();//공격
+            anim.SetTrigger("doSwing");//모션 실행
+            fireDelay = 0;
         }
     }
     //회피
@@ -169,11 +191,11 @@ public class Player : MonoBehaviour
         //1~3키를 눌렀을때 교체(단, 점프중이거나 회피중이 아닐떄만)
         if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge)
         {
-            if(equipWeapon!=null) equipWeapon.SetActive(false);//빈손이 아닐때만, 현재 장착중인 무기는 해제
+            if(equipWeapon!=null) equipWeapon.gameObject.SetActive(false);//빈손이 아닐때만, 현재 장착중인 무기는 해제
 
             equipWeaponIndex = weaponIndex;//무기 변경
-            equipWeapon = weapons[weaponIndex];//장작 무기
-            equipWeapon.SetActive(true);
+            equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();//장작 무기
+            equipWeapon.gameObject.SetActive(true);
 
             anim.SetTrigger("doSwap");
             isSwap = true;
