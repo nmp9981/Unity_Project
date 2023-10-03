@@ -60,6 +60,13 @@ public class Player : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         //자식오브젝트의 컴포넌트 가져옴
         anim = GetComponentInChildren<Animator>();
+
+        //무기 장착할때는 빛, 파티클 이펙트 꺼야함
+        for (int i = 0; i < 3; i++)
+        {
+            weapons[i].GetComponentInChildren<Light>().gameObject.SetActive(false);
+            weapons[i].GetComponentInChildren<ParticleSystem>().gameObject.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -95,15 +102,13 @@ public class Player : MonoBehaviour
     private void Move()
     {
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
-        moveVec.y = 0;
-
+        
         if (isDodge) moveVec = dodgeVec;//회피중일때는 회피방향으로
 
         //교체중 or 장전중 or 공격중이면 움직이지 않게
         if (isSwap || isReload || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
         
         transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
-        transform.position = new Vector3(transform.position.x, floor.transform.position.y+1, transform.position.z);
         
         //이동 애니메이션 적용하기
         anim.SetBool("isRun", moveVec != Vector3.zero);//멈춤만 아니면 기본 달리기
@@ -119,7 +124,7 @@ public class Player : MonoBehaviour
         //마우스에 의해 회전
         if (fDown)
         {
-            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
             RaycastHit rayHit;//레이의 정보 저장
             Debug.Log(Physics.Raycast(ray, out rayHit, 1000));
             if (Physics.Raycast(ray, out rayHit, 1000))//ray맞은 위치의 정보를 저장
@@ -244,10 +249,7 @@ public class Player : MonoBehaviour
             equipWeaponIndex = weaponIndex;//무기 변경
             equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();//장작 무기
             equipWeapon.gameObject.SetActive(true);
-            //무기 장착할때는 빛, 파티클 이펙트 꺼야함
-            equipWeapon.GetComponentInChildren<Light>().gameObject.SetActive(false);
-            equipWeapon.GetComponentInChildren<ParticleSystem>().gameObject.SetActive(false);
-
+           
             anim.SetTrigger("doSwap");
             isSwap = true;
             Invoke("SwapOut", 0.4f);
