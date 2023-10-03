@@ -9,9 +9,11 @@ public class Player : MonoBehaviour
     public bool[] hasWeapons;//장착 무기
     public GameObject[] grenades;//공전무기
     public int hasGrenades;
+    public Camera followCamera;//마우스 회전용 카메라(메인 카메라)
+    public GameObject floor;//바닥
 
     //변수 생성
-    public int ammo;
+    public int ammo;//플레이어가 소지하고 있는 총알 개수
     public int coin;
     public int health;
     
@@ -28,6 +30,7 @@ public class Player : MonoBehaviour
     bool jDown;
     bool iDown;
     bool fDown;
+    bool rDown;
 
     //장비 교체 키
     bool sDown1;
@@ -37,6 +40,7 @@ public class Player : MonoBehaviour
     bool isJump;
     bool isDodge;
     bool isSwap;
+    bool isReload;//장전 중인가?
     bool isFireReady = true;
 
     Vector3 moveVec;
@@ -66,6 +70,7 @@ public class Player : MonoBehaviour
         Turn();//회전
         Jump();//점프
         Attack();//공격
+        Reload();//장전
         Dodge();//회피
         Interation();//아이템 습득
         SwapWeapon();//무기교체
@@ -78,7 +83,8 @@ public class Player : MonoBehaviour
         vAxis = Input.GetAxisRaw("Vertical");
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");//단 1회 입력
-        fDown = Input.GetButtonDown("Fire1");
+        fDown = Input.GetButton("Fire1");//키 다운
+        rDown = Input.GetButtonDown("Reload");//장전
         iDown = Input.GetButtonDown("Interation");//e키
         //장비교체(1~3키)
         sDown1 = Input.GetButtonDown("Swap1");//1
@@ -89,14 +95,16 @@ public class Player : MonoBehaviour
     private void Move()
     {
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        moveVec.y = 0;
 
         if (isDodge) moveVec = dodgeVec;//회피중일때는 회피방향으로
 
-        //교체중 or 공격중이면 움직이지 않게
-        if (isSwap || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
+        //교체중 or 장전중 or 공격중이면 움직이지 않게
+        if (isSwap || isReload || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
         
         transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
-
+        transform.position = new Vector3(transform.position.x, floor.transform.position.y+1, transform.position.z);
+        
         //이동 애니메이션 적용하기
         anim.SetBool("isRun", moveVec != Vector3.zero);//멈춤만 아니면 기본 달리기
         anim.SetBool("isWalk", wDown);
@@ -104,9 +112,24 @@ public class Player : MonoBehaviour
     //회전
     void Turn()
     {
-        //회전하기
+        // 키보드에 의해 회전하기
         //지정된 방향을 향해 회전, 우리가 갈 방향으로 회전
         transform.LookAt(this.transform.position + moveVec);
+
+        //마우스에 의해 회전
+        if (fDown)
+        {
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
+            RaycastHit rayHit;//레이의 정보 저장
+            Debug.Log(Physics.Raycast(ray, out rayHit, 1000));
+            if (Physics.Raycast(ray, out rayHit, 1000))//ray맞은 위치의 정보를 저장
+            {
+                Debug.Log("맞음");
+                Vector3 nextVec = rayHit.point - transform.position;//레이가 닿았던 위치 - 내 위치 = 내 위치와 마우스 클릭 지점간 거리(방향)
+                nextVec.y = 0;//높이는 무시해야함
+                transform.LookAt(this.transform.position + nextVec);//플레이어가 바라보는 방향
+            }
+        }
     }
     //점프
     void Jump()
@@ -137,15 +160,40 @@ public class Player : MonoBehaviour
         if (equipWeapon == null) return;//공격 하려면 무기는 장착해야함
 
         fireDelay += Time.deltaTime;
-        isFireReady = equipWeapon.rate < fireDelay;//공속
+        isFireReady = equipWeapon.rate < fireDelay;//공속(공격 가능)
 
         //무기 발동조건(우클릭+쿨타임+회피x+교체x)
         if(fDown && isFireReady && !isDodge && !isSwap)
         {
             equipWeapon.Use();//공격
-            anim.SetTrigger("doSwing");//모션 실행
+            //근접 무기인가? 원격 무기인가에 따라 애니메이션이 달라짐
+            anim.SetTrigger(equipWeapon.type==Weapon.Type.Melee? "doSwing":"doShot");//모션 실행
             fireDelay = 0;
         }
+    }
+    //장전
+    void Reload()
+    {
+        if (equipWeapon == null) return;//무기 미장착
+        if (equipWeapon.type == Weapon.Type.Melee) return;//근접 무기
+        if (ammo == 0) return;//총알이 있어야함
+        
+        //장전 가능 상황(공격이 가능해야함, 장전 중이 아니어야함)
+        if(rDown && !isJump && !isDodge && !isSwap && isFireReady && !isReload)
+        {
+            anim.SetTrigger("doReload");
+            isReload = true;
+
+            Invoke("ReloadOut", 1.5f);
+        }
+    }
+    //장전상태 종료(장전 완료)
+    void ReloadOut()
+    {
+        int reAmmo = ammo < equipWeapon.maxAmmo ? ammo : equipWeapon.maxAmmo;//최대 갯수보다 가지고 있는 총알의 개수가 적을 수도 있다. 
+        equipWeapon.curAmmo = reAmmo;//최대 개수
+        ammo -= reAmmo;
+        isReload = false;
     }
     //회피
     void Dodge()
@@ -196,6 +244,9 @@ public class Player : MonoBehaviour
             equipWeaponIndex = weaponIndex;//무기 변경
             equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();//장작 무기
             equipWeapon.gameObject.SetActive(true);
+            //무기 장착할때는 빛, 파티클 이펙트 꺼야함
+            equipWeapon.GetComponentInChildren<Light>().gameObject.SetActive(false);
+            equipWeapon.GetComponentInChildren<ParticleSystem>().gameObject.SetActive(false);
 
             anim.SetTrigger("doSwap");
             isSwap = true;
@@ -215,7 +266,7 @@ public class Player : MonoBehaviour
                 Item item = nearObject.GetComponent<Item>();
                 int weaponIndex = item.value;
                 hasWeapons[weaponIndex] = true;
-
+                
                 Destroy(nearObject);//먹었으면 사라짐
             }
         }
