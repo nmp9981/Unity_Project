@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
     bool isSwap;
     bool isReload;//장전 중인가?
     bool isFireReady = true;
+    bool isBorder;//경계선에 닿았는가?
 
     Vector3 moveVec;
     Vector3 dodgeVec;//회피중 움직이지 않게
@@ -108,8 +109,9 @@ public class Player : MonoBehaviour
         //교체중 or 장전중 or 공격중이면 움직이지 않게
         if (isSwap || isReload || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
         
-        transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
-        
+        //벽과 충돌하지 않았을 경우에만 이동
+        if(!isBorder) transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
+
         //이동 애니메이션 적용하기
         anim.SetBool("isRun", moveVec != Vector3.zero);//멈춤만 아니면 기본 달리기
         anim.SetBool("isWalk", wDown);
@@ -272,6 +274,22 @@ public class Player : MonoBehaviour
                 Destroy(nearObject);//먹었으면 사라짐
             }
         }
+    }
+    //자동회전 방지
+    void FreezeRotation()
+    {
+        rigid.angularVelocity = Vector3.zero;//회전 속도를 0
+    }
+    //벽 관통 방지
+    void StopToWall()
+    {
+        Debug.DrawRay(transform.position, transform.forward * 4, Color.green);
+        isBorder = Physics.Raycast(transform.position, transform.forward, 4,LayerMask.GetMask("Wall"));//벽과 충돌
+    }
+    private void FixedUpdate()
+    {
+        FreezeRotation();
+        StopToWall();
     }
     //아이템 입수
     private void OnTriggerEnter(Collider other)
