@@ -9,6 +9,7 @@ public class Player : MonoBehaviour
     public bool[] hasWeapons;//장착 무기
     public GameObject[] grenades;//공전무기
     public int hasGrenades;
+    public GameObject granadeObject;
     public Camera followCamera;//마우스 회전용 카메라(메인 카메라)
     public GameObject floor;//바닥
 
@@ -30,6 +31,7 @@ public class Player : MonoBehaviour
     bool jDown;
     bool iDown;
     bool fDown;
+    bool gDown;//수류탄
     bool rDown;
 
     //장비 교체 키
@@ -77,6 +79,7 @@ public class Player : MonoBehaviour
         Move();//이동
         Turn();//회전
         Jump();//점프
+        Grenade();//수류탄
         Attack();//공격
         Reload();//장전
         Dodge();//회피
@@ -92,6 +95,7 @@ public class Player : MonoBehaviour
         wDown = Input.GetButton("Walk");
         jDown = Input.GetButtonDown("Jump");//단 1회 입력
         fDown = Input.GetButton("Fire1");//키 다운
+        gDown = Input.GetButtonDown("Fire2");//수류탄 투척
         rDown = Input.GetButtonDown("Reload");//장전
         iDown = Input.GetButtonDown("Interation");//e키
         //장비교체(1~3키)
@@ -128,10 +132,9 @@ public class Player : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
             RaycastHit rayHit;//레이의 정보 저장
-            Debug.Log(Physics.Raycast(ray, out rayHit, 1000));
-            if (Physics.Raycast(ray, out rayHit, 1000))//ray맞은 위치의 정보를 저장
+            
+            if (Physics.Raycast(ray, out rayHit, 100))//ray맞은 위치의 정보를 저장
             {
-                Debug.Log("맞음");
                 Vector3 nextVec = rayHit.point - transform.position;//레이가 닿았던 위치 - 내 위치 = 내 위치와 마우스 클릭 지점간 거리(방향)
                 nextVec.y = 0;//높이는 무시해야함
                 transform.LookAt(this.transform.position + nextVec);//플레이어가 바라보는 방향
@@ -150,7 +153,33 @@ public class Player : MonoBehaviour
             isJump = true;
         }
     }
+    //수류탄
+    void Grenade()
+    {
+        if (hasGrenades == 0) return;//남은 수류탄이 없음
 
+        //장전중, 교체중일때는 수류탄 사용 불가
+        if(gDown && !isReload && !isSwap)
+        {
+            //마우스를 클릭한 위치에 수류탄을 놓는다.
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
+            RaycastHit rayHit;//레이의 정보 저장
+
+            if (Physics.Raycast(ray, out rayHit, 100))//ray맞은 위치의 정보를 저장(마우스로 클릭한 위치)
+            {
+                Vector3 nextVec = rayHit.point - transform.position;//레이가 닿았던 위치 - 내 위치 = 내 위치와 마우스 클릭 지점간 거리(방향)
+                nextVec.y = 10;//위로 던짐(포물선)
+
+                GameObject instantGrenade = Instantiate(granadeObject,transform.position,transform.rotation);//수류탄 생성
+                Rigidbody rigidGrenade = instantGrenade.GetComponent<Rigidbody>();
+                rigidGrenade.AddForce(nextVec,ForceMode.Impulse);//해당 방향으로 던진다.
+                rigidGrenade.AddTorque(Vector3.back * 10, ForceMode.Impulse);//회전까지
+
+                hasGrenades--;
+                grenades[hasGrenades].SetActive(false);//사용했으면 비활성화
+            }
+        }
+    }
     //플레이어와 충돌시
     private void OnCollisionEnter(Collision collision)
     {
@@ -313,6 +342,7 @@ public class Player : MonoBehaviour
                     break;
                 case Item.Type.Grenade:
                     grenades[hasGrenades].SetActive(true);//먹으면 활성화
+                    grenades[hasGrenades].gameObject.GetComponentInChildren<ParticleSystem>().Stop();//파티클 이펙트는 꺼야함
                     hasGrenades += item.value;
                     if (hasGrenades > maxHasGrenades) hasGrenades = maxHasGrenades;
                     break;
