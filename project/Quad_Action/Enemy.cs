@@ -1,21 +1,52 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
     public int maxHealth;//체력
     public int curHealth;
+    public Transform target;//타겟
+    public bool isChase;//추적 가능한가?
 
     Rigidbody rigid;
     BoxCollider boxCollider;
     Material mat;
+    NavMeshAgent nav;//네비
+    Animator anim;
 
     private void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
-        mat = GetComponent<MeshRenderer>().material;
+        mat = GetComponentInChildren<MeshRenderer>().material;
+        nav = GetComponent<NavMeshAgent>();
+        anim = GetComponentInChildren<Animator>();
+
+        Invoke("ChaseStart",2f);
+    }
+    void ChaseStart()
+    {
+        isChase = true;
+        anim.SetBool("isWalk", true);
+    }
+    private void Update()
+    {
+        if(isChase) nav.SetDestination(target.position);//추적 가능할 때만 목표물 추척
+    }
+    //자동 이동 방지
+    void FreezeVelocity()
+    {
+        if (isChase)//추적이 가능하면
+        {
+            rigid.velocity = Vector3.zero;//속도 0
+            rigid.angularVelocity = Vector3.zero;//회전 속도를 0
+        }
+    }
+    private void FixedUpdate()
+    {
+        FreezeVelocity();//이동을 멈춤
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -58,6 +89,9 @@ public class Enemy : MonoBehaviour
         {
             mat.color = Color.gray;
             gameObject.layer = 14;//레이어 번호 변경(더이상 물리효과 못받게)
+            isChase = false;
+            nav.enabled = false;//네비 비활성화
+            anim.SetTrigger("doDie");
 
             //넉백
             if (isGrenade)
