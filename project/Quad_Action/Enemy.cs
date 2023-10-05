@@ -5,10 +5,17 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
+    public enum Type { A, B, C };//적의 타입을 나눔
+    public Type enemyType;//적의 타입
+
     public int maxHealth;//체력
     public int curHealth;
     public Transform target;//타겟
+    public BoxCollider meleeArea;//근접 공격 범위
+    public GameObject bullet;//적 총알 프리팹
+
     public bool isChase;//추적 가능한가?
+    public bool isAttack;//공격중인가?
 
     Rigidbody rigid;
     BoxCollider boxCollider;
@@ -33,7 +40,12 @@ public class Enemy : MonoBehaviour
     }
     private void Update()
     {
-        if(isChase) nav.SetDestination(target.position);//추적 가능할 때만 목표물 추척
+        if (nav.enabled)//네비가 활성화 일때만
+        {
+            nav.SetDestination(target.position);//추적 가능할 때만 목표물 추척
+            nav.isStopped = !isChase;//추적중이 아니면 멈춤
+        }
+        
     }
     //자동 이동 방지
     void FreezeVelocity()
@@ -44,8 +56,84 @@ public class Enemy : MonoBehaviour
             rigid.angularVelocity = Vector3.zero;//회전 속도를 0
         }
     }
+    //범위 탐색
+    void Targeting()
+    {
+        float targetRadius = 0f;//반지름
+        float targetRange = 0f;//레이캐스트 길이
+
+        switch (enemyType)
+        {
+            case Type.A:
+                targetRadius = 1.5f;//정확도가 낮다
+                targetRange = 3f;//감지범위가 좁다.
+                break;
+            case Type.B:
+                targetRadius = 1f;
+                targetRange = 12f;//감지범위가 넓다.
+                break;
+            case Type.C:
+                targetRadius = 0.5f;//정확도가 높다
+                targetRange = 25f;//감지범위가 넓다.
+                break;
+        }
+        //원으로 raycast를 쏜다.(위치, 반지름, 방향(앞방향), 거리, 목표레이어)
+        RaycastHit[] rayHits = Physics.SphereCastAll(transform.position, targetRadius, transform.forward, targetRange, LayerMask.GetMask("Player"));
+        
+        //공격중이 아닌데, 플레이어가 감지됨
+        if(rayHits.Length>0 && !isAttack)
+        {
+            StartCoroutine(Attack());
+        }
+    }
+    //공격
+    IEnumerator Attack()
+    {
+        isChase = false;//추적중이 아님
+        isAttack = true;//공격중
+        anim.SetBool("isAttack", true);
+
+        switch (enemyType)
+        {
+            case Type.A://일반
+                yield return new WaitForSeconds(0.2f);
+                meleeArea.enabled = true;//공격범위 활성화
+
+                yield return new WaitForSeconds(1f);
+                meleeArea.enabled = false;
+
+                yield return new WaitForSeconds(1f);
+                break;
+            case Type.B://돌격
+                yield return new WaitForSeconds(0.1f);
+                //앞으로 돌격
+                rigid.AddForce(transform.forward * 20, ForceMode.Impulse);
+
+                meleeArea.enabled = true;//공격범위 활성화
+
+                yield return new WaitForSeconds(0.5f);
+                rigid.velocity = Vector3.zero;//정지
+                meleeArea.enabled = false;
+
+                yield return new WaitForSeconds(2f);
+                break;
+            case Type.C://원거리
+                yield return new WaitForSeconds(0.5f);
+                GameObject instantBullet = Instantiate(bullet,transform.position,transform.rotation);//적 총알 생성(적이 있는 곳에)
+                Rigidbody rigidBullet = instantBullet.GetComponent<Rigidbody>();
+                rigidBullet.velocity = transform.forward * 20;//앞방향으로 속도를 줌
+
+                yield return new WaitForSeconds(2f);
+                break;
+        }
+        
+        isChase = true;
+        isAttack = false;
+        anim.SetBool("isAttack", false);
+    }
     private void FixedUpdate()
     {
+        Targeting();
         FreezeVelocity();//이동을 멈춤
     }
     private void OnTriggerEnter(Collider other)
