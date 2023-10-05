@@ -45,12 +45,14 @@ public class Player : MonoBehaviour
     bool isReload;//장전 중인가?
     bool isFireReady = true;
     bool isBorder;//경계선에 닿았는가?
+    bool isDamage;//데이지를 입었는가?
 
     Vector3 moveVec;
     Vector3 dodgeVec;//회피중 움직이지 않게
 
     Animator anim;
     Rigidbody rigid;
+    MeshRenderer[] meshs;//플레이어 메테리얼(몸,다리,팔 등)
 
     GameObject nearObject;//감지된 아이템
     Weapon equipWeapon;//장착중인 아이템
@@ -63,6 +65,8 @@ public class Player : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         //자식오브젝트의 컴포넌트 가져옴
         anim = GetComponentInChildren<Animator>();
+        //원래 GetComponent는 1개이지만 s를 붙여주면 여러개를 가져올 수 있다.
+        meshs = GetComponentsInChildren<MeshRenderer>();//모든 자식 컴포넌트를 가져옴
 
         //무기 장착할때는 빛, 파티클 이펙트 꺼야함
         for (int i = 0; i < 3; i++)
@@ -348,6 +352,35 @@ public class Player : MonoBehaviour
                     break;
             }
             Destroy(other.gameObject);//아이템 삭제
+        }else if (other.tag == "EnemyBullet")//적 총알(미사일)
+        {
+            if (!isDamage)
+            {
+                Bullet enemyBullet = other.GetComponent<Bullet>();
+                health -= enemyBullet.damage;
+
+                //미사일이 사라져야함
+                if (other.GetComponent<Rigidbody>() != null) Destroy(other.gameObject);
+                StartCoroutine(OnDamage());
+            }
+        }
+    }
+    //플레이어 피격
+    IEnumerator OnDamage()
+    {
+        isDamage = true;
+        //노란색으로 변환
+        foreach(MeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.yellow;
+        }
+        yield return new WaitForSeconds(1f);//무적 시간
+
+        isDamage = false;
+        //원래대로 변환
+        foreach (MeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.white;
         }
     }
     //아이템 감지
