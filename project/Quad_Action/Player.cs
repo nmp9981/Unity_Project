@@ -359,14 +359,15 @@ public class Player : MonoBehaviour
                 Bullet enemyBullet = other.GetComponent<Bullet>();
                 health -= enemyBullet.damage;
 
-                //미사일이 사라져야함
-                if (other.GetComponent<Rigidbody>() != null) Destroy(other.gameObject);
-                StartCoroutine(OnDamage());
+                bool isBossAttack = other.name == "Boss Melee Area"?true:false;//보스 근접공격 여부
+                StartCoroutine(OnDamage(isBossAttack));
             }
+            //미사일이 사라져야함(맞으면 사라짐)
+            if (other.GetComponent<Rigidbody>() != null) Destroy(other.gameObject);
         }
     }
     //플레이어 피격
-    IEnumerator OnDamage()
+    IEnumerator OnDamage(bool isBossAttack)
     {
         isDamage = true;
         //노란색으로 변환
@@ -374,6 +375,10 @@ public class Player : MonoBehaviour
         {
             mesh.material.color = Color.yellow;
         }
+
+        //보스 공격이면 넉백
+        if (isBossAttack) rigid.AddForce(transform.forward * -25, ForceMode.Impulse);
+
         yield return new WaitForSeconds(1f);//무적 시간
 
         isDamage = false;
@@ -382,6 +387,7 @@ public class Player : MonoBehaviour
         {
             mesh.material.color = Color.white;
         }
+        if (isBossAttack) rigid.velocity = Vector3.zero;//원래대로
     }
     //아이템 감지
     private void OnTriggerStay(Collider other)
