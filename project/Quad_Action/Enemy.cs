@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    public enum Type { A, B, C };//적의 타입을 나눔
+    public enum Type { A, B, C,D };//적의 타입을 나눔
     public Type enemyType;//적의 타입
 
     public int maxHealth;//체력
@@ -16,22 +16,23 @@ public class Enemy : MonoBehaviour
 
     public bool isChase;//추적 가능한가?
     public bool isAttack;//공격중인가?
+    public bool isDead;//죽었는가?
 
-    Rigidbody rigid;
-    BoxCollider boxCollider;
-    Material mat;
-    NavMeshAgent nav;//네비
-    Animator anim;
+    protected Rigidbody rigid;
+    protected BoxCollider boxCollider;
+    protected MeshRenderer[] meshs;
+    protected NavMeshAgent nav;//네비
+    protected Animator anim;//자식에서도 쓸 수 있게 최소 protect
 
     private void Awake()
     {
         rigid = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
-        mat = GetComponentInChildren<MeshRenderer>().material;
+        meshs = GetComponentsInChildren<MeshRenderer>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
 
-        Invoke("ChaseStart",2f);
+        if(enemyType != Type.D) Invoke("ChaseStart",2f);//보스는 실행불가
     }
     void ChaseStart()
     {
@@ -40,7 +41,7 @@ public class Enemy : MonoBehaviour
     }
     private void Update()
     {
-        if (nav.enabled)//네비가 활성화 일때만
+        if (nav.enabled && enemyType != Type.D)//네비가 활성화 일때만, 보스가 아닐떄
         {
             nav.SetDestination(target.position);//추적 가능할 때만 목표물 추척
             nav.isStopped = !isChase;//추적중이 아니면 멈춤
@@ -59,6 +60,9 @@ public class Enemy : MonoBehaviour
     //범위 탐색
     void Targeting()
     {
+        if (isDead) return;
+        if (enemyType == Type.D) return;
+
         float targetRadius = 0f;//반지름
         float targetRange = 0f;//레이캐스트 길이
 
@@ -166,19 +170,23 @@ public class Enemy : MonoBehaviour
     //피격 처리
     IEnumerator OnDamage(Vector3 reactVec, bool isGrenade)
     {
-        mat.color = Color.red;
+        //전부 빨간색으로
+        foreach(MeshRenderer mesh in meshs) mesh.material.color = Color.red;
+       
         yield return new WaitForSeconds(0.1f);
 
         if (curHealth > 0)//생성
         {
-            mat.color = Color.white;
+            foreach (MeshRenderer mesh in meshs) mesh.material.color = Color.white;
         }
         else//사망
         {
-            mat.color = Color.gray;
+            foreach (MeshRenderer mesh in meshs) mesh.material.color = Color.gray;
+
             gameObject.layer = 14;//레이어 번호 변경(더이상 물리효과 못받게)
             isChase = false;
             nav.enabled = false;//네비 비활성화
+            isDead = true;
             anim.SetTrigger("doDie");
 
             //넉백
@@ -197,7 +205,7 @@ public class Enemy : MonoBehaviour
                 reactVec += Vector3.up;
                 rigid.AddForce(reactVec * 5, ForceMode.Impulse);
             }
-            Destroy(gameObject, 4f);
+            if(enemyType != Type.D) Destroy(gameObject, 4f);
         }
     }
 }
