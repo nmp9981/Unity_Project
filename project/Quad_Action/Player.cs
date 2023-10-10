@@ -46,6 +46,7 @@ public class Player : MonoBehaviour
     bool isFireReady = true;
     bool isBorder;//경계선에 닿았는가?
     bool isDamage;//데이지를 입었는가?
+    bool isShop;//쇼핑 중인가?
 
     Vector3 moveVec;
     Vector3 dodgeVec;//회피중 움직이지 않게
@@ -202,8 +203,8 @@ public class Player : MonoBehaviour
         fireDelay += Time.deltaTime;
         isFireReady = equipWeapon.rate < fireDelay;//공속(공격 가능)
 
-        //무기 발동조건(우클릭+쿨타임+회피x+교체x)
-        if(fDown && isFireReady && !isDodge && !isSwap)
+        //무기 발동조건(우클릭+쿨타임+회피x+교체x+쇼핑x)
+        if(fDown && isFireReady && !isDodge && !isSwap && !isShop)
         {
             equipWeapon.Use();//공격
             //근접 무기인가? 원격 무기인가에 따라 애니메이션이 달라짐
@@ -218,8 +219,8 @@ public class Player : MonoBehaviour
         if (equipWeapon.type == Weapon.Type.Melee) return;//근접 무기
         if (ammo == 0) return;//총알이 있어야함
         
-        //장전 가능 상황(공격이 가능해야함, 장전 중이 아니어야함)
-        if(rDown && !isJump && !isDodge && !isSwap && isFireReady && !isReload)
+        //장전 가능 상황(공격이 가능해야함, 장전, 쇼핑 중이 아니어야함)
+        if(rDown && !isJump && !isDodge && !isSwap && isFireReady && !isReload && !isShop)
         {
             anim.SetTrigger("doReload");
             isReload = true;
@@ -239,7 +240,7 @@ public class Player : MonoBehaviour
     void Dodge()
     {
         //움직인 상태일때
-        if (jDown && !isJump && moveVec!=Vector3.zero && !isDodge && !isSwap)//점프키 누르고 점프 , 무기 교체 상태가 아닐때
+        if (jDown && !isJump && moveVec!=Vector3.zero && !isDodge && !isSwap && !isShop)//점프키 누르고 점프 , 무기 교체, 상점 상태가 아닐때
         {
             dodgeVec = moveVec;
             speed *= 2;//회피는 이동속도가 2배
@@ -276,8 +277,8 @@ public class Player : MonoBehaviour
         if (sDown2) weaponIndex = 1;
         if (sDown3) weaponIndex = 2;
 
-        //1~3키를 눌렀을때 교체(단, 점프중이거나 회피중이 아닐떄만)
-        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge)
+        //1~3키를 눌렀을때 교체(단, 점프중이거나 회피중, 상점중이 아닐떄만)
+        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isShop)
         {
             if(equipWeapon!=null) equipWeapon.gameObject.SetActive(false);//빈손이 아닐때만, 현재 장착중인 무기는 해제
 
@@ -305,6 +306,12 @@ public class Player : MonoBehaviour
                 hasWeapons[weaponIndex] = true;
                 
                 Destroy(nearObject);//먹었으면 사라짐
+            }else if (nearObject.tag == "Shop")//상점에 가면 상점이 열림
+            {
+                //샵 정보를 가져온다.
+                Shop shop = nearObject.GetComponent<Shop>();
+                shop.Enter(this);
+                isShop = true;
             }
         }
     }
@@ -392,19 +399,22 @@ public class Player : MonoBehaviour
     //아이템 감지
     private void OnTriggerStay(Collider other)
     {
-        //무기
-        if(other.tag == "Weapon")
+        //무기와 상점
+        if(other.tag == "Weapon" || other.tag=="Shop")
         {
             nearObject = other.gameObject;
-
         }
     }
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == "Weapon")
+        if (other.tag == "Weapon") nearObject = null;
+        else if (other.tag == "Shop")
         {
+            //샵 정보를 가져온다.
+            Shop shop = nearObject.GetComponent<Shop>();
+            shop.Exit();
+            isShop = false;
             nearObject = null;
-
         }
     }
 }
