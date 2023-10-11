@@ -17,7 +17,8 @@ public class Player : MonoBehaviour
     public int ammo;//플레이어가 소지하고 있는 총알 개수
     public int coin;
     public int health;
-    
+    public int score;
+
     //각 수치의 최댓값
     public int maxAmmo;
     public int maxCoin;
@@ -56,7 +57,7 @@ public class Player : MonoBehaviour
     MeshRenderer[] meshs;//플레이어 메테리얼(몸,다리,팔 등)
 
     GameObject nearObject;//감지된 아이템
-    Weapon equipWeapon;//장착중인 아이템
+    public Weapon equipWeapon;//장착중인 아이템
     int equipWeaponIndex = -1;//장착중인 아이템 번호(처음부터 무기를 장착하면 안됨)
     float fireDelay;//공격 딜레이
 
@@ -75,6 +76,9 @@ public class Player : MonoBehaviour
             weapons[i].GetComponentInChildren<Light>().gameObject.SetActive(false);
             weapons[i].GetComponentInChildren<ParticleSystem>().gameObject.SetActive(false);
         }
+
+        PlayerPrefs.SetInt("MaxScore",1012);
+
     }
 
     // Update is called once per frame
