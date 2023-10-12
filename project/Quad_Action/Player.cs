@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     public GameObject granadeObject;
     public Camera followCamera;//마우스 회전용 카메라(메인 카메라)
     public GameObject floor;//바닥
+    public GameManager manager;
 
     //변수 생성
     public int ammo;//플레이어가 소지하고 있는 총알 개수
@@ -48,6 +49,7 @@ public class Player : MonoBehaviour
     bool isBorder;//경계선에 닿았는가?
     bool isDamage;//데이지를 입었는가?
     bool isShop;//쇼핑 중인가?
+    bool isDead;//죽었는가?
 
     Vector3 moveVec;
     Vector3 dodgeVec;//회피중 움직이지 않게
@@ -119,8 +121,8 @@ public class Player : MonoBehaviour
         
         if (isDodge) moveVec = dodgeVec;//회피중일때는 회피방향으로
 
-        //교체중 or 장전중 or 공격중이면 움직이지 않게
-        if (isSwap || isReload || !isFireReady) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
+        //교체중 or 장전중 or 공격중 or죽으면 움직이지 않게
+        if (isSwap || isReload || !isFireReady || isDead) moveVec = Vector3.zero;//무기 교체 중일때는 움직이지 않게
         
         //벽과 충돌하지 않았을 경우에만 이동
         if(!isBorder) transform.position += moveVec * speed * (wDown ? 0.3f : 1.0f) * Time.deltaTime;//좌표 이동
@@ -137,7 +139,7 @@ public class Player : MonoBehaviour
         transform.LookAt(this.transform.position + moveVec);
 
         //마우스에 의해 회전
-        if (fDown)
+        if (fDown && !isDead)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
             RaycastHit rayHit;//레이의 정보 저장
@@ -154,7 +156,7 @@ public class Player : MonoBehaviour
     void Jump()
     {
         //멈춤상태일때 점프
-        if (jDown && !isJump && moveVec==Vector3.zero && !isDodge && !isSwap)//점프키 누르고 점프, 무기 교체 상태가 아닐때
+        if (jDown && !isJump && moveVec==Vector3.zero && !isDodge && !isSwap && !isDead)//점프키 누르고 점프, 무기 교체 상태가 아닐때
         {
             rigid.AddForce(Vector3.up * 25, ForceMode.Impulse);//즉시점프
             anim.SetBool("isJump", true);//점프
@@ -168,7 +170,7 @@ public class Player : MonoBehaviour
         if (hasGrenades == 0) return;//남은 수류탄이 없음
 
         //장전중, 교체중일때는 수류탄 사용 불가
-        if(gDown && !isReload && !isSwap)
+        if(gDown && !isReload && !isSwap && !isDead)
         {
             //마우스를 클릭한 위치에 수류탄을 놓는다.
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//스크린 월드로 레이를 쏜다.
@@ -207,8 +209,8 @@ public class Player : MonoBehaviour
         fireDelay += Time.deltaTime;
         isFireReady = equipWeapon.rate < fireDelay;//공속(공격 가능)
 
-        //무기 발동조건(우클릭+쿨타임+회피x+교체x+쇼핑x)
-        if(fDown && isFireReady && !isDodge && !isSwap && !isShop)
+        //무기 발동조건(우클릭+쿨타임+회피x+교체x+쇼핑x+죽음x)
+        if(fDown && isFireReady && !isDodge && !isSwap && !isShop && !isDead)
         {
             equipWeapon.Use();//공격
             //근접 무기인가? 원격 무기인가에 따라 애니메이션이 달라짐
@@ -223,8 +225,8 @@ public class Player : MonoBehaviour
         if (equipWeapon.type == Weapon.Type.Melee) return;//근접 무기
         if (ammo == 0) return;//총알이 있어야함
         
-        //장전 가능 상황(공격이 가능해야함, 장전, 쇼핑 중이 아니어야함)
-        if(rDown && !isJump && !isDodge && !isSwap && isFireReady && !isReload && !isShop)
+        //장전 가능 상황(공격이 가능해야함, 장전, 쇼핑, 죽음 중이 아니어야함)
+        if(rDown && !isJump && !isDodge && !isSwap && isFireReady && !isReload && !isShop && !isDead)
         {
             anim.SetTrigger("doReload");
             isReload = true;
@@ -244,7 +246,7 @@ public class Player : MonoBehaviour
     void Dodge()
     {
         //움직인 상태일때
-        if (jDown && !isJump && moveVec!=Vector3.zero && !isDodge && !isSwap && !isShop)//점프키 누르고 점프 , 무기 교체, 상점 상태가 아닐때
+        if (jDown && !isJump && moveVec!=Vector3.zero && !isDodge && !isSwap && !isShop && !isDead)//점프키 누르고 점프 , 무기 교체, 상점 상태가 아닐때
         {
             dodgeVec = moveVec;
             speed *= 2;//회피는 이동속도가 2배
@@ -282,7 +284,7 @@ public class Player : MonoBehaviour
         if (sDown3) weaponIndex = 2;
 
         //1~3키를 눌렀을때 교체(단, 점프중이거나 회피중, 상점중이 아닐떄만)
-        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isShop)
+        if ((sDown1 || sDown2 || sDown3) && !isJump && !isDodge && !isShop && !isDead)
         {
             if(equipWeapon!=null) equipWeapon.gameObject.SetActive(false);//빈손이 아닐때만, 현재 장착중인 무기는 해제
 
@@ -299,7 +301,7 @@ public class Player : MonoBehaviour
     void Interation()
     {
         //키를누르고 근처 오브젝트가 있고 점프중이 아닐떄
-        if (iDown && nearObject!=null && !isJump)
+        if (iDown && nearObject!=null && !isJump && !isDead)
         {
             //무기
             if (nearObject.tag == "Weapon")
@@ -390,6 +392,8 @@ public class Player : MonoBehaviour
         //보스 공격이면 넉백
         if (isBossAttack) rigid.AddForce(transform.forward * -25, ForceMode.Impulse);
 
+        if (health <= 0 && !isDead) OnDie();//플레이어 사망
+
         yield return new WaitForSeconds(1f);//무적 시간
 
         isDamage = false;
@@ -399,6 +403,13 @@ public class Player : MonoBehaviour
             mesh.material.color = Color.white;
         }
         if (isBossAttack) rigid.velocity = Vector3.zero;//원래대로
+    }
+    //플레이어 사망
+    void OnDie()
+    {
+        anim.SetTrigger("doDie");
+        isDead = true;
+        manager.GameOver();
     }
     //아이템 감지
     private void OnTriggerStay(Collider other)
