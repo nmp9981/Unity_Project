@@ -10,10 +10,13 @@ public class Enemy : MonoBehaviour
 
     public int maxHealth;//체력
     public int curHealth;
+    public int score;
+    public GameManager manager;
     public Transform target;//타겟
     public BoxCollider meleeArea;//근접 공격 범위
     public GameObject bullet;//적 총알 프리팹
 
+    public GameObject[] coins;//보상 동전
     public bool isChase;//추적 가능한가?
     public bool isAttack;//공격중인가?
     public bool isDead;//죽었는가?
@@ -189,6 +192,28 @@ public class Enemy : MonoBehaviour
             isDead = true;
             anim.SetTrigger("doDie");
 
+            Player player = target.GetComponent<Player>();
+            player.score += score;
+            int ranCoin = Random.Range(0, 3);//동전
+            Instantiate(coins[ranCoin],transform.position,Quaternion.identity);//동전 생성
+
+            //어떤 적이 죽었는가?
+            switch (enemyType)
+            {
+                case Type.A:
+                    manager.enemyCntA--;
+                    break;
+                case Type.B:
+                    manager.enemyCntB--;
+                    break;
+                case Type.C:
+                    manager.enemyCntC--;
+                    break;
+                case Type.D:
+                    manager.enemyCntD--;
+                    break;
+            }
+
             //넉백
             if (isGrenade)
             {
@@ -205,7 +230,7 @@ public class Enemy : MonoBehaviour
                 reactVec += Vector3.up;
                 rigid.AddForce(reactVec * 5, ForceMode.Impulse);
             }
-            if(enemyType != Type.D) Destroy(gameObject, 4f);
+            Destroy(gameObject, 4f);
         }
     }
 }
