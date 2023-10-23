@@ -7,7 +7,7 @@ public class ObjectFulling : MonoBehaviour
     public GameObject graphSet;
     public GameObject pointObjectPrefab;
     public GameObject[] pointList;
-    const int countMaxPoint = 1005;//-10~10
+    const int countMaxPoint = 4005;//-40~40
     // Start is called before the first frame update
     void Awake()
     {
@@ -25,9 +25,9 @@ public class ObjectFulling : MonoBehaviour
     {
         for (int i = 0; i < countMaxPoint-1; i++)
         {
-            float xpos = (float)(-countMaxPoint/2+i)/50.0f;
-            float ypos = graphSet.GetComponent<GraphSet>().F(xpos);
-            pointList[i].transform.position = new Vector3(xpos, ypos, 0);
+            float xpos = (float)(-countMaxPoint/2+i)/50.0f;//실제 x좌표
+            float ypos = graphSet.GetComponent<GraphSet>().F(xpos);//실제 y좌표
+            pointList[i].transform.position = new Vector3(xpos/3.0f, ypos/3.0f, 0);//실제 찍히는 위치
             pointList[i].SetActive(true);
         }
     }
@@ -35,5 +35,6 @@ public class ObjectFulling : MonoBehaviour
     public void InitGraph()
     {
         for (int i = 0; i < countMaxPoint; i++) pointList[i].SetActive(false);
+        graphSet.GetComponent<GraphSet>().elemental.Clear();
     }
 }
