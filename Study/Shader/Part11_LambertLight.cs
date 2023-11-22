@@ -13,7 +13,7 @@ Shader"Custom/CustomLight"
         LOD 200
 
         CGPROGRAM
-        #pragma surface surf Test noambient
+        #pragma surface surf Test 
 
         #pragma target 3.0
 
@@ -35,8 +35,11 @@ Shader"Custom/CustomLight"
         }
 float4 LightingTest(SurfaceOutput s, float3 lightDir, float atten)
 {
-    float ndotl = saturate(dot(s.Normal, lightDir));//0~1사이
-    return ndotl+0.5;
+    float ndotl = saturate(dot(s.Normal, lightDir)); //0~1사이, 램버트
+    float4 final;
+    final.rgb = ndotl * s.Albedo * _LightColor0.rgb * atten; //Albedo : 텍스쳐, _LightColor0.rgb : 조명의 색상
+    final.a = s.Alpha;
+    return final;
 }
         ENDCG
     }
