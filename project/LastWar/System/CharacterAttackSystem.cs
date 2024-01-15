@@ -33,10 +33,10 @@ namespace LastWar
             var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
             var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-            var minDistSq = 3;
+            var minDistSq = 2;
 
             //각 개체마다 이동
-            foreach(var(transform, entity)in SystemAPI.Query<RefRW<LocalTransform>>().WithAll<BulletAObject>().WithEntityAccess())
+            foreach(var(transform,bulletInfo, entity)in SystemAPI.Query<RefRW<LocalTransform>, RefRW<BulletAObject>>().WithAll<BulletAObject>().WithEntityAccess())
             {
                 transform.ValueRW.Position += movement;//이동 후 위치
 
@@ -46,8 +46,16 @@ namespace LastWar
                     //적에 닿으면 파괴
                     if (math.distancesq(enemyTransform.ValueRO.Position, transform.ValueRO.Position) <= minDistSq)
                     {
-                        enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - 1;
-                        if (enemyInfo.ValueRO.HP <= 0) ecb.DestroyEntity(EnemyEntity);//적 파괴
+                        enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - bulletInfo.ValueRO.Atk;//총알 공격력 만큼 데미지
+                        if (enemyInfo.ValueRO.HP <= 0)
+                        {
+                            ecb.DestroyEntity(EnemyEntity);//적 파괴
+                            //몬스터 수 감소
+                            foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
+                            {
+                                configEntity.ValueRW.spawnMonsterCount -= 1;
+                            }
+                        }
                         ecb.DestroyEntity(entity);//총알 파괴
                         break;
                     }
