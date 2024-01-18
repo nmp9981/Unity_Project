@@ -30,7 +30,8 @@ public partial struct EnemySpawnerSystem : ISystem
     {
         var config = SystemAPI.GetSingleton<Config>();
         if (config.spawnMonsterCount > 0) return;
-        
+
+        var rand = new Unity.Mathematics.Random(100);//랜덤 시드
         foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
         {
             if (configEntity.ValueRO.spawnMonsterCount == 0)
@@ -38,21 +39,58 @@ public partial struct EnemySpawnerSystem : ISystem
                 nowTime+=Time.deltaTime;
                 if (nowTime < coolTime) continue;//쿨타임이 안옴
 
-                for (int i = -4; i <= 4; i++)
+                int minSpawn = config.spawnMonsterMax * config.spawnMonsterRatio / 100;
+                for (int i = -UnityEngine.Random.Range(minSpawn,config.spawnMonsterMax); i <= UnityEngine.Random.Range(minSpawn,config.spawnMonsterMax); i++)
                 {
+                    int spawnRand = UnityEngine.Random.Range(1, 13);
+                    switch (spawnRand%2)
+                    {
+                        case 0:
+                            var monster = state.EntityManager.Instantiate(config.EnemyAPrefab);//몬스터 생성
+                                                                                               //몬스터 생성 위치 : 캐릭터의 위치
+                            state.EntityManager.SetComponentData(monster, new LocalTransform
+                            {
+                                Position = new float3
+                                {
+                                    x = i * 1.1f,
+                                    y = 0.5f,
+                                    z = i * 0.4f
+                                },
+                                Scale = 1,
+                                Rotation = quaternion.identity
+                            });
+                            break;
+                        case 1:
+                            var monster2 = state.EntityManager.Instantiate(config.EnemyBPrefab);//몬스터 생성
+                                                                                               //몬스터 생성 위치 : 캐릭터의 위치
+                            state.EntityManager.SetComponentData(monster2, new LocalTransform
+                            {
+                                Position = new float3
+                                {
+                                    x = i * 1.1f,
+                                    y = 0.5f,
+                                    z = i * 0.4f
+                                },
+                                Scale = 1,
+                                Rotation = quaternion.identity
+                            });
+                            break;
+                    }
+                    /*
                     var monster = state.EntityManager.Instantiate(config.EnemyAPrefab);//몬스터 생성
                                                                                        //몬스터 생성 위치 : 캐릭터의 위치
                     state.EntityManager.SetComponentData(monster, new LocalTransform
                     {
                         Position = new float3
                         {
-                            x = i,
+                            x = i*1.1f,
                             y = 0.5f,
-                            z = i * 0.5f
+                            z = i * 0.4f
                         },
                         Scale = 1,
                         Rotation = quaternion.identity
                     });
+                    */
                     configEntity.ValueRW.spawnMonsterCount += 1;
                 }
                 nowTime = 0;//시간 초기화
