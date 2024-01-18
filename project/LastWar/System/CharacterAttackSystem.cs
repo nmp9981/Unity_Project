@@ -9,6 +9,7 @@ using UnityEngine;
 using static LastWar.BulletAAuthoting;
 using static LastWar.ConfigAuthoring;
 using static LastWar.EnemyAAuthoring;
+using static LastWar.EnemyBAuthoring;
 
 namespace LastWar
 {
@@ -35,13 +36,32 @@ namespace LastWar
 
             var minDistSq = 2;
 
-            //각 개체마다 이동
+            //각 개체마다 이동 : Enemy A
             foreach(var(transform,bulletInfo, entity)in SystemAPI.Query<RefRW<LocalTransform>, RefRW<BulletAObject>>().WithAll<BulletAObject>().WithEntityAccess())
             {
                 transform.ValueRW.Position += movement;//이동 후 위치
 
                 //적의 위치
                 foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform >, RefRW < EnemyAObject >> ().WithAll<EnemyAObject>().WithEntityAccess())
+                {
+                    //적에 닿으면 파괴
+                    if (math.distancesq(enemyTransform.ValueRO.Position, transform.ValueRO.Position) <= minDistSq)
+                    {
+                        enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - bulletInfo.ValueRO.Atk;//총알 공격력 만큼 데미지
+                        if (enemyInfo.ValueRO.HP <= 0)
+                        {
+                            ecb.DestroyEntity(EnemyEntity);//적 파괴
+                            //몬스터 수 감소
+                            foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
+                            {
+                                configEntity.ValueRW.spawnMonsterCount -= 1;
+                            }
+                        }
+                        ecb.DestroyEntity(entity);//총알 파괴
+                        break;
+                    }
+                }
+                foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
                 {
                     //적에 닿으면 파괴
                     if (math.distancesq(enemyTransform.ValueRO.Position, transform.ValueRO.Position) <= minDistSq)
@@ -72,7 +92,7 @@ namespace LastWar
                             obj.ValueRW.HP = obj.ValueRO.HP-1;
                             if(obj.ValueRO.HP <=0) ecb.DestroyEntity(EnemyEntity);//적 파괴
                         }
-                        
+
                         ecb.DestroyEntity(entity);//총알 파괴
                         break;
                     }
