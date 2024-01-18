@@ -9,6 +9,7 @@ using UnityEngine;
 using static LastWar.CharacterAuthoring;
 using static LastWar.ConfigAuthoring;
 using static LastWar.EnemyAAuthoring;
+using static LastWar.EnemyBAuthoring;
 
 namespace LastWar
 {
@@ -30,6 +31,12 @@ namespace LastWar
             foreach (var playerTransform in
                      SystemAPI.Query<RefRW<LocalTransform>>()
                          .WithAll<EnemyAObject>())
+            {
+                playerTransform.ValueRW.Position += moveAmount;//이동 후 위치
+            }
+            foreach (var playerTransform in
+                     SystemAPI.Query<RefRW<LocalTransform>>()
+                         .WithAll<EnemyBObject>())
             {
                 playerTransform.ValueRW.Position += moveAmount;//이동 후 위치
             }
