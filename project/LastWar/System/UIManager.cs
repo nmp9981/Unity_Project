@@ -11,6 +11,10 @@ namespace LastWar
 {
     public class UIManager : MonoBehaviour
     {
+        [Header("Pivot")]
+        [SerializeField] private RectTransform m_Pivot;
+        [SerializeField] private float m_Offset;
+
         [Header("HP")]
         [SerializeField] private Slider playerHP;//플레이어 HP바
         [SerializeField] private TMPro.TextMeshProUGUI textPlayerHP;
@@ -30,7 +34,7 @@ namespace LastWar
         {
             m_Canvas = GetComponent<Canvas>();
             m_Rectransform = GetComponent<RectTransform>();
-
+           
             if (playerHP != null) playerHP.value = 0f;
             if (textPlayerHP != null) textPlayerHP.text = string.Empty;
             if (m_TextLevel != null) m_TextLevel.text = string.Empty;
@@ -44,13 +48,25 @@ namespace LastWar
         void LateUpdate()
         {
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var query = entityManager.CreateEntityQuery(typeof(Config));
+            var query = entityManager.CreateEntityQuery(typeof(Config),typeof(ECSPlayerData));
             if (!query.IsEmpty)//쿼리를 싱글톤으로
             {
                 var entity = query.GetSingletonEntity();
+                var configData = entityManager.GetComponentData<Config>(entity);
+                var ecsPlayerData = entityManager.GetComponentData<ECSPlayerData>(entity);
 
+                if (m_Pivot != null)//피벗 위치 고정
+                {
+                    m_Pivot.anchoredPosition = Vector2.zero;
+                }
+
+                if (playerHP != null) playerHP.value = (float) ecsPlayerData.HP/ecsPlayerData.maxHP;
+                if (textPlayerHP != null) textPlayerHP.text = string.Format("{0}/{1}", ecsPlayerData.HP, ecsPlayerData.maxHP);
+                if (m_TextLevel != null) m_TextLevel.text = string.Format("Lv.{0}", ecsPlayerData.Lv);
+                if (m_SliderExpGauge != null) m_SliderExpGauge.value = (float)ecsPlayerData.Exp/ecsPlayerData.maxExp;
+                if (m_TextExp != null) m_TextExp.text = string.Format("{0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp);
             }
-            
+
         }
         public void DisplayHitDamage(int damage, float3 mobTransform)
         {
