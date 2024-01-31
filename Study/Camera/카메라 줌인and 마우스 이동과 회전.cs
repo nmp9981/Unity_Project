@@ -21,6 +21,7 @@ public class CameraMove : MonoBehaviour
         CameraRotate();
         CameraMoving();
     }
+    //줌인
     void CameraZoom()
     {
         float distance = Input.GetAxis("Mouse ScrollWheel") * -1 * zoomSpeed;//줌 거리
@@ -29,6 +30,7 @@ public class CameraMove : MonoBehaviour
             mainCamera.fieldOfView += distance;//화각 변경
         }
     }
+    //회전
     void CameraRotate()
     {
         if (Input.GetMouseButton(1))//마우스 우클릭
@@ -41,6 +43,7 @@ public class CameraMove : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, q, 2f); // 자연스럽게 회전
         }
     }
+    //이동
     void CameraMoving()
     {
         if (Input.GetKey(KeyCode.W)) transform.position += new Vector3(0,0,Time.deltaTime*moveAmount);
