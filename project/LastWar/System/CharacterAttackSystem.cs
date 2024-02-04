@@ -131,6 +131,8 @@ namespace LastWar
                         playData.ValueRW.Lv += 1;
                         playData.ValueRW.Exp = playData.ValueRO.Exp - playData.ValueRO.maxExp;
                         playData.ValueRW.maxExp = playData.ValueRO.maxExp * 11 / 10;
+                        playData.ValueRW.maxHP = playData.ValueRO.maxHP * 105 / 100;
+                        playData.ValueRW.HP = playData.ValueRO.maxHP;
                     }
                 }
                 //파괴
