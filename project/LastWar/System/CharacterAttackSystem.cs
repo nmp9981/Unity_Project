@@ -68,8 +68,8 @@ namespace LastWar
                             {
                                 playData.ValueRW.Exp += enemyInfo.ValueRO.Exp;//여기서 값이 변경
                             }
-                            //int newExp = playerInfo.Exp+4;
-                            //entityManager.SetComponentData(entity, new ECSPlayerData { Exp = newExp });
+                            
+                            
                             //몬스터 수 감소
                             foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
                             {
@@ -123,6 +123,16 @@ namespace LastWar
                     }
                 }
                 */
+                //레벨업
+                foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
+                {
+                    if(playData.ValueRO.Exp >= playData.ValueRO.maxExp)
+                    {
+                        playData.ValueRW.Lv += 1;
+                        playData.ValueRW.Exp = playData.ValueRO.Exp - playData.ValueRO.maxExp;
+                        playData.ValueRW.maxExp = playData.ValueRO.maxExp * 11 / 10;
+                    }
+                }
                 //파괴
                 if (transform.ValueRW.Position.z > 150)
                 {
