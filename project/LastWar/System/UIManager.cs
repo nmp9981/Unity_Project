@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.UI;
 using static LastWar.BulletAAuthoting;
 using static LastWar.CharacterAuthoring;
@@ -37,24 +38,22 @@ namespace LastWar
         }
 
         //캐릭터의 정보 수정은 액션 마친 뒤 여기서 진행
-        void Update()
+        void LateUpdate()
         {
-            Debug.Log("씨발1");
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             var query = entityManager.CreateEntityQuery(typeof(ECSPlayerData));
-            Debug.Log("씨발2");
             var entity = query.GetSingletonEntity();
             var ecsPlayerData = entityManager.GetComponentData<ECSPlayerData>(entity);
 
-            Debug.Log(ecsPlayerData.Lv);
             playerHP.value = (float)ecsPlayerData.HP / ecsPlayerData.maxHP;
             textPlayerHP.text = string.Format("HP {0}/{1}", ecsPlayerData.HP, ecsPlayerData.maxHP);
             m_TextLevel.text = string.Format("Lv.{0}", ecsPlayerData.Lv);
             m_SliderExpGauge.value = (float)ecsPlayerData.Exp / ecsPlayerData.maxExp;
             m_TextExp.text = string.Format("EXP {0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp);
-            
 
+            
         }
+        
         /*
         public void DisplayHitDamage(int damage, float3 mobTransform)
         {
