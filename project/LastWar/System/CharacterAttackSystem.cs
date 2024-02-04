@@ -1,31 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml.Linq;
+using TMPro.EditorUtilities;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Unity.VisualScripting;
+using UnityEditor.Rendering;
 using UnityEngine;
 using static LastWar.BulletAAuthoting;
+using static LastWar.CharacterAuthoring;
 using static LastWar.ConfigAuthoring;
 using static LastWar.EnemyAAuthoring;
 using static LastWar.EnemyBAuthoring;
 
 namespace LastWar
 {
-    public partial struct CharacterAttackSystem : ISystem
-    {
+    [UpdateBefore(typeof(TransformSystemGroup))]
+    public partial struct CharacterAttackSystem : ISystem { 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            
             state.RequireForUpdate<Config>();
             state.RequireForUpdate<CharacterAttack>();
             state.RequireForUpdate<EnemyAObject>();
+            //uiManager = new UIManager();//UI클래스
+           
         }
+
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var config = SystemAPI.GetSingleton<Config>();
+            //var playerInfo = SystemAPI.GetSingleton<ECSPlayerData>();
+            
+            //var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
             //이동
             var movement = new float3(0, 0, 1) * SystemAPI.Time.DeltaTime * config.bulletAMoveSpeed;
@@ -33,7 +45,6 @@ namespace LastWar
 
             var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
             var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
-
             var minDistSq = 2;
 
             //각 개체마다 이동 : Enemy A
@@ -47,16 +58,25 @@ namespace LastWar
                     //적에 닿으면 파괴
                     if (math.distancesq(enemyTransform.ValueRO.Position, transform.ValueRO.Position) <= minDistSq)
                     {
+                        
                         enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - bulletInfo.ValueRO.Atk;//총알 공격력 만큼 데미지
                         if (enemyInfo.ValueRO.HP <= 0)
                         {
                             ecb.DestroyEntity(EnemyEntity);//적 파괴
+                            //값 변경하기 , OnUpdate문에서 작성하는 것이어서 프레임마다 1씩 증가
+                            foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
+                            {
+                                playData.ValueRW.Exp += enemyInfo.ValueRO.Exp;//여기서 값이 변경
+                            }
+                            //int newExp = playerInfo.Exp+4;
+                            //entityManager.SetComponentData(entity, new ECSPlayerData { Exp = newExp });
                             //몬스터 수 감소
                             foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
                             {
                                 configEntity.ValueRW.spawnMonsterCount -= 1;
                             }
                         }
+                        
                         ecb.DestroyEntity(entity);//총알 파괴
                         break;
                     }
@@ -70,12 +90,17 @@ namespace LastWar
                         if (enemyInfo.ValueRO.HP <= 0)
                         {
                             ecb.DestroyEntity(EnemyEntity);//적 파괴
+                            foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
+                            {
+                                playData.ValueRW.Exp += enemyInfo.ValueRO.Exp;//여기서 값이 변경
+                            }
                             //몬스터 수 감소
                             foreach (var configEntity in SystemAPI.Query<RefRW<Config>>())
                             {
                                 configEntity.ValueRW.spawnMonsterCount -= 1;
                             }
                         }
+
                         ecb.DestroyEntity(entity);//총알 파괴
                         break;
                     }
