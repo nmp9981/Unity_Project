@@ -9,6 +9,8 @@ namespace LastWar
     public class EnemyBAuthoring : MonoBehaviour
     {
         public int HP;
+        public int Exp;
+        public GameObject hpBar;
         class Baker : Baker<EnemyBAuthoring>
         {
             public override void Bake(EnemyBAuthoring authoring)
@@ -17,7 +19,9 @@ namespace LastWar
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity, new EnemyBObject
                 {
-                    HP = authoring.HP
+                    HP = authoring.HP,
+                    Exp = authoring.Exp,
+                    hpBar = GetEntity(authoring.hpBar, TransformUsageFlags.None)
                 });
             }
         }
@@ -25,6 +29,8 @@ namespace LastWar
         public struct EnemyBObject : IComponentData
         {
             public int HP;
+            public int Exp;
+            public Entity hpBar;
         }
     }
 
