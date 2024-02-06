@@ -22,9 +22,6 @@ namespace LastWar
         [SerializeField] private Slider m_SliderExpGauge;//경험치 바
         [SerializeField] private TMPro.TextMeshProUGUI m_TextExp;
 
-        //public TMPro.TextMeshProUGUI hitDamageText;//피격 데미지
-
-     
         void Awake()
         {
            
@@ -34,7 +31,6 @@ namespace LastWar
             m_SliderExpGauge.value = 0f;
             m_TextExp.text = string.Empty;
 
-            //hitDamageText.text = string.Empty;
         }
 
         //캐릭터의 정보 수정은 액션 마친 뒤 여기서 진행
@@ -49,9 +45,7 @@ namespace LastWar
             textPlayerHP.text = string.Format("HP {0}/{1}", ecsPlayerData.HP, ecsPlayerData.maxHP);
             m_TextLevel.text = string.Format("Lv.{0}", ecsPlayerData.Lv);
             m_SliderExpGauge.value = (float)ecsPlayerData.Exp / ecsPlayerData.maxExp;
-            m_TextExp.text = string.Format("EXP {0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp);
-
-            
+            m_TextExp.text = string.Format("EXP {0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp); 
         }
         
         /*
