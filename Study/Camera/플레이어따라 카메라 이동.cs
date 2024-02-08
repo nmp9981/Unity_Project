@@ -5,7 +5,6 @@ using UnityEngine;
 public class CameraManage : MonoBehaviour
 {
     GameObject player;
-    // Start is called before the first frame update
     void Start()
     {
         this.player = GameObject.Find("Bike");//해당 오브젝트를 찾는다.
