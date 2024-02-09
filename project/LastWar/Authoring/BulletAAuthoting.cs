@@ -15,7 +15,7 @@ namespace LastWar
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity, new BulletAObject
                 {
-                    Atk = 1
+                    Atk = authoring.Atk
                 });
                 
             }
