@@ -8,6 +8,10 @@ namespace LastWar
 {
     public class CharacterAuthoring : MonoBehaviour
     {
+        public int stepCount;//몇발
+        public int widthCount;//가로 몇발
+        public int Attack;
+
         public int HP;
         public int maxHP;
 
@@ -23,6 +27,9 @@ namespace LastWar
                 AddComponent<CharacterObject>(entity);
                 AddComponent(entity, new ECSPlayerData()
                 {
+                    stepCount = 1,
+                    widthCount = 1,
+                    Attack = 1,
                     HP = authoring.HP,
                     maxHP = authoring.maxHP,
                     Lv = authoring.Lv,
@@ -33,7 +40,20 @@ namespace LastWar
         }
         public struct CharacterObject : IComponentData
         {
+           
+        }
+        public struct ECSPlayerData : IComponentData
+        {
+            public int stepCount;//몇발
+            public int widthCount;//가로 몇발
+            public int Attack;
 
+            public int HP;
+            public int maxHP;
+
+            public int Lv;
+            public int Exp;
+            public int maxExp;
         }
     }
 
