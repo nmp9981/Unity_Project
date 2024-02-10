@@ -30,7 +30,7 @@ namespace LastWar
             var ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
             var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-            float minDistSq = 5;
+            float minDistSq = 3;
             foreach (var castleTransform in
                     SystemAPI.Query<RefRW<LocalTransform>>()
                         .WithAll<CastleObject>())//성벽 위치
@@ -39,7 +39,7 @@ namespace LastWar
                 //적들 정보
                 foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyAObject>>().WithAll<EnemyAObject>().WithEntityAccess())
                 {
-                    Debug.Log(enemyTransform.ValueRO.Position.z + "@@@@성 좌표" + math.distancesq(enemyTransform.ValueRO.Position.z, castleTransform.ValueRO.Position.z));
+                    
                     //적에 닿으면 파괴
                     if (math.distancesq(enemyTransform.ValueRO.Position.z, castleTransform.ValueRO.Position.z) <= minDistSq)
                     {
@@ -59,10 +59,10 @@ namespace LastWar
                     }
                 }
                 
-                foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
+                foreach (var (enemyTransform, enemyInfo, EnemyBEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
                 {
                     //적에 닿으면 파괴
-                    if (math.distancesq(enemyTransform.ValueRO.Position, castleTransform.ValueRO.Position) <= minDistSq)
+                    if (math.distancesq(enemyTransform.ValueRO.Position.z, castleTransform.ValueRO.Position.z) <= minDistSq)
                     {
                         //피격 데미지
                         foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
@@ -75,7 +75,7 @@ namespace LastWar
                             }
                             break;
                         }
-                        ecb.DestroyEntity(EnemyEntity);//적 파괴
+                        ecb.DestroyEntity(EnemyBEntity);//적 파괴
                         break;
                     }
                 }
