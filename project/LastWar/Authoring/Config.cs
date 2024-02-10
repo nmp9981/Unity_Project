@@ -51,6 +51,7 @@ namespace LastWar
                     EnemyAPrefab = GetEntity(authoring.EnemyAPrefab, TransformUsageFlags.Dynamic),
                     EnemyBPrefab = GetEntity(authoring.EnemyBPrefab, TransformUsageFlags.Dynamic),
                     chracterPrefab = GetEntity(authoring.chracterPrefab, TransformUsageFlags.Dynamic),
+                    castlePrefab = GetEntity(authoring.castlePrefab, TransformUsageFlags.Dynamic),
                     BulletAPrefab = GetEntity(authoring.BulletAPrefab, TransformUsageFlags.Dynamic),
                     BulletBPrefab = GetEntity(authoring.BulletBPrefab, TransformUsageFlags.Dynamic),
                     enemyHitDamageText = GetEntity(authoring.enemyHitDamageText, TransformUsageFlags.None),
