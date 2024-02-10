@@ -55,8 +55,8 @@ namespace LastWar
                                 y = 0.5f,
                                 z = transform.ValueRO.Position.z+i*0.35f
                             },
-                            Scale = 0.3f,
-                            Rotation = Quaternion.identity
+                            Scale = 3f,
+                            Rotation = quaternion.RotateY(90)
                         });
                     }
                 }
