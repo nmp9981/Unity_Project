@@ -58,8 +58,15 @@ namespace LastWar
                     //적에 닿으면 파괴
                     if (math.distancesq(enemyTransform.ValueRO.Position, transform.ValueRO.Position) <= minDistSq)
                     {
-                        
-                        enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - bulletInfo.ValueRO.Atk;//총알 공격력 만큼 데미지
+                        //피격 데미지
+                        int playerAttack = 0;
+                        foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
+                        {
+                            playerAttack = playData.ValueRO.Attack;//여기서 값이 변경
+                        }
+                       
+                        enemyInfo.ValueRW.HP = enemyInfo.ValueRO.HP - (bulletInfo.ValueRO.Atk+playerAttack);//총알 공격력 만큼 데미지
+
                         if (enemyInfo.ValueRO.HP <= 0)
                         {
                             ecb.DestroyEntity(EnemyEntity);//적 파괴
@@ -128,11 +135,27 @@ namespace LastWar
                 {
                     if(playData.ValueRO.Exp >= playData.ValueRO.maxExp)
                     {
+                        //캐릭터 강화
                         playData.ValueRW.Lv += 1;
                         playData.ValueRW.Exp = playData.ValueRO.Exp - playData.ValueRO.maxExp;
                         playData.ValueRW.maxExp = playData.ValueRO.maxExp * 11 / 10;
                         playData.ValueRW.maxHP = playData.ValueRO.maxHP * 105 / 100;
                         playData.ValueRW.HP = playData.ValueRO.maxHP;
+                        playData.ValueRW.Attack += 1;
+
+                        //적 강화
+                        foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyAObject>>().WithAll<EnemyAObject>().WithEntityAccess())
+                        {
+                            enemyInfo.ValueRW.Attack = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.HP = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.Exp = playData.ValueRO.Lv;
+                        }
+                        foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
+                        {
+                            enemyInfo.ValueRW.Attack = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.HP = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.Exp = playData.ValueRO.Lv;
+                        }
                     }
                 }
                 //파괴
