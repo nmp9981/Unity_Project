@@ -8,6 +8,7 @@ namespace LastWar
 {
     public class EnemyBAuthoring : MonoBehaviour
     {
+        public int Attack;
         public int HP;
         public int Exp;
         public GameObject hpBar;
@@ -19,6 +20,7 @@ namespace LastWar
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity, new EnemyBObject
                 {
+                    Attack = authoring.Attack,
                     HP = authoring.HP,
                     Exp = authoring.Exp,
                     hpBar = GetEntity(authoring.hpBar, TransformUsageFlags.None)
@@ -28,6 +30,7 @@ namespace LastWar
 
         public struct EnemyBObject : IComponentData
         {
+            public int Attack;
             public int HP;
             public int Exp;
             public Entity hpBar;
