@@ -142,19 +142,19 @@ namespace LastWar
                         playData.ValueRW.maxHP = playData.ValueRO.maxHP * 105 / 100;
                         playData.ValueRW.HP = playData.ValueRO.maxHP;
                         playData.ValueRW.Attack += 1;
-
+                        
                         //적 강화
                         foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyAObject>>().WithAll<EnemyAObject>().WithEntityAccess())
                         {
-                            enemyInfo.ValueRW.Attack = playData.ValueRO.Lv;
-                            enemyInfo.ValueRW.HP = playData.ValueRO.Lv;
-                            enemyInfo.ValueRW.Exp = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.Attack = 3*(playData.ValueRO.Lv-80)*((4+playData.ValueRO.Lv-80)/4);
+                            enemyInfo.ValueRW.HP = 10+5*(playData.ValueRO.Lv-80);
+                            enemyInfo.ValueRW.Exp += 4+2*(playData.ValueRO.Lv-80)/2;
                         }
                         foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
                         {
-                            enemyInfo.ValueRW.Attack = playData.ValueRO.Lv;
-                            enemyInfo.ValueRW.HP = playData.ValueRO.Lv;
-                            enemyInfo.ValueRW.Exp = playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.Attack = 4 * (playData.ValueRO.Lv - 80) * ((5 + playData.ValueRO.Lv - 80) / 4);
+                            enemyInfo.ValueRW.HP = 7+6*(playData.ValueRO.Lv-80);
+                            enemyInfo.ValueRW.Exp = 5 + 3 * (playData.ValueRO.Lv - 80)/2;
                         }
                     }
                 }
