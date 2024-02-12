@@ -22,9 +22,13 @@ namespace LastWar
         [SerializeField] private Slider m_SliderExpGauge;//경험치 바
         [SerializeField] private TMPro.TextMeshProUGUI m_TextExp;
 
+        //결과
+        public static int resultLv;
+        public static int resultExp;
+        public static int resultMaxExp;
         void Awake()
         {
-           
+
             playerHP.value = 1f;
             textPlayerHP.text = string.Empty;
             m_TextLevel.text = string.Empty;
@@ -45,21 +49,11 @@ namespace LastWar
             textPlayerHP.text = string.Format("HP {0}/{1}", ecsPlayerData.HP, ecsPlayerData.maxHP);
             m_TextLevel.text = string.Format("Lv.{0}", ecsPlayerData.Lv);
             m_SliderExpGauge.value = (float)ecsPlayerData.Exp / ecsPlayerData.maxExp;
-            m_TextExp.text = string.Format("EXP {0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp); 
-        }
-        
-        /*
-        public void DisplayHitDamage(int damage, float3 mobTransform)
-        {
-            hitDamageText.transform.position = mobTransform;
-            hitDamageText.text = damage.ToString();
-            Invoke("EraseHitDamageText",1.5f);
-        }
-        public void EraseHitDamageText()
-        {
-            hitDamageText.text = string.Empty;
-        }
-        */
-    }
+            m_TextExp.text = string.Format("EXP {0}/{1}", ecsPlayerData.Exp, ecsPlayerData.maxExp);
 
+            resultLv = ecsPlayerData.Lv;
+            resultExp = ecsPlayerData.Exp;
+            resultMaxExp = ecsPlayerData.maxExp;
+        }
+    }
 }
