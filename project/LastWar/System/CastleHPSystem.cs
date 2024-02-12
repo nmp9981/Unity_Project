@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static LastWar.CharacterAuthoring;
 using static LastWar.ConfigAuthoring;
 using static LastWar.EnemyAAuthoring;
@@ -46,11 +47,11 @@ namespace LastWar
                         //피격 데미지
                         foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
                         {
-                            playData.ValueRW.HP -= 5;
+                            playData.ValueRW.HP -= enemyInfo.ValueRO.Attack;
                             //사망 처리
                             if(playData.ValueRO.HP <= 0)
                             {
-
+                                SceneManager.LoadScene("GameOver");
                             }
                             break;
                         }
@@ -67,11 +68,11 @@ namespace LastWar
                         //피격 데미지
                         foreach (var playData in SystemAPI.Query<RefRW<ECSPlayerData>>())
                         {
-                            playData.ValueRW.HP -= 3;
+                            playData.ValueRW.HP -= enemyInfo.ValueRO.Attack;
                             //사망 처리
                             if (playData.ValueRO.HP <= 0)
                             {
-
+                                SceneManager.LoadScene("GameOver");
                             }
                             break;
                         }
