@@ -138,23 +138,23 @@ namespace LastWar
                         //캐릭터 강화
                         playData.ValueRW.Lv += 1;
                         playData.ValueRW.Exp = playData.ValueRO.Exp - playData.ValueRO.maxExp;
-                        playData.ValueRW.maxExp = playData.ValueRO.maxExp * 11 / 10;
-                        playData.ValueRW.maxHP = playData.ValueRO.maxHP * 105 / 100;
+                        playData.ValueRW.maxExp = (playData.ValueRO.maxExp+ playData.ValueRO.Lv) * 11 / 10;
+                        playData.ValueRW.maxHP = (playData.ValueRO.maxHP+ playData.ValueRO.Lv*5) * 105 / 100;
                         playData.ValueRW.HP = playData.ValueRO.maxHP;
-                        playData.ValueRW.Attack += 1;
+                        playData.ValueRW.Attack += (1+ playData.ValueRO.Lv/5);
                         
                         //적 강화
                         foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyAObject>>().WithAll<EnemyAObject>().WithEntityAccess())
                         {
-                            enemyInfo.ValueRW.Attack = 3*(playData.ValueRO.Lv-80)*((4+playData.ValueRO.Lv-80)/4);
-                            enemyInfo.ValueRW.HP = 10+5*(playData.ValueRO.Lv-80);
-                            enemyInfo.ValueRW.Exp += 4+2*(playData.ValueRO.Lv-80)/2;
+                            enemyInfo.ValueRW.Attack = 2*playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.HP = 5+playData.ValueRO.Lv* (playData.ValueRO.Lv/2);
+                            enemyInfo.ValueRW.Exp = 4+3*playData.ValueRO.Lv/2+ playData.ValueRO.Lv;
                         }
                         foreach (var (enemyTransform, enemyInfo, EnemyEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRW<EnemyBObject>>().WithAll<EnemyBObject>().WithEntityAccess())
                         {
-                            enemyInfo.ValueRW.Attack = 4 * (playData.ValueRO.Lv - 80) * ((5 + playData.ValueRO.Lv - 80) / 4);
-                            enemyInfo.ValueRW.HP = 7+6*(playData.ValueRO.Lv-80);
-                            enemyInfo.ValueRW.Exp = 5 + 3 * (playData.ValueRO.Lv - 80)/2;
+                            enemyInfo.ValueRW.Attack = 3 *playData.ValueRO.Lv;
+                            enemyInfo.ValueRW.HP = 15+3*playData.ValueRO.Lv* (playData.ValueRO.Lv/4);
+                            enemyInfo.ValueRW.Exp = 5 + 2 *playData.ValueRO.Lv+ 3*(playData.ValueRO.Lv/2);
                         }
                     }
                 }
