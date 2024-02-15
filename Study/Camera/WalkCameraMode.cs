@@ -10,6 +10,7 @@ public class WalkCameraMode : MonoBehaviour
     [SerializeField] private bool _isCollide;
    
     private Vector3 _zoom;
+    private Vector3 playerMoveAmount;
     private Vector3 lastGeneralCameraPosition;
     private Vector3 lastWalkCameraPosition;
     private Quaternion lastGeneralCameraRotation;
@@ -25,7 +26,7 @@ public class WalkCameraMode : MonoBehaviour
     {
         gameObject.GetComponent<WalkCameraMode>().enabled = true;//스크립트 활성화
         
-        Zoom = new Vector3(gameObject.GetComponent<BoxCollider>().size.x, gameObject.GetComponent<BoxCollider>().size.y, -5 * gameObject.GetComponent<BoxCollider>().size.z);
+        Zoom = new Vector3(gameObject.GetComponent<BoxCollider>().size.x, gameObject.GetComponent<BoxCollider>().size.y, -2.5f * gameObject.GetComponent<BoxCollider>().size.z);
         CameraWalkMode = false;
         IsCollide = false;
         lastWalkCameraPosition = gameObject.transform.position + Zoom;
@@ -66,7 +67,7 @@ public class WalkCameraMode : MonoBehaviour
                 gameObject.transform.position += new Vector3(0, PlayerSpeed*Time.deltaTime, 0);
             }
 
-            Vector3 playerMoveAmount = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * PlayerSpeed * Time.deltaTime;
+            playerMoveAmount = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * PlayerSpeed * Time.deltaTime;
             gameObject.transform.position += playerMoveAmount;
             camera.transform.position = gameObject.transform.position + Zoom;
             lastWalkCameraPosition = camera.transform.position;
@@ -76,13 +77,14 @@ public class WalkCameraMode : MonoBehaviour
     {
         if (other.gameObject.tag == "Part")
         {
+            gameObject.transform.position -= playerMoveAmount/2;
             IsCollide = true;
         }
     }
     private void OnTriggerStay(Collider other)
     {
         if (other.gameObject.tag == "Part")
-        {
+        {   
             IsCollide = true;
         }
     }
