@@ -5,15 +5,21 @@ using UnityEngine;
 
 public class FishesSpawn : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    ObjectFulling _objectFull;
+    GameObject root;
+    
+    public void Init()
     {
-        for(int i = 0; i < 3; i++)
+        _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+    }
+    public void FishSpawnLogic()
+    {
+        for (int i = -2; i < 3; i++)
         {
-            for (int j=3; j < 3; j++)
+            for (int j=-3; j < 3; j++)
             {
-
-                GameManager.ObjectFill.MakeObj(0).transform.position = new Vector3(i,j,0);
+                GameObject gm = _objectFull.MakeObj(0);
+                gm.transform.position = new Vector3(i,j,0);
             }
         }
     }
