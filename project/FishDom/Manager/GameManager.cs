@@ -6,11 +6,10 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     static GameManager _instance;
-    InputManager _inputManager = new InputManager();
+    FishesSpawn _fishSpawn;
 
     public static GameManager Instance { get { Init(); return _instance; } }
-    public static InputManager Input { get { return Instance._inputManager; } }
-
+   
     static void Init()
     {
         if (_instance == null)
@@ -24,12 +23,20 @@ public class GameManager : MonoBehaviour
             }
             DontDestroyOnLoad(gm);
             _instance = gm.GetComponent<GameManager>();
+            
         }
 
     }
+    void InitComponent()
+    {
+        _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
+        _fishSpawn.Init();
+        _fishSpawn.FishSpawnLogic();
+    }
     void Awake()
     {
-        
+        Init();
+        InitComponent();
     }
 
     void Update()
@@ -42,9 +49,13 @@ public class GameManager : MonoBehaviour
     float _playerScale = 1.0f;
     long _playerAttack = 2;
 
+    float _enemyMoveSpeed = 3.0f;
+
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f: value; } }
     public float PlayerScale { get { return _playerScale; } set { _playerScale = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
+
+    public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
     #endregion
 }
