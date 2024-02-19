@@ -40,9 +40,11 @@ public class GameManager : MonoBehaviour
     float _playerMoveSpeed = 4.0f;
     float _playerDir = -1.0f;
     float _playerScale = 1.0f;
+    long _playerAttack = 2;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f: value; } }
     public float PlayerScale { get { return _playerScale; } set { _playerScale = value; } }
+    public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
     #endregion
 }
