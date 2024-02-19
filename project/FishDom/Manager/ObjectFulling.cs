@@ -13,15 +13,19 @@ public class ObjectFulling : MonoBehaviour
 
     private void Awake()
     {
-        fishes = new GameObject[10][];
+        fishes = new GameObject[3][]{
+            new GameObject[100],
+            new GameObject[100],
+            new GameObject[100]
+        };
         Generate();
     }
     void Generate()
     {
         //물고기
-        for(int i = 0; i < fishes.GetLength(0); i++)
+        for(int i = 0; i < 1; i++)
         {
-            for(int j = 0; j < fishes.GetLength(1); j++)
+            for(int j = 0; j < 10; j++)
             {
                 fishes[i][j] = Instantiate(fishPrefabs[i]);
                 fishes[i][j].SetActive(false);
