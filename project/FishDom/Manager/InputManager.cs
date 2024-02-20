@@ -6,6 +6,7 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _playerAttackText;
+
     void Awake()
     {
         
@@ -18,6 +19,7 @@ public class InputManager : MonoBehaviour
     {
         PlayerMove();
         PlayerAttackTextMove();
+        PlayerScaleUp();
     }
    public void PlayerMove()
     {
@@ -34,6 +36,10 @@ public class InputManager : MonoBehaviour
     void PlayerAttackTextMove()
     {
         _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,1f,0));
-        _playerAttackText.text = "0000";
+        _playerAttackText.text = GameManager.Instance.PlayerAttack.ToString();
+    }
+    void PlayerScaleUp()
+    {
+        gameObject.transform.localScale = GameManager.Instance.PlayerScale*new Vector3(0.1f,0.1f,0.1f);
     }
 }
