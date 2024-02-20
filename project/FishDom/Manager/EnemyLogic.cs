@@ -7,9 +7,11 @@ public class EnemyLogic : MonoBehaviour
 {
     private float dir;
     [SerializeField] private TextMeshProUGUI _enemyAttackText;
+    private long _enemyAttack;
 
     void Start()
     {
+        AttackSetting();
         SetMoveDir();
     }
 
@@ -18,6 +20,10 @@ public class EnemyLogic : MonoBehaviour
     {
         EnemyMove();
         EnemyAttackTextMove();
+    }
+    void AttackSetting()
+    {
+        _enemyAttack = GameManager.Instance.StageNum*Random.Range(1, 3);
     }
     void SetMoveDir()
     {
@@ -33,6 +39,21 @@ public class EnemyLogic : MonoBehaviour
     void EnemyAttackTextMove()
     {
         _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0, 1f, 0));
-        _enemyAttackText.text = 1.ToString();
+        _enemyAttackText.text = _enemyAttack.ToString();
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            if (_enemyAttack < GameManager.Instance.PlayerAttack)
+            {
+                gameObject.SetActive(false);
+                GameManager.Instance.PlayerAttack += _enemyAttack;
+            }
+            else
+            {
+                //게임 오버
+            }
+        }
     }
 }
