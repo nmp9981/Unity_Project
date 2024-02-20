@@ -20,6 +20,7 @@ public class EnemyLogic : MonoBehaviour
     {
         EnemyMove();
         EnemyAttackTextMove();
+        EnemyToCameraDistance();
     }
     void AttackSetting()
     {
@@ -40,6 +41,16 @@ public class EnemyLogic : MonoBehaviour
     {
         _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0, 1f, 0));
         _enemyAttackText.text = _enemyAttack.ToString();
+    }
+    void EnemyToCameraDistance()
+    {
+        float _enemyToCameraDistanceX = Camera.main.transform.position.x - gameObject.transform.position.x;
+        float _enemyToCameraDistanceY = Camera.main.transform.position.y - gameObject.transform.position.y;
+        float _enemyToCameraDistance = _enemyToCameraDistanceX * _enemyToCameraDistanceX + _enemyToCameraDistanceY * _enemyToCameraDistanceY;
+
+        //카메라로 부터 일정거리를 벗어나면 비활성화
+        if (_enemyToCameraDistance > GameManager.Instance.EnemyToCameraStdDistance) gameObject.SetActive(false);
+        else gameObject.SetActive(true);
     }
     private void OnTriggerEnter(Collider other)
     {
