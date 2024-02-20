@@ -49,13 +49,15 @@ public class GameManager : MonoBehaviour
     float _playerScale = 1.0f;
     long _playerAttack = 2;
 
-    float _enemyMoveSpeed = 3.0f;
+    int _stageNumber = 1;
+    float _enemyMoveSpeed = 2.0f;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f: value; } }
     public float PlayerScale { get { return _playerScale; } set { _playerScale = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
 
+    public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
     #endregion
 }
