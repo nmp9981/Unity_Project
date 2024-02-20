@@ -49,6 +49,7 @@ public class EnemyLogic : MonoBehaviour
             {
                 gameObject.SetActive(false);
                 GameManager.Instance.PlayerAttack += _enemyAttack;
+                GameManager.Instance.PlayerScale = 1.0f+GameManager.Instance.PlayerAttack*0.0015f;
             }
             else
             {
