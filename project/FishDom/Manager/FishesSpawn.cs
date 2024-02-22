@@ -6,27 +6,27 @@ using UnityEngine;
 public class FishesSpawn : MonoBehaviour
 {
     ObjectFulling _objectFull;
-    GameObject root;
+    [SerializeField] GameObject target;
     
     public void Init()
     {
         _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
     }
-    public void FishSpawnLogic()
+    
+    public IEnumerator FishSpawnLogic()
     {
-        for (int i = -2; i < 3; i++)
+        while (true)
         {
-            for (int j=-3; j < 3; j++)
+            int mobCount = UnityEngine.Random.Range(1, 5);
+            GameObject[] fishobjects = _objectFull.GetPool(GameManager.Instance.StageNum - 1);
+            for (int i = 0; i < mobCount; i++)
             {
-                GameObject gm = _objectFull.MakeObj(0);
-                gm.transform.position = new Vector3(i,j,0);
+                int spawnX = UnityEngine.Random.Range(-5, 5);
+                int spawnY = UnityEngine.Random.Range(-5, 5);
+                GameObject gm = _objectFull.MakeObj(GameManager.Instance.StageNum - 1);
+                gm.transform.position = new Vector3(target.transform.position.x + spawnX, target.transform.position.y + spawnY, 0);
             }
+            yield return new WaitForSeconds(5.0f);
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-       
     }
 }
