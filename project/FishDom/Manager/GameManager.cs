@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     {
         _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
         _fishSpawn.Init();
-        _fishSpawn.FishSpawnLogic();
+        StartCoroutine(_fishSpawn.FishSpawnLogic());
     }
     void Awake()
     {
@@ -41,7 +41,15 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        
+        StageUp();
+    }
+    void StageUp()
+    {
+        if (PlayerAttack > 10*StageNum)
+        {
+            StageNum+=1;
+            StageNum = (StageNum >= 3) ? 3:StageNum;
+        }
     }
     #region 데이터
     float _playerMoveSpeed = 4.0f;
@@ -51,6 +59,7 @@ public class GameManager : MonoBehaviour
 
     int _stageNumber = 1;
     float _enemyMoveSpeed = 2.0f;
+    float _enemyToCameraStdDistance = 100.0f;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f: value; } }
@@ -59,5 +68,6 @@ public class GameManager : MonoBehaviour
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
+    public float EnemyToCameraStdDistance { get { return _enemyToCameraStdDistance; } set { _enemyToCameraStdDistance = value; } }
     #endregion
 }
