@@ -30,7 +30,9 @@ public class EnemyLogic : MonoBehaviour
     {
         dir = Random.Range(0, 10);
         dir = (dir % 2 == 0) ? -1 : 1;
-        gameObject.transform.rotation = Quaternion.Euler(90,0,0);
+
+        if(GameManager.Instance.StageNum==1) gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
+        else gameObject.transform.rotation = Quaternion.Euler(0,dir*90,0);
     }
     void EnemyMove()
     {
