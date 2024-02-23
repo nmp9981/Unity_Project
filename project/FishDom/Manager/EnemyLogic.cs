@@ -5,10 +5,15 @@ using UnityEngine;
 
 public class EnemyLogic : MonoBehaviour
 {
+    InputManager _inputManager;
     private float dir;
     [SerializeField] private TextMeshProUGUI _enemyAttackText;
     private long _enemyAttack;
 
+    private void Awake()
+    {
+        _inputManager = GameObject.Find("Player").GetComponent<InputManager>();
+    }
     void Start()
     {
         AttackSetting();
@@ -66,7 +71,7 @@ public class EnemyLogic : MonoBehaviour
             }
             else
             {
-                //게임 오버
+                _inputManager.GameOver();
             }
         }
     }
