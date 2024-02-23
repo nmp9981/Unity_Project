@@ -6,10 +6,11 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _playerAttackText;
+    [SerializeField] private GameObject _gameOverBox;
 
     void Awake()
     {
-        
+        _gameOverBox.gameObject.SetActive(false);
     }
     private void Start()
     {
@@ -41,5 +42,11 @@ public class InputManager : MonoBehaviour
     void PlayerScaleUp()
     {
         gameObject.transform.localScale = GameManager.Instance.PlayerScale*new Vector3(0.1f,0.1f,0.1f);
+    }
+    //게임 오버
+    public void GameOver()
+    {
+        _gameOverBox.gameObject.SetActive(true);
+        Time.timeScale = 0.0f;
     }
 }
