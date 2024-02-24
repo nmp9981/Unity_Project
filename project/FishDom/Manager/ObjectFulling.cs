@@ -5,6 +5,8 @@ using UnityEngine;
 public class ObjectFulling : MonoBehaviour
 {
     //프리팹 준비
+    const int fishKinds = 9;
+    const int mobMaxCounts = 30;
     public GameObject[] fishPrefabs;
    
     //오브젝트 배열
@@ -13,19 +15,25 @@ public class ObjectFulling : MonoBehaviour
 
     private void Awake()
     {
-        fishes = new GameObject[3][]{
-            new GameObject[100],
-            new GameObject[100],
-            new GameObject[100]
+        fishes = new GameObject[fishKinds][]{
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
         };
         Generate();
     }
     void Generate()
     {
         //물고기
-        for(int i = 0; i < 1; i++)
+        for(int i = 0; i < fishKinds; i++)
         {
-            for(int j = 0; j < 10; j++)
+            for(int j = 0; j < mobMaxCounts; j++)
             {
                 fishes[i][j] = Instantiate(fishPrefabs[i]);
                 fishes[i][j].SetActive(false);
