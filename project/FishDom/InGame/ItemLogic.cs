@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class ItemLogic : MonoBehaviour
 {
     private float dir;
-    // Start is called before the first frame update
     void Start()
     {
         SetMoveDir();
@@ -25,5 +25,19 @@ public class ItemLogic : MonoBehaviour
     {
         Vector3 ememyMoveDir = new Vector3(dir, 0, 0);
         gameObject.transform.position += ememyMoveDir * GameManager.Instance.EnemyMoveSpeed * Time.deltaTime;
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            StartCoroutine(PlayerNotHit());
+
+        }
+    }
+    public IEnumerator PlayerNotHit()
+    {
+        GameManager.Instance.PlayerHit = false;
+        yield return new WaitForSeconds(5.0f);
+        GameManager.Instance.PlayerHit = true;
     }
 }
