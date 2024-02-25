@@ -7,10 +7,11 @@ public class InputManager : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _playerAttackText;
     [SerializeField] private GameObject _gameOverBox;
-
+    [SerializeField] private ParticleSystem _notHitEffect;
     void Awake()
     {
         _gameOverBox.gameObject.SetActive(false);
+        _notHitEffect.Stop();
     }
     private void Start()
     {
@@ -21,6 +22,7 @@ public class InputManager : MonoBehaviour
         PlayerMove();
         PlayerAttackTextMove();
         PlayerScaleUp();
+        PlayerNotHitEffect();
     }
    public void PlayerMove()
     {
@@ -42,6 +44,17 @@ public class InputManager : MonoBehaviour
     void PlayerScaleUp()
     {
         gameObject.transform.localScale = GameManager.Instance.PlayerScale*new Vector3(0.1f,0.1f,0.1f);
+    }
+    void PlayerNotHitEffect()
+    {
+        if (GameManager.Instance.PlayerHit)
+        {
+            _notHitEffect.Stop();
+        }
+        else
+        {
+            _notHitEffect.Play();
+        }
     }
     //게임 오버
     public void GameOver()
