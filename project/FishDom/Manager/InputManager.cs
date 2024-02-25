@@ -11,7 +11,7 @@ public class InputManager : MonoBehaviour
     void Awake()
     {
         _gameOverBox.gameObject.SetActive(false);
-        _notHitEffect.Stop();
+        
     }
     private void Start()
     {
@@ -49,12 +49,26 @@ public class InputManager : MonoBehaviour
     {
         if (GameManager.Instance.PlayerHit)
         {
-            _notHitEffect.Stop();
+            if (_notHitEffect.isPlaying) _notHitEffect.Stop();
         }
         else
         {
-            _notHitEffect.Play();
+            if(!_notHitEffect.isPlaying) _notHitEffect.Play();
         }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Item")
+        {
+            StartCoroutine(PlayerNotHit());
+            other.gameObject.SetActive(false);
+        }
+    }
+    public IEnumerator PlayerNotHit()
+    {
+        GameManager.Instance.PlayerHit = false;
+        yield return new WaitForSeconds(5.0f);
+        GameManager.Instance.PlayerHit = true;
     }
     //게임 오버
     public void GameOver()
