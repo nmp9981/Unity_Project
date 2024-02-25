@@ -37,7 +37,7 @@ public class EnemyLogic : MonoBehaviour
         dir = (dir % 2 == 0) ? -1 : 1;
 
         if(GameManager.Instance.StageNum==1) gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
-        else gameObject.transform.rotation = Quaternion.Euler(0,dir*90,0);
+        else if(GameManager.Instance.StageNum <= 3) gameObject.transform.rotation = Quaternion.Euler(0,dir*90,0);
     }
     void EnemyMove()
     {
@@ -63,15 +63,22 @@ public class EnemyLogic : MonoBehaviour
     {
         if (other.tag == "Player")
         {
-            if (_enemyAttack < GameManager.Instance.PlayerAttack)
+            if (!GameManager.Instance.PlayerHit)
             {
                 gameObject.SetActive(false);
-                GameManager.Instance.PlayerAttack += _enemyAttack;
-                GameManager.Instance.PlayerScale = 1.0f+GameManager.Instance.PlayerAttack*0.0015f;
             }
             else
             {
-                _inputManager.GameOver();
+                if (_enemyAttack < GameManager.Instance.PlayerAttack)
+                {
+                    gameObject.SetActive(false);
+                    GameManager.Instance.PlayerAttack += _enemyAttack;
+                    GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
+                }
+                else
+                {
+                    _inputManager.GameOver();
+                }
             }
         }
     }
