@@ -46,7 +46,7 @@ public class EnemyLogic : MonoBehaviour
     }
     void EnemyAttackTextMove()
     {
-        _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0, 1f, 0));
+        _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0, gameObject.transform.localScale.y, 0));
         _enemyAttackText.text = _enemyAttack.ToString();
     }
     void EnemyToCameraDistance()
