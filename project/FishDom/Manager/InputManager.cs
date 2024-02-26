@@ -53,7 +53,11 @@ public class InputManager : MonoBehaviour
         }
         else
         {
-            if(!_notHitEffect.isPlaying) _notHitEffect.Play();
+            if (!_notHitEffect.isPlaying)
+            {
+                _notHitEffect.GetComponent<ParticleSystem>().startSize = gameObject.transform.localScale.y * 1.1f;
+                _notHitEffect.Play();
+            }
         }
     }
     private void OnTriggerEnter(Collider other)
