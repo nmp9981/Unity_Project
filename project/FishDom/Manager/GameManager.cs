@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     FishesSpawn _fishSpawn;
 
     public static GameManager Instance { get { Init(); return _instance; } }
-   
+
     static void Init()
     {
         if (_instance == null)
@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
             }
             DontDestroyOnLoad(gm);
             _instance = gm.GetComponent<GameManager>();
-            
+
         }
 
     }
@@ -32,10 +32,12 @@ public class GameManager : MonoBehaviour
         _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
         _fishSpawn.Init();
         StartCoroutine(_fishSpawn.FishSpawnLogic());
+        StartCoroutine(_fishSpawn.ItemSpawnLogic());
     }
     void Awake()
     {
         Init();
+        InitPlayerData();
         InitComponent();
     }
 
@@ -43,17 +45,25 @@ public class GameManager : MonoBehaviour
     {
         StageUp();
     }
+    void InitPlayerData()
+    {
+        Time.timeScale = 1.0f;
+        PlayerAttack = 2;
+        PlayerScale = 1.0f;
+        StageNum = 1;
+    }
     void StageUp()
     {
-        if (PlayerAttack > 10*StageNum)
+        if (PlayerAttack > 10 * StageNum)
         {
-            StageNum+=1;
-            StageNum = (StageNum >= 3) ? 3:StageNum;
+            StageNum += 1;
+            StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
         }
     }
     #region 데이터
     float _playerMoveSpeed = 4.0f;
     float _playerDir = -1.0f;
+    bool _playerHit = true;
     float _playerScale = 1.0f;
     long _playerAttack = 2;
 
@@ -61,13 +71,18 @@ public class GameManager : MonoBehaviour
     float _enemyMoveSpeed = 2.0f;
     float _enemyToCameraStdDistance = 100.0f;
 
+    const int _fishKinds = 17;
+
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
-    public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f: value; } }
+    public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f : value; } }
+    public bool PlayerHit { get { return _playerHit; } set { _playerHit = value; } }
     public float PlayerScale { get { return _playerScale; } set { _playerScale = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
     public float EnemyToCameraStdDistance { get { return _enemyToCameraStdDistance; } set { _enemyToCameraStdDistance = value; } }
+
+    public int FishKinds {get { return _fishKinds;}}
     #endregion
 }
