@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class InputManager : MonoBehaviour
 {
@@ -79,5 +80,9 @@ public class InputManager : MonoBehaviour
     {
         _gameOverBox.gameObject.SetActive(true);
         Time.timeScale = 0.0f;
+    }
+    public void GoMainScene()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
