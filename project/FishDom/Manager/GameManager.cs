@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
-        InitPlayerData();
+        InitPlayerData(PlayMode);
         InitComponent();
     }
 
@@ -49,12 +49,21 @@ public class GameManager : MonoBehaviour
     {
         StageUp();
     }
-    void InitPlayerData()
+    public void InitPlayerData(int playmode)
     {
         Time.timeScale = 1.0f;
-        PlayerAttack = 2;
-        PlayerScale = 1.0f;
-        StageNum = 1;
+        if (playmode == 0)
+        {
+            PlayerAttack = 2;
+            PlayerScale = 1.0f;
+            StageNum = 1;
+        }
+        else
+        {
+            StageNum = playmode;
+            PlayerAttack = 10 * (playmode - 1) + 2;
+            PlayerScale = 1.0f + PlayerAttack * 0.0015f;
+        }
     }
     void StageUp()
     {
@@ -65,6 +74,7 @@ public class GameManager : MonoBehaviour
         }
     }
     #region 데이터
+    static int _playMode;
     float _playerMoveSpeed = 4.0f;
     float _playerDir = -1.0f;
     bool _playerHit = true;
@@ -77,6 +87,7 @@ public class GameManager : MonoBehaviour
 
     const int _fishKinds = 17;
 
+    public int PlayMode { get { return _playMode; } set { _playMode = value; } }
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerDir { get { return _playerDir; } set { _playerDir = _playerDir == 0 ? 1.0f : value; } }
     public bool PlayerHit { get { return _playerHit; } set { _playerHit = value; } }
