@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -29,10 +30,13 @@ public class GameManager : MonoBehaviour
     }
     void InitComponent()
     {
-        _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
-        _fishSpawn.Init();
-        StartCoroutine(_fishSpawn.FishSpawnLogic());
-        StartCoroutine(_fishSpawn.ItemSpawnLogic());
+        if(SceneManager.GetActiveScene().name == "FishDomInGame")
+        {
+            _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
+            _fishSpawn.Init();
+            StartCoroutine(_fishSpawn.FishSpawnLogic());
+            StartCoroutine(_fishSpawn.ItemSpawnLogic());
+        }
     }
     void Awake()
     {
