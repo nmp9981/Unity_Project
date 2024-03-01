@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting.AssemblyQualifiedNameParser;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField] GameObject _stageUIObject;
     [SerializeField] GameObject _modeUIObject;
     [SerializeField] GameObject _recordBoard;
     [SerializeField] TextMeshProUGUI _recordText;
@@ -26,10 +30,24 @@ public class MainMenu : MonoBehaviour
     }
     public void StageButton()
     {
+        _modeUIObject.SetActive(false);
+        _stageUIObject.SetActive(true);
+    }
+    public void StageButtonOff()
+    {
+        _stageUIObject.SetActive(false);
+        _modeUIObject.SetActive(true);
+    }
+    public void StageStartButton()
+    {
+        GameObject clickStage = EventSystem.current.currentSelectedGameObject;//방금 클릭한 오브젝트 정보 저장
+        GameManager.Instance.PlayMode = Int32.Parse(clickStage.name);
+        GameManager.Instance.InitPlayerData(GameManager.Instance.PlayMode);
         SceneManager.LoadScene("FishDomInGame");
     }
     public void ChallengeButton()
     {
+        GameManager.Instance.PlayMode = 0;
         SceneManager.LoadScene("FishDomInGame");
     }
     public void ModeUIOff()
