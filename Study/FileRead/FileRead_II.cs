@@ -28,19 +28,20 @@ public class Importer : MonoBehaviour
     {
         int cnt = 0;
         //해당 디렉토리를 순회하면서 파일이름 불러오기
-        foreach (FileInfo file in di.GetFiles("*.rvm"))//rvm로 끝나는 파일만 검색
+        foreach (FileInfo file in di.GetFiles("*.fbx"))//rvm로 끝나는 파일만 검색
         {
             Debug.Log(file.FullName);
             Debug.Log(file.Name);
-
+            
             bool prefabSuccess;
             string localPath = "Assets/Prefabs/" + gameObject.name + ".prefab";
             localPath = AssetDatabase.GenerateUniqueAssetPath(localPath);
-            GameObject pPrefab = PrefabUtility.SaveAsPrefabAsset(file, localPath, out prefabSuccess);
+            
+            GameObject pPrefab = PrefabUtility.SaveAsPrefabAsset(file , localPath, out prefabSuccess);
             Instantiate(pPrefab);
             
-            //GameObject gm = new OBJLoader().Load(file.FullName);
-            //Instantiate(gm);
+            GameObject gm = new OBJLoader().Load(file.FullName);//이새기가 원흉 씨발
+            Instantiate(gm);
             
             if (GameObject.Find(pPrefab.name))//성공
             {
