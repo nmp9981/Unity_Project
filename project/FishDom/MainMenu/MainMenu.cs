@@ -13,10 +13,27 @@ public class MainMenu : MonoBehaviour
     [SerializeField] GameObject _modeUIObject;
     [SerializeField] GameObject _recordBoard;
     [SerializeField] TextMeshProUGUI _recordText;
+
+    [SerializeField] GameObject _stagePage1UI;
+    [SerializeField] GameObject _stagePage2UI;
+    [SerializeField] GameObject _stagePage3UI;
+    [SerializeField] GameObject _stagePage4UI;
+    [SerializeField] GameObject _stagePage5UI;
+
+    public GameObject[] _uiPage;
+    private int _uiPageNum;
     // Start is called before the first frame update
     void Awake()
     {
-        
+        _uiPageNum = 0;
+
+        _uiPage = new GameObject[5];
+        _uiPage[0] = _stagePage1UI;
+        _uiPage[1] = _stagePage2UI;
+        _uiPage[2] = _stagePage3UI;
+        _uiPage[3] = _stagePage4UI;
+        _uiPage[4] = _stagePage5UI;
+
     }
 
     // Update is called once per frame
@@ -32,11 +49,30 @@ public class MainMenu : MonoBehaviour
     {
         _modeUIObject.SetActive(false);
         _stageUIObject.SetActive(true);
+
+        for (int i = 0; i < _uiPage.Length; i++) _uiPage[i].SetActive(false);
+        _uiPage[0].SetActive(true);//맨 처음 페이지
+       
     }
     public void StageButtonOff()
     {
         _stageUIObject.SetActive(false);
         _modeUIObject.SetActive(true);
+    }
+    public void StagePageMoveLeft()
+    {
+        if (_uiPageNum == 0) return;
+        _uiPage[_uiPageNum].SetActive(false);
+        _uiPageNum -= 1;
+        _uiPage[_uiPageNum].SetActive(true);
+
+    }
+    public void StagePageMoveRight()
+    {
+        if (_uiPageNum == _uiPage.Length-1) return;
+        _uiPage[_uiPageNum].SetActive(false);
+        _uiPageNum += 1;
+        _uiPage[_uiPageNum].SetActive(true);
     }
     public void StageStartButton()
     {
