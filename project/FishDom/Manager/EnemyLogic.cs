@@ -74,6 +74,15 @@ public class EnemyLogic : MonoBehaviour
                     gameObject.SetActive(false);
                     GameManager.Instance.PlayerAttack += _enemyAttack;
                     GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
+
+                    if (GameManager.Instance.PlayMode != 0)
+                    {
+                        if(GameManager.Instance.PlayMode > GameManager.Instance.PlayerMaxAttack)//최고 공격력 저장
+                        {
+                            GameManager.Instance.PlayerMaxAttack = GameManager.Instance.PlayMode;
+                            PlayerPrefs.SetString("BestAttack", GameManager.Instance.PlayerMaxAttack.ToString());
+                        }
+                    }
                 }
                 else
                 {
