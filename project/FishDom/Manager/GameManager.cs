@@ -25,6 +25,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gm);
             _instance = gm.GetComponent<GameManager>();
 
+            PlayerPrefs.SetString("BestAttack", 0.ToString());
+            PlayerPrefs.SetInt("BestStage", 0);
         }
 
     }
