@@ -88,8 +88,7 @@ public class MainMenu : MonoBehaviour
     public void RecordButton()
     {
         _recordBoard.SetActive(true);
-        //PlayerPref로 해결
-        //_recordText.text = "My Record"+"\n\nMax Stege : "+GameManager.Instance.StageNum.ToString()+"\nMax Attack : "+GameManager.Instance.PlayerAttack.ToString();
+        _recordText.text = "My Record"+"\n\nMax Stege : "+PlayerPrefs.GetInt("BestStage")+"\nMax Attack : "+PlayerPrefs.GetString("BestAttack");
     }
     public void RecordButtonOff()
     {
