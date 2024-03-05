@@ -71,6 +71,15 @@ public class GameManager : MonoBehaviour
         {
             StageNum += 1;
             StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
+
+            if (PlayMode != 0)
+            {
+                if (StageNum > PlayerMaxStage)//최고 스테이지 저장
+                {
+                    PlayerMaxStage = StageNum;
+                    PlayerPrefs.SetInt("BestStage", StageNum);
+                }
+            }
         }
     }
     #region 데이터
@@ -80,6 +89,9 @@ public class GameManager : MonoBehaviour
     bool _playerHit = true;
     float _playerScale = 1.0f;
     long _playerAttack = 2;
+
+    int _playerMaxStage = 1;
+    long _playerMaxAttack = 2;
 
     int _stageNumber = 1;
     float _enemyMoveSpeed = 2.0f;
@@ -93,6 +105,9 @@ public class GameManager : MonoBehaviour
     public bool PlayerHit { get { return _playerHit; } set { _playerHit = value; } }
     public float PlayerScale { get { return _playerScale; } set { _playerScale = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
+
+    public int PlayerMaxStage { get { return _playerMaxStage; } set { _playerMaxStage = value; } }
+    public long PlayerMaxAttack { get { return _playerMaxAttack; } set { _playerMaxAttack = value; } }
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
