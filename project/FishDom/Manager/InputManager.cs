@@ -9,14 +9,20 @@ public class InputManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI _playerAttackText;
     [SerializeField] private GameObject _gameOverBox;
     [SerializeField] private ParticleSystem _notHitEffect;
+
+    ObjectFulling _objectFull;
     void Awake()
     {
+        _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         _gameOverBox.gameObject.SetActive(false);
-        
     }
     private void Start()
     {
-        
+        if (GameManager.Instance.PlayMode == 0)
+        {
+            GameManager.Instance.PlayerAttack = 2;
+            GameManager.Instance.StageNum = 1;
+        }
     }
     void Update()
     {
@@ -83,6 +89,7 @@ public class InputManager : MonoBehaviour
     }
     public void GoMainScene()
     {
+        _objectFull.OffObj();
         SceneManager.LoadScene("MainMenu");
     }
 }
