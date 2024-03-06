@@ -36,8 +36,6 @@ public class GameManager : MonoBehaviour
         {
             _fishSpawn = GameObject.Find("FishSpawner").GetComponent<FishesSpawn>();
             _fishSpawn.Init();
-            StartCoroutine(_fishSpawn.FishSpawnLogic());
-            StartCoroutine(_fishSpawn.ItemSpawnLogic());
         }
     }
     void Awake()
