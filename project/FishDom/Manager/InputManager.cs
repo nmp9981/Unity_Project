@@ -14,6 +14,7 @@ public class InputManager : MonoBehaviour
     void Awake()
     {
         _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+        _objectFull.OffObj();
         _gameOverBox.gameObject.SetActive(false);
     }
     private void Start()
@@ -89,7 +90,6 @@ public class InputManager : MonoBehaviour
     }
     public void GoMainScene()
     {
-        _objectFull.OffObj();
         SceneManager.LoadScene("MainMenu");
     }
 }
