@@ -8,6 +8,7 @@ public class InputManager : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _playerAttackText;
     [SerializeField] private GameObject _gameOverBox;
+    [SerializeField] private GameObject _gameClearBox;
     [SerializeField] private ParticleSystem _notHitEffect;
 
     ObjectFulling _objectFull;
@@ -15,6 +16,7 @@ public class InputManager : MonoBehaviour
     {
         _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         _objectFull.OffObj();
+        _gameClearBox.gameObject.SetActive(false);
         _gameOverBox.gameObject.SetActive(false);
     }
     private void Start()
@@ -81,6 +83,12 @@ public class InputManager : MonoBehaviour
         GameManager.Instance.PlayerHit = false;
         yield return new WaitForSeconds(5.0f);
         GameManager.Instance.PlayerHit = true;
+    }
+    //게임 클리어
+    public void GameClear()
+    {
+        _gameClearBox.gameObject.SetActive(true);
+        Time.timeScale = 0.0f;
     }
     //게임 오버
     public void GameOver()
