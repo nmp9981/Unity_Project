@@ -29,7 +29,7 @@ public class EnemyLogic : MonoBehaviour
     }
     void AttackSetting()
     {
-        _enemyAttack = GameManager.Instance.StageNum*Random.Range(1, 3);
+        _enemyAttack = GameManager.Instance.StageNum* GameManager.Instance.StageNum * Random.Range(1, 4);
     }
     void SetMoveDir()
     {
@@ -75,12 +75,20 @@ public class EnemyLogic : MonoBehaviour
                     GameManager.Instance.PlayerAttack += _enemyAttack;
                     GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
 
-                    if (GameManager.Instance.PlayMode != 0)
+                    if (GameManager.Instance.PlayMode == 0)//챌린지 모드
                     {
-                        if(GameManager.Instance.PlayMode > GameManager.Instance.PlayerMaxAttack)//최고 공격력 저장
+                        if(GameManager.Instance.PlayerAttack > GameManager.Instance.PlayerMaxAttack)//최고 공격력 저장
                         {
-                            GameManager.Instance.PlayerMaxAttack = GameManager.Instance.PlayMode;
+                            GameManager.Instance.PlayerMaxAttack = GameManager.Instance.PlayerAttack;
                             PlayerPrefs.SetString("BestAttack", GameManager.Instance.PlayerMaxAttack.ToString());
+                        }
+                    }
+                    else//스테이지 모드
+                    {
+                        GameManager.Instance.RestCount -= -1;
+                        if (GameManager.Instance.RestCount == 0)
+                        {
+                            _inputManager.GameClear();
                         }
                     }
                 }
