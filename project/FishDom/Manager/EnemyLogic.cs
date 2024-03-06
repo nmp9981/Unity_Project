@@ -66,6 +66,11 @@ public class EnemyLogic : MonoBehaviour
             if (!GameManager.Instance.PlayerHit)
             {
                 gameObject.SetActive(false);
+                GameManager.Instance.RestCount -= 1;
+                if (GameManager.Instance.RestCount == 0)
+                {
+                    _inputManager.GameClear();
+                }
             }
             else
             {
@@ -85,7 +90,7 @@ public class EnemyLogic : MonoBehaviour
                     }
                     else//스테이지 모드
                     {
-                        GameManager.Instance.RestCount -= -1;
+                        GameManager.Instance.RestCount -= 1;
                         if (GameManager.Instance.RestCount == 0)
                         {
                             _inputManager.GameClear();
