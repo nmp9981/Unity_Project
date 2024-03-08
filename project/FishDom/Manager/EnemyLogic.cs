@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class EnemyLogic : MonoBehaviour
 {
+    SoundManager _soundManager;
     InputManager _inputManager;
     private float dir;
     [SerializeField] private TextMeshProUGUI _enemyAttackText;
@@ -12,6 +13,7 @@ public class EnemyLogic : MonoBehaviour
 
     private void Awake()
     {
+        _soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
         _inputManager = GameObject.Find("Player").GetComponent<InputManager>();
     }
     void Start()
@@ -76,6 +78,7 @@ public class EnemyLogic : MonoBehaviour
             {
                 if (_enemyAttack < GameManager.Instance.PlayerAttack)
                 {
+                    _soundManager.PlaySfx(SFXSound.Star);
                     gameObject.SetActive(false);
                     GameManager.Instance.PlayerAttack += _enemyAttack;
                     GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
