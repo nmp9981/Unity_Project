@@ -4,6 +4,14 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum SFXSound
+{
+    Clear,
+    Click,
+    Die,
+    Eat,
+    Star,
+}
 public class SoundManager : MonoBehaviour
 {
     [SerializeField] static GameObject _BGMManager;
@@ -61,6 +69,16 @@ public class SoundManager : MonoBehaviour
             _audioBgmSource.playOnAwake = true;
             _audioBgmSource.loop = true;
             _audioBgmSource.Play();//한개만 적용
+        }
+    }
+    public void PlaySfx(SFXSound type)
+    {
+        if (!_audioSfxSource.isPlaying)
+        {
+            _audioSfxSource.volume = GameManager.Instance.SFXVolume;
+            _audioSfxSource.playOnAwake = true;
+            _audioSfxSource.loop = false;
+            _audioSfxSource.PlayOneShot(_sfxClip[(int) type]);//한개만 적용
         }
     }
 }
