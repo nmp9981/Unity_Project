@@ -12,8 +12,10 @@ public class InputManager : MonoBehaviour
     [SerializeField] private ParticleSystem _notHitEffect;
 
     ObjectFulling _objectFull;
+    SoundManager _soundManager;
     void Awake()
     {
+        _soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
         _objectFull = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         _objectFull.OffObj();
         _gameClearBox.gameObject.SetActive(false);
@@ -80,6 +82,7 @@ public class InputManager : MonoBehaviour
     }
     public IEnumerator PlayerNotHit()
     {
+        _soundManager.PlaySfx(SFXSound.Star);
         GameManager.Instance.PlayerHit = false;
         yield return new WaitForSeconds(5.0f);
         GameManager.Instance.PlayerHit = true;
@@ -87,12 +90,14 @@ public class InputManager : MonoBehaviour
     //게임 클리어
     public void GameClear()
     {
+        _soundManager.PlaySfx(SFXSound.Clear);
         _gameClearBox.gameObject.SetActive(true);
         Time.timeScale = 0.0f;
     }
     //게임 오버
     public void GameOver()
     {
+        _soundManager.PlaySfx(SFXSound.Die);
         _gameOverBox.gameObject.SetActive(true);
         Time.timeScale = 0.0f;
     }
