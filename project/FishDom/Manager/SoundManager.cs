@@ -7,10 +7,10 @@ using UnityEngine.SceneManagement;
 public enum SFXSound
 {
     Clear,
-    Click,
     Die,
     Eat,
     Star,
+    Click
 }
 public class SoundManager : MonoBehaviour
 {
@@ -37,8 +37,11 @@ public class SoundManager : MonoBehaviour
             }
             DontDestroyOnLoad(gm);
             _sound = gm.GetComponent<SoundManager>();
-            _audioBgmSource = _BGMManager.AddComponent<AudioSource>();
-            _audioSfxSource = _SFXManager.AddComponent<AudioSource>();
+
+            _BGMManager = GameObject.Find("BGMManager");
+            _SFXManager = GameObject.Find("SFXManager");
+            _audioBgmSource = _BGMManager.GetComponent<AudioSource>();
+            _audioSfxSource = _SFXManager.GetComponent<AudioSource>();
         }
     }
     // Start is called before the first frame update
@@ -73,12 +76,9 @@ public class SoundManager : MonoBehaviour
     }
     public void PlaySfx(SFXSound type)
     {
-        if (!_audioSfxSource.isPlaying)
-        {
-            _audioSfxSource.volume = GameManager.Instance.SFXVolume;
-            _audioSfxSource.playOnAwake = true;
-            _audioSfxSource.loop = false;
-            _audioSfxSource.PlayOneShot(_sfxClip[(int) type]);//한개만 적용
-        }
+        _audioSfxSource.volume = GameManager.Instance.SFXVolume;
+        _audioSfxSource.playOnAwake = true;
+        _audioSfxSource.loop = false;
+        _audioSfxSource.PlayOneShot(_sfxClip[(int)type]);//한개만 적용
     }
 }
