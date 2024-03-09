@@ -42,6 +42,9 @@ public class SoundManager : MonoBehaviour
             _SFXManager = GameObject.Find("SFXManager");
             _audioBgmSource = _BGMManager.GetComponent<AudioSource>();
             _audioSfxSource = _SFXManager.GetComponent<AudioSource>();
+
+            GameManager.Instance.BGMVolume = 0.7f;
+            GameManager.Instance.SFXVolume = 0.7f;
         }
     }
     // Start is called before the first frame update
