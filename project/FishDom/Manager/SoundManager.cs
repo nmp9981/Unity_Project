@@ -69,9 +69,9 @@ public class SoundManager : MonoBehaviour
             _audioBgmSource.clip = _bgmClip[1];
         }
 
+        _audioBgmSource.volume = GameManager.Instance.BGMVolume;//상시 조절되게 바깥으로 뺌
         if (!_audioBgmSource.isPlaying)
         {
-            _audioBgmSource.volume = GameManager.Instance.BGMVolume;
             _audioBgmSource.playOnAwake = true;
             _audioBgmSource.loop = true;
             _audioBgmSource.Play();//한개만 적용
