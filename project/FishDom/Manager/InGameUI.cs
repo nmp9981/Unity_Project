@@ -6,9 +6,13 @@ using UnityEngine;
 public class InGameUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _restCountFishText;
+    [SerializeField] GameObject _settingBoard;
     void Start()
     {
-        GameManager.Instance.RestCount = GameManager.Instance.StageNum * 10;
+        if (GameManager.Instance.PlayMode != 0)
+        {
+            GameManager.Instance.RestCount = GameManager.Instance.StageNum * 7;
+        } 
     }
 
     // Update is called once per frame
@@ -26,5 +30,13 @@ public class InGameUI : MonoBehaviour
         {
             _restCountFishText.text = "";
         }
+    }
+    public void SettingShow()
+    {
+        _settingBoard.SetActive(true);
+    }
+    public void SettingClose()
+    {
+        _settingBoard.SetActive(false);
     }
 }
