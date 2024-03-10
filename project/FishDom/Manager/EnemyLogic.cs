@@ -48,7 +48,7 @@ public class EnemyLogic : MonoBehaviour
     }
     void EnemyAttackTextMove()
     {
-        _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0, gameObject.transform.localScale.y, 0));
+        _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0,1.0f, 0));
         _enemyAttackText.text = _enemyAttack.ToString();
     }
     void EnemyToCameraDistance()
@@ -78,7 +78,7 @@ public class EnemyLogic : MonoBehaviour
             {
                 if (_enemyAttack < GameManager.Instance.PlayerAttack)
                 {
-                    _soundManager.PlaySfx(SFXSound.Star);
+                    _soundManager.PlaySfx(SFXSound.Eat);
                     gameObject.SetActive(false);
                     GameManager.Instance.PlayerAttack += _enemyAttack;
                     GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
