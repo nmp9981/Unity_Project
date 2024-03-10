@@ -10,7 +10,6 @@ public class GameManager : MonoBehaviour
     FishesSpawn _fishSpawn;
 
     public static GameManager Instance { get { Init(); return _instance; } }
-
     static void Init()
     {
         if (_instance == null)
@@ -25,8 +24,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gm);
             _instance = gm.GetComponent<GameManager>();
 
-            PlayerPrefs.SetString("BestAttack", 0.ToString());
-            PlayerPrefs.SetInt("BestStage", 0);
+            PlayerPrefs.SetString("BestAttack", 2.ToString());
+            PlayerPrefs.SetInt("BestStage", 1);
         }
 
     }
@@ -69,11 +68,11 @@ public class GameManager : MonoBehaviour
     {
         if (PlayerAttack > 10 * StageNum)
         {
-            StageNum += 1;
-            StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
-
-            if (PlayMode != 0)
+            if (PlayMode == 0)
             {
+                StageNum += 1;
+                StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
+
                 if (StageNum > PlayerMaxStage)//최고 스테이지 저장
                 {
                     PlayerMaxStage = StageNum;
@@ -94,10 +93,14 @@ public class GameManager : MonoBehaviour
     long _playerMaxAttack = 2;
 
     int _stageNumber = 1;
+    int _restCount = 30;
     float _enemyMoveSpeed = 2.0f;
     float _enemyToCameraStdDistance = 100.0f;
 
     const int _fishKinds = 17;
+
+    float _bgmVolume = 1.0f;
+    float _sfxVolume = 1.0f;
 
     public int PlayMode { get { return _playMode; } set { _playMode = value; } }
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
@@ -110,9 +113,13 @@ public class GameManager : MonoBehaviour
     public long PlayerMaxAttack { get { return _playerMaxAttack; } set { _playerMaxAttack = value; } }
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
+    public int RestCount { get { return _restCount; } set { _restCount = value; } }
     public float EnemyMoveSpeed { get { return _enemyMoveSpeed; } set { _enemyMoveSpeed = value; } }
     public float EnemyToCameraStdDistance { get { return _enemyToCameraStdDistance; } set { _enemyToCameraStdDistance = value; } }
 
     public int FishKinds {get { return _fishKinds;}}
+
+    public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
+    public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
     #endregion
 }
