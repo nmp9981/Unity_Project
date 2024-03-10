@@ -51,7 +51,7 @@ public class InputManager : MonoBehaviour
     }
     void PlayerAttackTextMove()
     {
-        _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,1f,0));
+        _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,gameObject.transform.localScale.y,0));
         _playerAttackText.text = GameManager.Instance.PlayerAttack.ToString();
     }
     void PlayerScaleUp()
