@@ -39,9 +39,10 @@ public class EnemyLogic : MonoBehaviour
         else
         {
             int ranNum = Random.Range(0, 100);
-            if (ranNum < 80)
+            if (ranNum < 90-Time.time/4)//시간에 따라 다르게
             {
-                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1, 4)-1;
+                int add =4 + (int)Time.time/2;
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1, add) - Random.Range(1, GameManager.Instance.StageNum);
             }
             else
             {
