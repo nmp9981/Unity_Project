@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 public class EnemyLogic : MonoBehaviour
@@ -97,7 +98,8 @@ public class EnemyLogic : MonoBehaviour
                     _soundManager.PlaySfx(SFXSound.Eat);
                     gameObject.SetActive(false);
                     GameManager.Instance.PlayerAttack += _enemyAttack;
-                    GameManager.Instance.PlayerScale = 1.0f + GameManager.Instance.PlayerAttack * 0.0015f;
+                    GameManager.Instance.PlayerScale = 1.0f 
+                        + GameManager.Instance.PlayerAttack * 0.00015f / Mathf.Pow(2.0f,(float)GameManager.Instance.PlayerAttack-1);
 
                     if (GameManager.Instance.PlayMode == 0)//챌린지 모드
                     {
