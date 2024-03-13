@@ -31,7 +31,23 @@ public class EnemyLogic : MonoBehaviour
     }
     void AttackSetting()
     {
-        _enemyAttack = GameManager.Instance.StageNum* GameManager.Instance.StageNum * Random.Range(1, 4);
+        if (GameManager.Instance.PlayMode == 0)//챌린지
+        {
+            _enemyAttack = GameManager.Instance.StageNum * GameManager.Instance.StageNum * Random.Range(1, 4);
+        }
+        else
+        {
+            int ranNum = Random.Range(0, 100);
+            if (ranNum < 80)
+            {
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1, 4)-1;
+            }
+            else
+            {
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum)*1024;
+            }
+           
+        }
     }
     void SetMoveDir()
     {
