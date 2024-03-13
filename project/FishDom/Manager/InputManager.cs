@@ -29,6 +29,10 @@ public class InputManager : MonoBehaviour
             GameManager.Instance.PlayerAttack = 2;
             GameManager.Instance.StageNum = 1;
         }
+        else
+        {
+            GameManager.Instance.PlayerAttack = (long)Mathf.Pow(2.0f, (float)(GameManager.Instance.StageNum / 10));
+        }
     }
     void Update()
     {
@@ -51,7 +55,7 @@ public class InputManager : MonoBehaviour
     }
     void PlayerAttackTextMove()
     {
-        _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,gameObject.transform.localScale.y,0));
+        _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,1.0f,0));
         _playerAttackText.text = GameManager.Instance.PlayerAttack.ToString();
     }
     void PlayerScaleUp()
