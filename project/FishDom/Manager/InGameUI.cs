@@ -12,7 +12,7 @@ public class InGameUI : MonoBehaviour
     {
         if (GameManager.Instance.PlayMode != 0)//스테이지 모드
         {
-            GameManager.Instance.RestCount = GameManager.Instance.StageNum * 7;
+            GameManager.Instance.RestCount = (GameManager.Instance.StageNum * 33+45)/10;
             _returnButton.SetActive(false);
         }
         else//챌린지 모드
