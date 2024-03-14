@@ -21,6 +21,8 @@ public class InputManager : MonoBehaviour
         _objectFull.OffObj();
         _gameClearBox.gameObject.SetActive(false);
         _gameOverBox.gameObject.SetActive(false);
+
+        GameManager.Instance.PlayerMaxTime = 0;//경과 시간 초기화
     }
     private void Start()
     {
@@ -97,7 +99,7 @@ public class InputManager : MonoBehaviour
     {
         if (GameManager.Instance.PlayMode == 0)//챌린지 모드일때만 기록
         {
-            if (Time.time > PlayerPrefs.GetFloat("BestTime"))
+            if (GameManager.Instance.PlayerMaxTime > PlayerPrefs.GetFloat("BestTime"))
             {
                 PlayerPrefs.SetFloat("BestTime", GameManager.Instance.PlayerMaxTime);
             }
@@ -119,7 +121,13 @@ public class InputManager : MonoBehaviour
     }
     public void GoMainScene()
     {
-        GameManager.Instance.PlayerHit = true;
+        GameInit();
         SceneManager.LoadScene("MainMenu");
+    }
+    public void GameInit()
+    {
+        GameManager.Instance.PlayerHit = true;
+        GameManager.Instance.StageNum = 1;
+        GameManager.Instance.PlayInitTime = -7.0f;
     }
 }
