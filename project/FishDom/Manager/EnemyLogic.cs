@@ -39,7 +39,7 @@ public class EnemyLogic : MonoBehaviour
             int middleCut = 70 - 2*GameManager.Instance.StageNum;
 
             if (ranNum > upCut) {//상급 
-                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * 1024;
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1000, 1200);
             }
             else if (ranNum < middleCut)//하급
             {
@@ -47,15 +47,14 @@ public class EnemyLogic : MonoBehaviour
             }
             else//중급
             {
-                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * 24;
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(18, 31);
             }
-        }
-        else//스테이지 모드
+        }else if (GameManager.Instance.PlayMode != 0)//스테이지 모드
         {
             int ranNum = Random.Range(0, 100);
-            if (ranNum < 90-Time.time/4)//시간에 따라 다르게
+            if (ranNum < 90-GameManager.Instance.PlayerMaxTime/4)//시간에 따라 다르게
             {
-                int add =4 + (int)Time.time/2;
+                int add =4 + (int)GameManager.Instance.PlayerMaxTime / 2;
                 _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1, add) - Random.Range(1, GameManager.Instance.StageNum);
             }
             else
