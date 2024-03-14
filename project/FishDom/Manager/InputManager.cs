@@ -95,9 +95,12 @@ public class InputManager : MonoBehaviour
     }
     void PlayerTimeRecord()
     {
-        if(Time.time > PlayerPrefs.GetInt("BestTime"))
+        if (GameManager.Instance.PlayMode == 0)//챌린지 모드일때만 기록
         {
-            PlayerPrefs.SetString("BestTime", GameManager.Instance.PlayerMaxTime.ToString());
+            if (Time.time > PlayerPrefs.GetFloat("BestTime"))
+            {
+                PlayerPrefs.SetFloat("BestTime", GameManager.Instance.PlayerMaxTime);
+            }
         }
     }
     //게임 클리어
