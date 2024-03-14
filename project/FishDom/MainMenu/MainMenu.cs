@@ -6,12 +6,15 @@ using Unity.VisualScripting.AssemblyQualifiedNameParser;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
     [SerializeField] GameObject _stageUIObject;
     [SerializeField] GameObject _modeUIObject;
     [SerializeField] GameObject _recordBoard;
+    [SerializeField] GameObject _creditBoard;
+    [SerializeField] GameObject _settingBoard;
     [SerializeField] TextMeshProUGUI _recordText;
     [SerializeField] TextMeshProUGUI _pageNumText;
 
@@ -88,7 +91,9 @@ public class MainMenu : MonoBehaviour
     public void RecordButton()
     {
         _recordBoard.SetActive(true);
-        _recordText.text = "My Record"+"\n\nMax Stege : "+PlayerPrefs.GetInt("BestStage")+"\nMax Attack : "+PlayerPrefs.GetString("BestAttack");
+        _recordText.text = "My Record"+"\n\nMax Stege : "+PlayerPrefs.GetInt("BestStage")
+            +"\nMax Attack : "+PlayerPrefs.GetString("BestAttack")
+            + "\nMax Time : " + PlayerPrefs.GetString("BestTime");
     }
     public void RecordButtonOff()
     {
@@ -101,5 +106,22 @@ public class MainMenu : MonoBehaviour
 #else
         Application.Quit(); // 어플리케이션 종료
 #endif
+    }
+    public void CreditButtonOn()
+    {
+        _creditBoard.SetActive(true);
+    }
+    public void CreditButtonOff()
+    {
+        _creditBoard.SetActive(false);
+    }
+    public void SettingButtonOn()
+    {
+        _settingBoard.SetActive(true);
+        
+    }
+    public void SettingButtonOff()
+    {
+        _settingBoard.SetActive(false);
     }
 }
