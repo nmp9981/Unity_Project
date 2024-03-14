@@ -31,7 +31,7 @@ public class InputManager : MonoBehaviour
         }
         else
         {
-            GameManager.Instance.PlayerAttack = (long)Mathf.Pow(2.0f, (float)(GameManager.Instance.StageNum / 10));
+            GameManager.Instance.PlayerAttack = (long) Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum)*(GameManager.Instance.StageNum/10+1);
         }
     }
     void Update()
@@ -40,6 +40,7 @@ public class InputManager : MonoBehaviour
         PlayerAttackTextMove();
         PlayerScaleUp();
         PlayerNotHitEffect();
+        PlayerTimeRecord();
     }
    public void PlayerMove()
     {
@@ -91,6 +92,13 @@ public class InputManager : MonoBehaviour
         GameManager.Instance.PlayerHit = false;
         yield return new WaitForSeconds(5.0f);
         GameManager.Instance.PlayerHit = true;
+    }
+    void PlayerTimeRecord()
+    {
+        if(Time.time > PlayerPrefs.GetInt("BestTime"))
+        {
+            PlayerPrefs.SetString("BestTime", GameManager.Instance.PlayerMaxTime.ToString());
+        }
     }
     //게임 클리어
     public void GameClear()
