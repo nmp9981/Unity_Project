@@ -6,7 +6,7 @@ using UnityEngine;
 public class ObjectFulling : MonoBehaviour
 {
     //프리팹 준비
-    const int fishKinds = 18;
+    const int fishKinds = 31;
     const int mobMaxCounts = 25;
     public GameObject[] fishPrefabs;
    
@@ -17,6 +17,19 @@ public class ObjectFulling : MonoBehaviour
     private void Awake()
     { 
         fishes = new GameObject[fishKinds][]{
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
+            new GameObject[mobMaxCounts],
             new GameObject[mobMaxCounts],
             new GameObject[mobMaxCounts],
             new GameObject[mobMaxCounts],
