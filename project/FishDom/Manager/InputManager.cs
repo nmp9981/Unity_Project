@@ -109,6 +109,14 @@ public class InputManager : MonoBehaviour
     public void GameClear()
     {
         _soundManager.PlaySfx(SFXSound.Clear);
+        if (GameManager.Instance.PlayMode != 0)
+        {
+            if (GameManager.Instance.StageNum >= PlayerPrefs.GetFloat("BestClear"))
+            {
+                GameManager.Instance.PlayerMaxClearStage += 1;
+                PlayerPrefs.SetFloat("BestClear", GameManager.Instance.PlayerMaxClearStage);
+            }
+        }
         _gameClearBox.gameObject.SetActive(true);
         Time.timeScale = 0.0f;
     }
