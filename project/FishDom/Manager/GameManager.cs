@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
 {
     static GameManager _instance;
     FishesSpawn _fishSpawn;
+    private float currentTime;
+    private float coolTime = 7.5f;
 
     public static GameManager Instance { get { Init(); return _instance; } }
     static void Init()
@@ -66,19 +68,20 @@ public class GameManager : MonoBehaviour
     }
     void StageUp()
     {
-        if (PlayerAttack > 10 * StageNum)
+        if (PlayMode == 0)//챌린지 모드
         {
-            if (PlayMode == 0)
-            {
-                StageNum += 1;
-                StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
+            currentTime += Time.deltaTime;
+            if (currentTime < coolTime) return;
 
-                if (StageNum > PlayerMaxStage)//최고 스테이지 저장
-                {
-                    PlayerMaxStage = StageNum;
-                    PlayerPrefs.SetInt("BestStage", StageNum);
-                }
+            StageNum += 1;
+            StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
+
+            if (StageNum > PlayerMaxStage)//최고 스테이지 저장
+            {
+                PlayerMaxStage = StageNum;
+                PlayerPrefs.SetInt("BestStage", StageNum);
             }
+            currentTime = 0.0f;
         }
     }
     #region 데이터
@@ -91,6 +94,7 @@ public class GameManager : MonoBehaviour
 
     int _playerMaxStage = 1;
     long _playerMaxAttack = 2;
+    int _playerMaxTime = 0;
 
     int _stageNumber = 1;
     int _restCount = 30;
@@ -111,6 +115,7 @@ public class GameManager : MonoBehaviour
 
     public int PlayerMaxStage { get { return _playerMaxStage; } set { _playerMaxStage = value; } }
     public long PlayerMaxAttack { get { return _playerMaxAttack; } set { _playerMaxAttack = value; } }
+    public int PlayerMaxTime { get { return _playerMaxTime; } set { _playerMaxTime = value; } }
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public int RestCount { get { return _restCount; } set { _restCount = value; } }
