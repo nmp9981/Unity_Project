@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static System.Net.Mime.MediaTypeNames;
 
 public class MainMenu : MonoBehaviour
 {
@@ -24,13 +25,27 @@ public class MainMenu : MonoBehaviour
     void Awake()
     {
         _uiPageNum = 0;
-
+        StageButtonSetting();
     }
 
     // Update is called once per frame
     void Update()
     {
         PageTextShow();
+    }
+    void StageButtonSetting()
+    {
+        for (int i = 0; i < _uiPage.Length; i++)
+        {
+            foreach (Transform go in _uiPage[i].transform)
+            {
+                if (int.Parse(go.gameObject.name) <= GameManager.Instance.PlayerMaxClearStage)
+                {
+                    go.GetComponent<Button>().interactable = true;
+                }
+                else go.GetComponent<Button>().interactable = false;
+            }
+        }
     }
     private void PageTextShow()
     {
@@ -91,9 +106,9 @@ public class MainMenu : MonoBehaviour
     public void RecordButton()
     {
         _recordBoard.SetActive(true);
-        _recordText.text = "My Record"+"\n\nMax Stege : "+PlayerPrefs.GetInt("BestStage")
-            +"\nMax Attack : "+PlayerPrefs.GetString("BestAttack")
-            + "\nMax Time : " + PlayerPrefs.GetString("BestTime");
+        _recordText.text = "My Record" + "\n\nMax Stege : " + PlayerPrefs.GetInt("BestStage")
+            + "\nMax Attack : " + PlayerPrefs.GetString("BestAttack")
+            + "\nMax Time : " + string.Format("{0:N0}", PlayerPrefs.GetFloat("BestTime"));
     }
     public void RecordButtonOff()
     {
