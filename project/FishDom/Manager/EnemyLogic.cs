@@ -34,9 +34,23 @@ public class EnemyLogic : MonoBehaviour
     {
         if (GameManager.Instance.PlayMode == 0)//챌린지
         {
-            _enemyAttack = GameManager.Instance.StageNum * GameManager.Instance.StageNum * Random.Range(1, 4);
+            int ranNum = Random.Range(0, 100);
+            int upCut = 90 - GameManager.Instance.StageNum;
+            int middleCut = 70 - 2*GameManager.Instance.StageNum;
+
+            if (ranNum > upCut) {//상급 
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * 1024;
+            }
+            else if (ranNum < middleCut)//하급
+            {
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * Random.Range(1, 3) - Random.Range(1, GameManager.Instance.StageNum);
+            }
+            else//중급
+            {
+                _enemyAttack = (long)Mathf.Pow(2.0f, (float)GameManager.Instance.StageNum) * 24;
+            }
         }
-        else
+        else//스테이지 모드
         {
             int ranNum = Random.Range(0, 100);
             if (ranNum < 90-Time.time/4)//시간에 따라 다르게
