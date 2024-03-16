@@ -18,6 +18,7 @@ public class MainMenu : MonoBehaviour
     [SerializeField] GameObject _settingBoard;
     [SerializeField] TextMeshProUGUI _recordText;
     [SerializeField] TextMeshProUGUI _pageNumText;
+    [SerializeField] GameObject _howToPlayBoard;
 
     public GameObject[] _uiPage = new GameObject[5];
     private int _uiPageNum;
@@ -138,5 +139,13 @@ public class MainMenu : MonoBehaviour
     public void SettingButtonOff()
     {
         _settingBoard.SetActive(false);
+    }
+    public void HowToPlayOn()
+    {
+        _howToPlayBoard.SetActive(true);
+    }
+    public void HowToPlayOff()
+    {
+        _howToPlayBoard.SetActive(false);
     }
 }
