@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetString("BestAttack", 2.ToString());
             PlayerPrefs.SetInt("BestStage", 1);
             PlayerPrefs.SetFloat("BestTime", 0);
+            PlayerPrefs.SetFloat("BestClear", 1);
         }
 
     }
@@ -44,11 +45,6 @@ public class GameManager : MonoBehaviour
         Init();
         InitPlayerData(PlayMode);
         InitComponent();
-    }
-
-    void Update()
-    {
-        StageUp();
     }
     public void InitPlayerData(int playmode)
     {
@@ -67,23 +63,25 @@ public class GameManager : MonoBehaviour
             PlayerScale = 1.0f + PlayerAttack * 0.0015f;
         }
     }
-    void StageUp()
+    public void StageUp()
     {
         if (PlayMode == 0)//챌린지 모드
         {
             PlayInitTime += Time.deltaTime;
             PlayerMaxTime += Time.deltaTime;
-            if (PlayInitTime < coolTime) return;
+            if (PlayInitTime > coolTime)
+            {
+                StageNum += 1;
+                StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
 
-            StageNum += 1;
-            StageNum = (StageNum >= _fishKinds) ? _fishKinds : StageNum;
+                PlayInitTime = 0.0f;
+            }
 
             if (StageNum > PlayerMaxStage)//최고 스테이지 저장
             {
                 PlayerMaxStage = StageNum;
                 PlayerPrefs.SetInt("BestStage", PlayerMaxStage);
             }
-            PlayInitTime = 0.0f;
         }
     }
     #region 데이터
@@ -98,6 +96,7 @@ public class GameManager : MonoBehaviour
     int _playerMaxStage = 1;
     long _playerMaxAttack = 2;
     float _playerMaxTime = 0;
+    int _playerMaxClearStage = 1;
 
     int _stageNumber = 1;
     int _restCount = 30;
@@ -120,6 +119,7 @@ public class GameManager : MonoBehaviour
     public int PlayerMaxStage { get { return _playerMaxStage; } set { _playerMaxStage = value; } }
     public long PlayerMaxAttack { get { return _playerMaxAttack; } set { _playerMaxAttack = value; } }
     public float PlayerMaxTime { get { return _playerMaxTime; } set { _playerMaxTime = value; } }
+    public int PlayerMaxClearStage { get { return _playerMaxClearStage; } set { _playerMaxClearStage = value; } }
 
     public int StageNum { get { return _stageNumber; } set { _stageNumber = value; } }
     public int RestCount { get { return _restCount; } set { _restCount = value; } }
