@@ -43,6 +43,7 @@ public class InputManager : MonoBehaviour
         PlayerScaleUp();
         PlayerNotHitEffect();
         PlayerTimeRecord();
+        GameManager.Instance.StageUp();
     }
    public void PlayerMove()
     {
