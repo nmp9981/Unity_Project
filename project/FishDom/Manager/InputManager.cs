@@ -8,9 +8,15 @@ using UnityEngine.SceneManagement;
 public class InputManager : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _playerAttackText;
+    [SerializeField] TextMeshProUGUI _playTimeText;
     [SerializeField] private GameObject _gameOverBox;
     [SerializeField] private GameObject _gameClearBox;
     [SerializeField] private ParticleSystem _notHitEffect;
+
+    [SerializeField] GameObject _upButton;
+    [SerializeField] GameObject _downButton;
+    [SerializeField] GameObject _leftButton;
+    [SerializeField] GameObject _rightButton;
 
     ObjectFulling _objectFull;
     SoundManager _soundManager;
@@ -23,6 +29,19 @@ public class InputManager : MonoBehaviour
         _gameOverBox.gameObject.SetActive(false);
 
         GameManager.Instance.PlayerMaxTime = 0;//경과 시간 초기화
+
+#if UNITY_EDITOR
+        _upButton.gameObject.SetActive(false);
+        _downButton.gameObject.SetActive(false);
+        _leftButton.gameObject.SetActive(false);
+        _rightButton.gameObject.SetActive(false);
+#else
+        _upButton.gameObject.SetActive(true);
+        _upButton.gameObject.SetActive(true);
+        _upButton.gameObject.SetActive(true);
+        _upButton.gameObject.SetActive(true);
+#endif
+
     }
     private void Start()
     {
@@ -38,6 +57,7 @@ public class InputManager : MonoBehaviour
     }
     void Update()
     {
+        PlayTimeTextShow();
         PlayerMove();
         PlayerAttackTextMove();
         PlayerScaleUp();
@@ -45,17 +65,50 @@ public class InputManager : MonoBehaviour
         PlayerTimeRecord();
         GameManager.Instance.StageUp();
     }
+    void PlayTimeTextShow()
+    {
+        if (GameManager.Instance.PlayMode == 0)
+        {
+            int timer = (int)GameManager.Instance.PlayerMaxTime;
+            _playTimeText.text = "Time : " + timer.ToString();
+        }
+    }
    public void PlayerMove()
     {
+#if UNITY_EDITOR
         if (Input.GetKey(KeyCode.LeftArrow)) GameManager.Instance.PlayerDir = -1.0f;
         else if(Input.GetKey(KeyCode.RightArrow)) GameManager.Instance.PlayerDir = 1.0f;
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
         Vector3 moveDir = new Vector3(hAxis, vAxis,0);
-        
+
         gameObject.transform.position += moveDir *GameManager.Instance.PlayerMoveSpeed* Time.deltaTime;
+#endif
         gameObject.transform.localRotation = Quaternion.Euler(0, -90.0f * GameManager.Instance.PlayerDir, 0);
+    }
+
+    public void MoveUP()
+    {
+        Vector3 moveDir = new Vector3(0, 1, 0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+    }
+    public void MoveDown()
+    {
+        Vector3 moveDir = new Vector3(0, -1, 0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+    }
+    public void MoveLeft()
+    {
+        GameManager.Instance.PlayerDir = -1.0f;
+        Vector3 moveDir = new Vector3(-1, 0, 0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+    }
+    public void MoveRight()
+    {
+        GameManager.Instance.PlayerDir = 1.0f;
+        Vector3 moveDir = new Vector3(1, 0, 0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
     }
     void PlayerAttackTextMove()
     {
