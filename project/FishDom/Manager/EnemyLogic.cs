@@ -80,7 +80,7 @@ public class EnemyLogic : MonoBehaviour
     void EnemyAttackTextMove()
     {
         _enemyAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position + new Vector3(0,1.0f, 0));
-        _enemyAttackText.text = _enemyAttack.ToString();
+        _enemyAttackText.text = string.Format("{0:#,0}",_enemyAttack);//3자리씩 끊어 출력
     }
     void EnemyToCameraDistance()
     {
