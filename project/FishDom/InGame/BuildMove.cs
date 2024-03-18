@@ -6,16 +6,16 @@ using UnityEngine;
 public class BuildMove : MonoBehaviour
 {
     InputManager _inputManager;
-    // Start is called before the first frame update
     void Awake()
     {
         _inputManager = GameObject.Find("Player").GetComponent<InputManager>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButton(0))
+#if UNITY_EDITOR
+#else
+        if (Input.GetMouseButton(0))//마우스 우클릭 or 빌드상에서 버튼 눌렀을 때
         {
             if (_inputManager.upMove) _inputManager.moveDir = new Vector3(0, 1, 0);
             if (_inputManager.downMove) _inputManager.moveDir = new Vector3(0, -1, 0);
@@ -24,5 +24,6 @@ public class BuildMove : MonoBehaviour
 
             gameObject.transform.position += _inputManager.moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
         }
+#endif
     }
 }
