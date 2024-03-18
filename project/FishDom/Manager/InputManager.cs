@@ -20,6 +20,14 @@ public class InputManager : MonoBehaviour
 
     ObjectFulling _objectFull;
     SoundManager _soundManager;
+
+    public Vector3 moveDir;
+
+    public bool upMove = false;
+    public bool downMove = false;
+    public bool leftMove = false;
+    public bool rightMove = false;
+
     void Awake()
     {
         _soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
@@ -81,35 +89,47 @@ public class InputManager : MonoBehaviour
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        Vector3 moveDir = new Vector3(hAxis, vAxis,0);
-
-        gameObject.transform.position += moveDir *GameManager.Instance.PlayerMoveSpeed* Time.deltaTime;
+        moveDir = new Vector3(hAxis, vAxis,0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
 #endif
         gameObject.transform.localRotation = Quaternion.Euler(0, -90.0f * GameManager.Instance.PlayerDir, 0);
     }
 
-    public void MoveUP()
+    public void MoveUPOn()
     {
-        Vector3 moveDir = new Vector3(0, 1, 0);
-        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+        upMove = true;
     }
-    public void MoveDown()
+    public void MoveUPOff()
     {
-        Vector3 moveDir = new Vector3(0, -1, 0);
-        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+        upMove = false;
     }
-    public void MoveLeft()
+    public void MoveDownOn()
+    {
+        downMove = true;
+    }
+    public void MoveDownOff()
+    {
+        downMove = false;
+    }
+    public void MoveLeftOn()
     {
         GameManager.Instance.PlayerDir = -1.0f;
-        Vector3 moveDir = new Vector3(-1, 0, 0);
-        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+        leftMove = true;
     }
-    public void MoveRight()
+    public void MoveLeftOff()
+    {
+        leftMove = false;
+    }
+    public void MoveRightOn()
     {
         GameManager.Instance.PlayerDir = 1.0f;
-        Vector3 moveDir = new Vector3(1, 0, 0);
-        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+        rightMove = true;
     }
+    public void MoveRightOff()
+    {
+        rightMove = false;
+    }
+   
     void PlayerAttackTextMove()
     {
         _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,1.0f,0));
