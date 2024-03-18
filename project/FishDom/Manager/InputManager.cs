@@ -43,6 +43,11 @@ public class InputManager : MonoBehaviour
         _downButton.gameObject.SetActive(false);
         _leftButton.gameObject.SetActive(false);
         _rightButton.gameObject.SetActive(false);
+#elif UNITY_STANDALONE_WIN
+        _upButton.gameObject.SetActive(false);
+        _downButton.gameObject.SetActive(false);
+        _leftButton.gameObject.SetActive(false);
+        _rightButton.gameObject.SetActive(false);
 #else
         _upButton.gameObject.SetActive(true);
         _upButton.gameObject.SetActive(true);
@@ -84,6 +89,14 @@ public class InputManager : MonoBehaviour
    public void PlayerMove()
     {
 #if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.LeftArrow)) GameManager.Instance.PlayerDir = -1.0f;
+        else if(Input.GetKey(KeyCode.RightArrow)) GameManager.Instance.PlayerDir = 1.0f;
+        float hAxis = Input.GetAxisRaw("Horizontal");
+        float vAxis = Input.GetAxisRaw("Vertical");
+
+        moveDir = new Vector3(hAxis, vAxis,0);
+        gameObject.transform.position += moveDir * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;
+#elif UNITY_STANDALONE_WIN
         if (Input.GetKey(KeyCode.LeftArrow)) GameManager.Instance.PlayerDir = -1.0f;
         else if(Input.GetKey(KeyCode.RightArrow)) GameManager.Instance.PlayerDir = 1.0f;
         float hAxis = Input.GetAxisRaw("Horizontal");
@@ -133,7 +146,7 @@ public class InputManager : MonoBehaviour
     void PlayerAttackTextMove()
     {
         _playerAttackText.transform.position = Camera.main.WorldToScreenPoint(gameObject.transform.position+new Vector3(0,1.0f,0));
-        _playerAttackText.text = GameManager.Instance.PlayerAttack.ToString();
+        _playerAttackText.text = string.Format("{0:#,0}", GameManager.Instance.PlayerAttack);
     }
     void PlayerScaleUp()
     {
