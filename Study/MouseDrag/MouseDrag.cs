@@ -21,4 +21,13 @@ public class DragAndDrop : MonoBehaviour
             Debug.Log("출돌");
         }
     }
+     public void OnMouseDrag()
+ {
+     float distance = 10;
+     Vector3 mousePosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance); 
+     Vector3 objPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+     Debug.Log(objPosition);
+     transform.position = objPosition;
+
+ }
 }
