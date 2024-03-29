@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,9 +10,9 @@ namespace MGIZMO.Editor
 {
     public class JenkinsBuildConfig : MonoBehaviour
     {
-        private static readonly string licensePath = "C:\\unity-build-result\\Aspose.3DProductFamily.lic";
+        private static readonly string licensePath = "C:\\Jenkins-workspace\\workspace\\liences\\Aspose.3DProductFamily.lic";
         private static readonly string buildDirectoryPath =
-            "C:\\NAVER WORKS Drive\\. Public_Root\\프로젝트@21000000089073\\DSEC_MetaMarine\\99. Build";
+            "C:\\Users\\young\\OneDrive\\바탕 화면\\unity-build-temp";
         private static readonly string naverCloudDirectoryPath =
             "C:\\NAVER WORKS Drive\\. Public_Root\\프로젝트@21000000089073\\DSEC_MetaMarine\\99. Build";
 
@@ -24,11 +25,11 @@ namespace MGIZMO.Editor
         [MenuItem("Build/genernal build start")]
         public static void GenernalBuildStart()
         {
-            var buildResultDirectoryPath = AutoBuildConfig("genernal");
-            PressZip.ZipFiles(buildResultDirectoryPath, $"{buildResultDirectoryPath}.zip");
+            AutoBuildConfig("genernal");
+            
         }
 
-        public static string AutoBuildConfig(string state)
+        public static void AutoBuildConfig(string state)
         {
             var year = DateTime.Now.Year;
             var month = DateTime.Now.Month.ToString("00");
@@ -43,7 +44,7 @@ namespace MGIZMO.Editor
                 target = BuildTarget.StandaloneWindows64,
                 options = BuildOptions.None
             };
-
+            
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             var summary = report.summary;
 
@@ -67,7 +68,10 @@ namespace MGIZMO.Editor
                 System.IO.File.Copy(licensePath, $"{dataFolderPath}/Aspose.3DProductFamily.lic", true);
             }
 
-            return nowDirectoryPath;
+            if (Directory.Exists(nowDirectoryPath))
+            {
+                PressZip.ZipFiles(nowDirectoryPath, $"{naverCloudDirectoryPath}/{year}{month}{day}/{state}.zip");
+            }
         }
     }
 }
