@@ -33,7 +33,7 @@ public class CameraLogic : MonoBehaviour
         transform.position = basicCamera.transform.position;
         Camera.main.backgroundColor = Color.white;
         Camera.main.clearFlags = CameraClearFlags.SolidColor;
-
+        
         GameObject.Find("기본 카메라").SetActive(false);
         GameObject.Find("기본 카메라 marker").SetActive(false);
         GameObject.Find("거리 라이트").SetActive(false);
@@ -54,25 +54,52 @@ public class CameraLogic : MonoBehaviour
     //카메라 위치 세팅
     void CameraPosSetting(int dir, GameObject obj)
     {
+        Bounds bounds = new Bounds();
+
+        Transform[] myChildren = obj.GetComponentsInChildren<Transform>();
+        foreach (Transform child in myChildren)
+        {
+
+            if (child.GetComponent<MeshRenderer>() != null)
+            {
+                if (child.GetComponent<BoxCollider>() == null) child.AddComponent<BoxCollider>();
+
+                child.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                child.GetComponent<MeshRenderer>().receiveShadows = false;
+                bounds.Encapsulate(child.GetComponent<BoxCollider>().bounds);
+            }
+        }
+        Vector3 center = bounds.center;
+        Vector3 size = bounds.size;
+       
+        float maxSize = Mathf.Max(size.x, size.y, size.z);
+        float zoom = 0f;
+
         switch (dir)
         {
             case 0:
-                this.transform.position = new Vector3(335, 100, 280);
+                this.transform.position = new Vector3(645, 212, 500);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.forward;
                 break;
             case 1:
-                this.transform.position = new Vector3(335, 100, 135);
+                this.transform.position = new Vector3(645, 210, 315);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.back;
                 break;
             case 2:
-                this.transform.position = new Vector3(270, 105, 210);
+                this.transform.position = new Vector3(585, 210, 420);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.left;
                 break;
             case 3:
-                this.transform.position = new Vector3(400, 105, 210);
+                this.transform.position = new Vector3(700, 210, 420);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.right;
                 break;
             case 4:
-                this.transform.position = new Vector3(330, 155, 210);
+                this.transform.position = new Vector3(650, 270, 420);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.up;
                 break;
             case 5:
-                this.transform.position = new Vector3(335, 40, 210);
+                this.transform.position = new Vector3(650, 80, 420);
+                //this.transform.position = cube.transform.position + zoom * maxSize * Vector3.down;
                 break;
         }
     }
@@ -83,7 +110,7 @@ public class CameraLogic : MonoBehaviour
 
         if (obj.transform.childCount == 0)
         {
-            if(obj.GetComponent<BoxCollider>() == null) obj.AddComponent<BoxCollider>();
+            if (obj.GetComponent<BoxCollider>() == null) obj.AddComponent<BoxCollider>();
 
             obj.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             obj.GetComponent<MeshRenderer>().receiveShadows = false;
@@ -114,17 +141,17 @@ public class CameraLogic : MonoBehaviour
                 }
             }
         }
-        
+
         Vector3 center = bounds.center;
         Vector3 size = bounds.size;
 
         float maxSize = Mathf.Max(size.x, size.y, size.z);
         float zoom = 2.5f;
-        
+
         switch (dir)
         {
             case 0:
-                this.transform.position = center + zoom*maxSize * Vector3.forward;
+                this.transform.position = center + zoom * maxSize * Vector3.forward;
                 break;
             case 1:
                 this.transform.position = center + zoom * maxSize * Vector3.back;
@@ -145,11 +172,12 @@ public class CameraLogic : MonoBehaviour
     }
     public void ObjectSearch()
     {
+        Camera.main.GetComponent<Camera>().orthographic = true;
         Camera.main.fieldOfView = 60;
         CameraSetting();
         childButton.SetActive(false);
         child2Button.SetActive(false);
-        
+
         foreach (Transform child in mainobj.transform)
         {
             child.gameObject.SetActive(false);
@@ -159,6 +187,8 @@ public class CameraLogic : MonoBehaviour
 
     public void ChildObjectSearch()
     {
+        Camera.main.GetComponent<Camera>().orthographic = false;
+
         Camera.main.fieldOfView = 30;
         CameraSetting();
         childButton.SetActive(false);
@@ -168,7 +198,7 @@ public class CameraLogic : MonoBehaviour
         {
             if (child.name == "Unknown") break;
             child.gameObject.SetActive(true);
-            foreach(Transform child2 in child.transform)
+            foreach (Transform child2 in child.transform)
             {
                 child2.gameObject.SetActive(false);
             }
@@ -189,16 +219,21 @@ public class CameraLogic : MonoBehaviour
                 //카메라 세팅
                 sceneView.rotation = Quaternion.Euler(sixDirection[i]);
                 this.transform.rotation = sceneView.rotation;
-                CameraPosSetting(i, mainobj.transform.GetChild(k).gameObject);
-
-                i++;
+                if (k == 4)
+                {
+                    for (int x = 0; x < 4; x++) mainobj.transform.GetChild(x).gameObject.SetActive(true);
+                    CameraPosSetting(i, mainobj);
+                }
+                else CameraPosSetting(i, mainobj.transform.GetChild(k).gameObject);
                
+                i++;
+
                 //파일 위치 저장
-                string filePath = "C:\\Users\\tybna\\SShot\\" + mainobj.transform.GetChild(k).gameObject.name;              
+                string filePath = "C:\\Users\\tybna\\SShot\\" + mainobj.transform.GetChild(k).gameObject.name;
                 DirectoryInfo di = new DirectoryInfo(filePath);
 
                 if (!di.Exists) di.Create();
-                string storePath = filePath + "\\"+i;
+                string storePath = filePath + "\\" + i;
                 ScreenCapture.CaptureScreenshot(storePath + ".png");//사진 찍기
                 yield return null;
             }
@@ -232,13 +267,13 @@ public class CameraLogic : MonoBehaviour
                     sceneView.rotation = Quaternion.Euler(sixDirection[k]);
                     this.transform.rotation = sceneView.rotation;
                     CameraPosAndBoundSetting(k, childObj.transform.GetChild(j).gameObject);
-                    
+
                     k++;
-                   
+
                     //파일 위치 저장
-                    string filePath = "C:\\Users\\tybna\\SShot\\" + childObj.name+"\\"+ childObj.transform.GetChild(j).gameObject.name;
+                    string filePath = "C:\\Users\\tybna\\SShot\\" + childObj.name + "\\" + childObj.transform.GetChild(j).gameObject.name;
                     if (filePath.Contains("\"")) filePath = filePath.Replace("\"", "@");
-                    
+
                     DirectoryInfo di = new DirectoryInfo(filePath);
                     if (!di.Exists) di.Create();
                     string storePath = filePath + "\\" + k;
