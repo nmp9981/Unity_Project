@@ -5,7 +5,6 @@ using static Unity.Collections.AllocatorManager;
 
 public class BlockClick : MonoBehaviour
 {
-    [SerializeField] GameObject searchCube;//탐색용 큐브
     BlockSpawn _blockSpawn;
 
     public int[][] blockState;
@@ -88,9 +87,6 @@ public class BlockClick : MonoBehaviour
         _unionObject = new Queue<(int, int)>();
         _unionObjectPosition = new List<(int, int)>();
         visitInit();
-
-        //GameObject pivot = Instantiate(searchCube);
-        //pivot.transform.position = new Vector3(startRowpos, startColpos, 0f);
         
         visitState[startRowpos][startColpos] = true;//y x순, -1은 방문 체크
         _unionObject.Enqueue((startRowpos,startColpos));
@@ -121,7 +117,6 @@ public class BlockClick : MonoBehaviour
             RemoveBlock();
             BlockReSetting();
         }
-        //Destroy(pivot);
     }
     void RemoveBlock()
     {
