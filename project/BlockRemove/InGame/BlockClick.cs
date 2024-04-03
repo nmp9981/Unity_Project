@@ -6,43 +6,63 @@ using static Unity.Collections.AllocatorManager;
 public class BlockClick : MonoBehaviour
 {
     [SerializeField] GameObject searchCube;//탐색용 큐브
+    BlockSpawn _blockSpawn;
 
-    bool[][] visit; 
-   
+    public int[][] blockState;
+    bool[][] visitState;
+    Queue<(int,int)> _unionObject = new Queue<(int,int)>();
+    public List<(int, int)> _unionObjectPosition = new List<(int, int)>();
+
+    int[] dr = { -1, 1, 0, 0 };
+    int[] dc = { 0, 0, -1, 1 };
+
     void Awake()
     {
-        VisitArrayInstiate();
+        _blockSpawn = GameObject.Find("BlockSpawner").GetComponent<BlockSpawn>();
+        ArrayInstiate();
     }
 
-    // Update is called once per frame
     void Update()
     {
         MouseClick();
     }
-    void VisitArrayInstiate()
+    void ArrayInstiate()
     {
-        visit = new bool[10][]
+        blockState = new int[10][]
         {
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
-             new bool[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+             new int[20],
+        };
+        visitState = new bool[10][]
+        {
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
+            new bool[20],
         };
     }
-
+   
     void visitInit()
     {
         for (int i = 0; i < GameManager.Instance.RowCount; i++)
         {
             for (int j = 0; j < GameManager.Instance.ColCount; j++)
             {
-                visit[i][j] = false;
+                visitState[i][j] = false;
             }
         }
     }
@@ -58,19 +78,80 @@ public class BlockClick : MonoBehaviour
                 Debug.Log(hit.transform.gameObject.name);
                 Debug.Log(hit.transform.position.x+"  "+ hit.transform.position.y);
 
-                visitInit();
-                NearObjectSearch(hit.transform.position.x, hit.transform.position.y,hit.transform.gameObject.name);
+                NearObjectSearch((int)(4-hit.transform.position.y), (int)(hit.transform.position.x+10),BlockSpawn.BlockState(hit.transform.gameObject.name));
             }
         }
     }
-    void NearObjectSearch(float startXpos,float startYpos, string objName)
+    void NearObjectSearch(int startRowpos,int startColpos, int objColor)
     {
-        GameObject pivot = Instantiate(searchCube);
-        pivot.transform.position = new Vector3(startXpos, startYpos, 0f);
+        //초기화
+        _unionObject = new Queue<(int, int)>();
+        _unionObjectPosition = new List<(int, int)>();
+        visitInit();
+
+        //GameObject pivot = Instantiate(searchCube);
+        //pivot.transform.position = new Vector3(startRowpos, startColpos, 0f);
         
-        visit[(int)(4-startYpos)][(int)startXpos+10] = true;//y x순
+        visitState[startRowpos][startColpos] = true;//y x순, -1은 방문 체크
+        _unionObject.Enqueue((startRowpos,startColpos));
+        _unionObjectPosition.Add((startRowpos, startColpos));
+       
+        //BFS 구현
+        while (_unionObject.Count != 0)
+        {
+            (int r, int c) = _unionObject.Dequeue();
 
+            for(int dir = 0; dir < 4; dir++)
+            {
+                int nr = r + dr[dir];
+                int nc = c + dc[dir];
 
-        Destroy(pivot);
+                if (nr < 0 || nr >= GameManager.Instance.RowCount || nc < 0 || nc >= GameManager.Instance.ColCount) continue;
+                if (visitState[nr][nc]) continue;
+                if (objColor != blockState[nr][nc]) continue;
+
+                _unionObject.Enqueue((nr, nc));
+                _unionObjectPosition.Add((nr, nc));
+                visitState[nr][nc] = true;
+            }
+        }
+        Debug.Log(_unionObjectPosition.Count+"개수");
+        if (_unionObjectPosition.Count >= 2)
+        {
+            RemoveBlock();
+            BlockReSetting();
+        }
+        //Destroy(pivot);
+    }
+    void RemoveBlock()
+    {
+        foreach(var removePos in _unionObjectPosition)
+        {
+            blockState[removePos.Item1][removePos.Item2] = 0;
+        }
+    }
+    void BlockReSetting()
+    {
+        //각 열별로
+        for(int c = 0; c < GameManager.Instance.ColCount; c++)
+        {
+            //각 열별로 남아있는 블럭 상태
+            Stack<int> colBlock = new Stack<int>();
+            for(int r = 0; r < GameManager.Instance.RowCount; r++)
+            {
+                if (blockState[r][c] >= 1) colBlock.Push(blockState[r][c]);
+            }
+            //재배치
+            for (int r = GameManager.Instance.RowCount-1; r>=0; r--)
+            {
+                if (colBlock.Count == 0) blockState[r][c] = -1;
+                else
+                {
+                    blockState[r][c] = colBlock.Peek();
+                    colBlock.Pop();
+                }
+            }
+        }
+        _blockSpawn.BlockBlockSetting();
     }
 }
