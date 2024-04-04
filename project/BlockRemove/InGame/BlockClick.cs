@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static Unity.Collections.AllocatorManager;
 
 public class BlockClick : MonoBehaviour
@@ -14,7 +15,7 @@ public class BlockClick : MonoBehaviour
 
     int[] dr = { -1, 1, 0, 0 };
     int[] dc = { 0, 0, -1, 1 };
-
+    
     void Awake()
     {
         _blockSpawn = GameObject.Find("BlockSpawner").GetComponent<BlockSpawn>();
@@ -74,8 +75,8 @@ public class BlockClick : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero,0f);
             if (hit.collider != null)
             {
-                Debug.Log(hit.transform.gameObject.name);
-                Debug.Log(hit.transform.position.x+"  "+ hit.transform.position.y);
+                //Debug.Log(hit.transform.gameObject.name);
+                //Debug.Log(hit.transform.position.x+"  "+ hit.transform.position.y);
 
                 NearObjectSearch((int)(4-hit.transform.position.y), (int)(hit.transform.position.x+10),BlockSpawn.BlockState(hit.transform.gameObject.name));
             }
@@ -111,31 +112,64 @@ public class BlockClick : MonoBehaviour
                 visitState[nr][nc] = true;
             }
         }
-        Debug.Log(_unionObjectPosition.Count+"개수");
         if (_unionObjectPosition.Count >= 2)
         {
             RemoveBlock();
             BlockReSetting();
         }
     }
+    //블록 제거
     void RemoveBlock()
     {
         foreach(var removePos in _unionObjectPosition)
         {
             blockState[removePos.Item1][removePos.Item2] = 0;
         }
+        GameManager.Instance.RestBlockCount -= _unionObjectPosition.Count;//남은 블록 개수
     }
+    //블록 재세팅
     void BlockReSetting()
     {
+        List<Stack<int>> restBlockState = new List<Stack<int>>();//남은 블록의 상태
         //각 열별로
-        for(int c = 0; c < GameManager.Instance.ColCount; c++)
+        for (int c = 0; c < GameManager.Instance.ColCount; c++)
         {
-            //각 열별로 남아있는 블럭 상태
-            Stack<int> colBlock = new Stack<int>();
+            Stack<int> colBlock = new Stack<int>();//각 열별로 남아있는 블럭 상태
+            for (int r = 0; r < GameManager.Instance.RowCount; r++)
+            {
+                if (blockState[r][c] >= 1) colBlock.Push(blockState[r][c]);
+            }
+            if (colBlock.Count > 0) restBlockState.Add(colBlock);
+        }
+        //재배치
+        for (int c = 0; c < restBlockState.Count; c++)
+        {
+            for (int r = GameManager.Instance.RowCount - 1; r >= 0; r--)
+            {
+                if (restBlockState[c].Count == 0) blockState[r][c] = -1;
+                else
+                {
+                    blockState[r][c] = restBlockState[c].Peek();
+                    restBlockState[c].Pop();
+                }
+            }
+        }
+        //나머지 빈칸은 모두 -1로
+        for (int c = restBlockState.Count; c < GameManager.Instance.ColCount; c++)
+        {
+            for (int r = GameManager.Instance.RowCount - 1; r >= 0; r--) blockState[r][c] = -1;
+        }
+        /*
+        List<int> colCount = new List<int>();//각 열별로 남은 블럭 개수
+        //각 열별로
+        for (int c = 0; c < GameManager.Instance.ColCount; c++)
+        {
+            Stack<int> colBlock = new Stack<int>();//각 열별로 남아있는 블럭 상태
             for(int r = 0; r < GameManager.Instance.RowCount; r++)
             {
                 if (blockState[r][c] >= 1) colBlock.Push(blockState[r][c]);
             }
+            colCount.Add(colBlock.Count);
             //재배치
             for (int r = GameManager.Instance.RowCount-1; r>=0; r--)
             {
@@ -147,6 +181,35 @@ public class BlockClick : MonoBehaviour
                 }
             }
         }
+
+        //빈 열이 있으면 왼쪽으로
+        int emptyCount = 0;
+        int emptyColCount = 0;//빈 열의 총 개수
+        for (int idx = 0; idx < colCount.Count; idx++)
+        {
+            if (colCount[idx] == 0)
+            {
+                emptyCount++;
+                emptyColCount++;
+            }
+            else
+            {
+                for (int c = idx; c < GameManager.Instance.ColCount; c++)
+                {
+                    for (int r = GameManager.Instance.RowCount - 1; r >= 0; r--)
+                    {
+                        blockState[r][c - emptyCount] = blockState[r][c];
+                    }
+                }
+                emptyCount = 0;
+            }
+        }
+        //나머지 빈칸은 모두 -1로
+        for (int c = GameManager.Instance.ColCount-1;c>= GameManager.Instance.ColCount-emptyColCount; c--)
+        {
+            for (int r = GameManager.Instance.RowCount - 1; r >= 0; r--) blockState[r][c] = -1;
+        }
+        */
         _blockSpawn.BlockBlockSetting();
     }
 }
