@@ -11,9 +11,11 @@ public class BlockSpawn : MonoBehaviour
 {
     ObjectPulling _objectPulling;
     BlockClick _blockClick;
+    GameOverCheck _gameOverCheck;
     private void Awake()
     {
         _blockClick = GameObject.Find("MouseClick").GetComponent<BlockClick>();
+        _gameOverCheck = GameObject.Find("GameCheck").GetComponent<GameOverCheck>();
     }
     void Start()
     {
@@ -33,6 +35,7 @@ public class BlockSpawn : MonoBehaviour
                 _blockClick.blockState[(int)(4 - i)][(int)(j + 10)] = BlockState(gm.gameObject.name);
             }
         }
+        GameManager.Instance.RestBlockCount = 200;
         /*
         for (int i = 0; i < GameManager.Instance.RowCount; i++)
         {
@@ -57,6 +60,7 @@ public class BlockSpawn : MonoBehaviour
                 gm.transform.position = new Vector3(j, i, 0);
             }
         }
+        _gameOverCheck.GameOver();//게임 오버 판정
     }
     public static int BlockState(string name)
     {
