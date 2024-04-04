@@ -25,7 +25,8 @@ public class BlockSpawn : MonoBehaviour
 
     void BlockInitSetting()
     {
-        for(int i= -GameManager.Instance.RowCount / 2; i < GameManager.Instance.RowCount / 2; i++)
+        _objectPulling.OffObj();
+        for (int i= -GameManager.Instance.RowCount / 2; i < GameManager.Instance.RowCount / 2; i++)
         {
             for(int j = -GameManager.Instance.ColCount / 2; j < GameManager.Instance.ColCount / 2; j++)
             {
