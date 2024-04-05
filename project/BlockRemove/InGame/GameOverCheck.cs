@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameOverCheck : MonoBehaviour
 {
     BlockClick _blockClick;
+    UIManager _uiManager;
     bool[][] visitCheck;
     Queue<(int, int)> _unionObject = new Queue<(int, int)>();
     
@@ -14,6 +15,7 @@ public class GameOverCheck : MonoBehaviour
     void Awake()
     {
         _blockClick = GameObject.Find("MouseClick").GetComponent<BlockClick>();
+        _uiManager = GameObject.Find("UIManager").GetComponent<UIManager>();
         visitCheck = new bool[10][]
         {
             new bool[20],
@@ -43,8 +45,8 @@ public class GameOverCheck : MonoBehaviour
     {
         if(!CheckContinueGame() || GameManager.Instance.RestBlockCount == 0)
         {
-            Debug.Log("게임 오버");
-            Time.timeScale = 0;
+            _uiManager.GetComponent<UIManager>()._gameOverUI.SetActive(true);//게임 오버 UI 켜기
+            _uiManager.GetComponent<UIManager>()._startButton.interactable = true;//시작 버튼 활성화
         }
     }
     bool CheckContinueGame()
