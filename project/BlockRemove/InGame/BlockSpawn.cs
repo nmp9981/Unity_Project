@@ -12,20 +12,21 @@ public class BlockSpawn : MonoBehaviour
     ObjectPulling _objectPulling;
     BlockClick _blockClick;
     GameOverCheck _gameOverCheck;
+    UIManager _uiManager;
     private void Awake()
     {
         _blockClick = GameObject.Find("MouseClick").GetComponent<BlockClick>();
         _gameOverCheck = GameObject.Find("GameCheck").GetComponent<GameOverCheck>();
-    }
-    void Start()
-    {
+        _uiManager = GameObject.Find("UIManager").GetComponent<UIManager>();
         _objectPulling = GameObject.Find("ObjectPulling").GetComponent<ObjectPulling>();
-        BlockInitSetting();
     }
-
-    void BlockInitSetting()
+    
+    public void BlockInitSetting()
     {
         _objectPulling.OffObj();
+        _uiManager.GetComponent<UIManager>()._gameOverUI.SetActive(false);//게임 오버 UI 끄기
+        _uiManager.GetComponent<UIManager>()._getReadyUI.SetActive(false);//게임 준비 UI 끄기
+        _uiManager.GetComponent<UIManager>()._startButton.interactable = false;//시작 버튼 비활성화
         for (int i= -GameManager.Instance.RowCount / 2; i < GameManager.Instance.RowCount / 2; i++)
         {
             for(int j = -GameManager.Instance.ColCount / 2; j < GameManager.Instance.ColCount / 2; j++)
@@ -36,7 +37,7 @@ public class BlockSpawn : MonoBehaviour
                 _blockClick.blockState[(int)(4 - i)][(int)(j + 10)] = BlockState(gm.gameObject.name);
             }
         }
-        GameManager.Instance.RestBlockCount = 200;
+        GameManager.Instance.RestBlockCount = 200;//블록 남은 개수 초기화
         /*
         for (int i = 0; i < GameManager.Instance.RowCount; i++)
         {
