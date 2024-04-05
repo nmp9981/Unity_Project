@@ -71,19 +71,19 @@ public class BlockSpawn : MonoBehaviour
             case "Red":
                 return 1;
             case "Orange":
-                return 2;
-            case "Yellow":
-                return 3;
-            case "Green":
-                return 4;
-            case "Sky":
-                return 5;
-            case "Blue":
                 return 6;
-            case "Pupple":
-                return 7;
-            case "Black":
+            case "Yellow":
+                return 2;
+            case "Green":
+                return 3;
+            case "Sky":
                 return 8;
+            case "Blue":
+                return 4;
+            case "Pupple":
+                return 5;
+            case "Black":
+                return 7;
             case null:
                 return 0;
         }
