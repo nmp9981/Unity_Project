@@ -24,6 +24,7 @@ public class BlockSpawn : MonoBehaviour
     public void BlockInitSetting()
     {
         _objectPulling.OffObj();
+        SoundManager._sound.PlaySfx((int)SFXSound.Start);//효과음 재생
         _uiManager.GetComponent<UIManager>()._gameOverUI.SetActive(false);//게임 오버 UI 끄기
         _uiManager.GetComponent<UIManager>()._getReadyUI.SetActive(false);//게임 준비 UI 끄기
         _uiManager.GetComponent<UIManager>()._startButton.interactable = false;//시작 버튼 비활성화
@@ -38,6 +39,7 @@ public class BlockSpawn : MonoBehaviour
             }
         }
         GameManager.Instance.RestBlockCount = 200;//블록 남은 개수 초기화
+        GameManager.Instance.Score = 0;//점수 초기화
         /*
         for (int i = 0; i < GameManager.Instance.RowCount; i++)
         {
