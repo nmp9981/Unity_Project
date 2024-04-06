@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum SFXSound
+{
+    Click1,Click2,Click3,Start,GameOver
+}
 public class SoundManager : MonoBehaviour
 {
     [SerializeField] static GameObject _BGMManager;
