@@ -47,6 +47,7 @@ public class GameOverCheck : MonoBehaviour
         {
             _uiManager.GetComponent<UIManager>()._gameOverUI.SetActive(true);//게임 오버 UI 켜기
             _uiManager.GetComponent<UIManager>()._startButton.interactable = true;//시작 버튼 활성화
+            SoundManager._sound.PlaySfx(3);//효과음 재생
         }
     }
     bool CheckContinueGame()
