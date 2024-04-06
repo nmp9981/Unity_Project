@@ -116,6 +116,7 @@ public class BlockClick : MonoBehaviour
         {
             RemoveBlock();
             BlockReSetting();
+            GetScore(_unionObjectPosition.Count);
         }
     }
     //블록 제거
@@ -126,6 +127,8 @@ public class BlockClick : MonoBehaviour
             blockState[removePos.Item1][removePos.Item2] = 0;
         }
         GameManager.Instance.RestBlockCount -= _unionObjectPosition.Count;//남은 블록 개수
+        int sfxNum = Random.Range(0, 3);
+        SoundManager._sound.PlaySfx(sfxNum);//효과음 재생
     }
     //블록 재세팅
     void BlockReSetting()
@@ -211,5 +214,10 @@ public class BlockClick : MonoBehaviour
         }
         */
         _blockSpawn.BlockBlockSetting();
+    }
+    //점수 계산
+    void GetScore(int removeCount)
+    {
+        GameManager.Instance.Score += (removeCount* removeCount);
     }
 }
