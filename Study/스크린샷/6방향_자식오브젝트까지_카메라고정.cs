@@ -48,7 +48,7 @@ public class CameraLogic : MonoBehaviour
     }
     void FileSetting()
     {
-        string filePath = "C:\\Users\\tybna\\ChildShotOthQHD";
+        string filePath = "C:\\Users\\tybna\\ChildShotOthQHD2";
         DirectoryInfo di = new DirectoryInfo(filePath);
 
         if (!di.Exists) di.Create();
@@ -81,11 +81,11 @@ public class CameraLogic : MonoBehaviour
         switch (dir)
         {
             case 0:
-                this.transform.position = new Vector3(335, 105, 300);
+                this.transform.position = new Vector3(340, 105, 510);
                 //this.transform.position = center + zoom * maxSize * Vector3.forward;
                 break;
             case 1:
-                this.transform.position = new Vector3(335, 105, 0);
+                this.transform.position = new Vector3(340, 105, 0);
                 //this.transform.position = center + zoom * maxSize * Vector3.back;
                 break;
             case 2:
@@ -93,15 +93,15 @@ public class CameraLogic : MonoBehaviour
                 //this.transform.position = center + zoom * maxSize * Vector3.left;
                 break;
             case 3:
-                this.transform.position = new Vector3(400, 105, 210);
+                this.transform.position = new Vector3(510, 105, 210);
                 //this.transform.position = center + zoom * maxSize * Vector3.right;
                 break;
             case 4:
-                this.transform.position = new Vector3(335, 340, 210);
+                this.transform.position = new Vector3(335, 510, 210);
                 //this.transform.position = center + zoom * maxSize * Vector3.up;
                 break;
             case 5:
-                this.transform.position = new Vector3(335, -100, 210);
+                this.transform.position = new Vector3(335, 0, 210);
                 //this.transform.position = center + zoom * maxSize * Vector3.down;
                 break;
         }
@@ -127,11 +127,32 @@ public class CameraLogic : MonoBehaviour
                 {
                     foreach (Transform childSecond in child.transform)
                     {
+                        if (childSecond.GetComponent<MeshRenderer>() == null)
+                        {
+                            foreach (Transform childthird in childSecond.transform)
+                            {
+                                if (childthird.GetComponent<BoxCollider>() == null) childthird.AddComponent<BoxCollider>();
+
+                                bounds = childthird.GetComponent<BoxCollider>().bounds;
+                                childthird.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                                childthird.GetComponent<MeshRenderer>().receiveShadows = false;
+                            }
+                        }
+                        else
+                        {
+                            if (childSecond.GetComponent<BoxCollider>() == null) childSecond.AddComponent<BoxCollider>();
+
+                            bounds = childSecond.GetComponent<BoxCollider>().bounds;
+                            childSecond.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                            childSecond.GetComponent<MeshRenderer>().receiveShadows = false;
+                        }
+                        /*
                         if (childSecond.GetComponent<BoxCollider>() == null) childSecond.AddComponent<BoxCollider>();
 
                         bounds = childSecond.GetComponent<BoxCollider>().bounds;
                         childSecond.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                         childSecond.GetComponent<MeshRenderer>().receiveShadows = false;
+                        */
                     }
                 }
                 else
@@ -182,8 +203,8 @@ public class CameraLogic : MonoBehaviour
     public void ObjectSearch()
     {
         Camera.main.GetComponent<Camera>().orthographic = true;
-        Camera.main.fieldOfView = 60;
-        Camera.main.orthographicSize = 40;
+        Camera.main.fieldOfView = 26.7f;
+        Camera.main.orthographicSize = 26.7f;
         CameraSetting();
         childButton.SetActive(false);
         child2Button.SetActive(false);
@@ -240,11 +261,11 @@ public class CameraLogic : MonoBehaviour
                 i++;
 
                 //파일 위치 저장
-                string filePath = "C:\\Users\\tybna\\SShot\\" + mainobj.transform.GetChild(k).gameObject.name;
+                string filePath = $"C:\\Users\\tybna\\SShot\\{mainobj.transform.GetChild(k).gameObject.name}";
                 DirectoryInfo di = new DirectoryInfo(filePath);
 
                 if (!di.Exists) di.Create();
-                string storePath = filePath + "\\" + i;
+                string storePath = filePath + "\\" + mainobj.transform.GetChild(k).gameObject.name+"_"+direction[i-1];
                 ScreenCapture.CaptureScreenshot(storePath + ".png");//사진 찍기
                 yield return null;
             }
@@ -282,12 +303,14 @@ public class CameraLogic : MonoBehaviour
                     k++;
 
                     //파일 위치 저장
-                    string filePath = "C:\\Users\\tybna\\ChildShotOthQHD\\" + childObj.name + "\\" + childObj.transform.GetChild(j).gameObject.name;
-                    if (filePath.Contains("\"")) filePath = filePath.Replace("\"", "@");
+                    string objName = childObj.transform.GetChild(j).gameObject.name;
+                    if (objName.Contains("\""))objName = objName.Replace("\"", "@");
+                    string filePath = "C:\\Users\\tybna\\ChildShotOthQHD2\\" + childObj.name + "\\" + objName;   
 
                     DirectoryInfo di = new DirectoryInfo(filePath);
                     if (!di.Exists) di.Create();
-                    string storePath = filePath + "\\" +direction[k-1];
+                    string storePath = filePath + "\\" + objName +"_"+ direction[k-1];
+                   
                     ScreenCapture.CaptureScreenshot(storePath + ".png"); //여기서 사진 찍기
                     yield return null;
                 }
