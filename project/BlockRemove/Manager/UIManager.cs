@@ -21,7 +21,7 @@ public class UIManager : MonoBehaviour
     {
         _isBGMOn = true;
         _isSFXOn = true;
-        GameManager.Instance.BGMVolume = 1.0f;
+        GameManager.Instance.BGMVolume = 0.5f;
         GameManager.Instance.SFXVolume = 1.0f;
     }
     void Update()
@@ -34,7 +34,7 @@ public class UIManager : MonoBehaviour
         _isBGMOn = !_isBGMOn;
         if (_isBGMOn)
         {
-            GameManager.Instance.BGMVolume = 1.0f;
+            GameManager.Instance.BGMVolume = 0.5f;
             BGMOffImage.SetActive(false);
         }
         else
@@ -56,5 +56,13 @@ public class UIManager : MonoBehaviour
             GameManager.Instance.SFXVolume = 0f;
             SFXOffImage.SetActive(true);
         }
+    }
+    public void GameExit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        UnityEngine.Application.Quit(); // 어플리케이션 종료
+#endif
     }
 }
