@@ -40,15 +40,6 @@ public class BlockSpawn : MonoBehaviour
         }
         GameManager.Instance.RestBlockCount = 200;//블록 남은 개수 초기화
         GameManager.Instance.Score = 0;//점수 초기화
-        /*
-        for (int i = 0; i < GameManager.Instance.RowCount; i++)
-        {
-            for (int j = 0; j < GameManager.Instance.ColCount; j++)
-            {
-                Debug.Log(i+"행"+j+"열  "+ _blockClick.blockState[i][j]);
-            }
-        }
-        */
     }
     public void BlockBlockSetting()
     {
@@ -72,7 +63,7 @@ public class BlockSpawn : MonoBehaviour
         {
             case "Red":
                 return 1;
-            case "Orange":
+            case "Select":
                 return 6;
             case "Yellow":
                 return 2;
