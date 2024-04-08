@@ -1,13 +1,12 @@
-using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectFulling : MonoBehaviour
+public class ObjectPulling : MonoBehaviour
 {
     //프리팹 준비
-    const int blockMaxCount = 50;
-    const int blockKinds = 8;
+    const int blockMaxCount = 100;
+    const int blockKinds = 6;
     public GameObject[] blockPrefabs;
 
     //오브젝트 배열
@@ -18,8 +17,6 @@ public class ObjectFulling : MonoBehaviour
     {
         blocks = new GameObject[blockKinds][]
         {
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
              new GameObject[blockMaxCount],
              new GameObject[blockMaxCount],
              new GameObject[blockMaxCount],
@@ -71,6 +68,14 @@ public class ObjectFulling : MonoBehaviour
             {
                 if (blocks[i][j].activeSelf) blocks[i][j].SetActive(false);
             }
+        }
+    }
+    //투명 블록 비활성화
+    public void BlockTransparentOffObj()
+    {
+        for (int j = 0; j < blockMaxCount; j++)
+        {
+            if (blocks[5][j].activeSelf) blocks[5][j].SetActive(false);
         }
     }
 }
