@@ -5,6 +5,7 @@ using UnityEngine;
 public class ClickMovement : MonoBehaviour
 {
     private Camera camera;
+    [SerializeField] GameObject boxMan;
 
     bool isMove;
     Vector3 destination;//목적지
@@ -38,6 +39,7 @@ public class ClickMovement : MonoBehaviour
         if (isMove)
         {
             var dir = destination - transform.position;//방향
+            boxMan.transform.forward = dir;//해당 방향으로 바라보게 하기
             transform.position += dir.normalized * Time.deltaTime*5f;//이동
         }
         //목적지 도달
