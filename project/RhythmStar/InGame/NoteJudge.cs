@@ -27,9 +27,13 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, judgeKey1.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-            if (hit.collider.gameObject.CompareTag("Red")){
-                Debug.Log(1);
-            }
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Red"))
+                {
+                    Debug.Log(1);
+                }
+            }   
         }
 
         //2번
@@ -37,9 +41,12 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey2.transform.position.x, judgeKey2.transform.position.y) - new Vector2(0, judgeKey2.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-            if (hit.collider.gameObject.CompareTag("Green"))
+            if (hit.collider != null)
             {
-                Debug.Log(2);
+                if (hit.collider.gameObject.CompareTag("Green"))
+                {
+                    Debug.Log(2);
+                }
             }
         }
         //3번
@@ -47,9 +54,12 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, judgeKey3.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-            if (hit.collider.gameObject.CompareTag("Blue"))
+            if (hit.collider != null)
             {
-                Debug.Log(3);
+                if (hit.collider.gameObject.CompareTag("Blue"))
+                {
+                    Debug.Log(3);
+                }
             }
         }
     }
