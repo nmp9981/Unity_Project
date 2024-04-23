@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+public enum NoteColor
+{
+    RED, GREEN, BLUE
+}
 public class NoteFuction : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [SerializeField] public NoteColor NoteType; 
     void Start()
     {
-        
+      
     }
 
     // Update is called once per frame
@@ -18,7 +21,11 @@ public class NoteFuction : MonoBehaviour
     }
     void RemoveNote()
     {
-        if (gameObject.transform.position.y < -4) this.gameObject.SetActive(false);
+        if (gameObject.transform.position.y < -3.3f)
+        {
+            this.gameObject.SetActive(false);
+            SoundManager._sound.PlaySfx(3);
+        }
     }
     void NoteMove()
     {
