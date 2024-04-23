@@ -6,13 +6,17 @@ public class NoteSpawn : MonoBehaviour
 {
     ObjectFulling _objectPulling;
 
+    public int bpm = 0;
+    double currentTime = 0d;
+
+
     void Awake()
     {
         _objectPulling = GameObject.Find("ObjectFulling").GetComponent<ObjectFulling>();
-        StartCoroutine(NoteCreate());
+        //StartCoroutine(NoteCreates());
     }
-
-    IEnumerator NoteCreate()
+    /*
+    IEnumerator NoteCreates()
     {
         for(int i = 0; i < 100; i++)
         {
@@ -34,9 +38,36 @@ public class NoteSpawn : MonoBehaviour
             }
         }
     }
-    // Update is called once per frame
+    */
     void Update()
     {
-        
+        BeatTimeCheck();
+    }
+    void BeatTimeCheck()
+    {
+        currentTime += Time.deltaTime;
+        if (currentTime > 60d / bpm)//현재 시간 >= 1beat 시간(노트 생성 속도)
+        {
+            NoteCreate();
+        }
+    }
+    void NoteCreate()
+    {
+        int noteNum = Random.Range(0, 3);
+        GameObject noteObj = _objectPulling.MakeObj(noteNum);
+        currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
+
+        switch (noteNum)
+        {
+            case 0:
+                noteObj.transform.position = new Vector2(-1, 6);
+                break;
+            case 1:
+                noteObj.transform.position = new Vector2(0, 6);
+                break;
+            case 2:
+                noteObj.transform.position = new Vector2(1, 6);
+                break;
+        }
     }
 }
