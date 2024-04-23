@@ -31,7 +31,8 @@ public class NoteJudge : MonoBehaviour
             {
                 if (hit.collider.gameObject.CompareTag("Red"))
                 {
-                    Debug.Log(1);
+                    hit.collider.gameObject.SetActive(false);
+                    SoundManager._sound.PlaySfx(0);
                 }
             }   
         }
@@ -45,7 +46,8 @@ public class NoteJudge : MonoBehaviour
             {
                 if (hit.collider.gameObject.CompareTag("Green"))
                 {
-                    Debug.Log(2);
+                    hit.collider.gameObject.SetActive(false);
+                    SoundManager._sound.PlaySfx(1);
                 }
             }
         }
@@ -58,7 +60,8 @@ public class NoteJudge : MonoBehaviour
             {
                 if (hit.collider.gameObject.CompareTag("Blue"))
                 {
-                    Debug.Log(3);
+                    hit.collider.gameObject.SetActive(false);
+                    SoundManager._sound.PlaySfx(2);
                 }
             }
         }
