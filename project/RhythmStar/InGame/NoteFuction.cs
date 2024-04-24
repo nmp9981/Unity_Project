@@ -24,7 +24,7 @@ public class NoteFuction : MonoBehaviour
         if (gameObject.transform.position.y < -3.3f)
         {
             this.gameObject.SetActive(false);
-            SoundManager._sound.PlaySfx(3);
+            GameManager.Instance.ComboCount = 0;
         }
     }
     void NoteMove()
