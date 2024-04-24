@@ -32,6 +32,8 @@ public class NoteJudge : MonoBehaviour
                 if (hit.collider.gameObject.CompareTag("Red"))
                 {
                     hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    GameManager.Instance.Score += 10;
                     SoundManager._sound.PlaySfx(0);
                 }
             }   
@@ -47,6 +49,8 @@ public class NoteJudge : MonoBehaviour
                 if (hit.collider.gameObject.CompareTag("Green"))
                 {
                     hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    GameManager.Instance.Score += 10;
                     SoundManager._sound.PlaySfx(1);
                 }
             }
@@ -61,6 +65,8 @@ public class NoteJudge : MonoBehaviour
                 if (hit.collider.gameObject.CompareTag("Blue"))
                 {
                     hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    GameManager.Instance.Score += 10;
                     SoundManager._sound.PlaySfx(2);
                 }
             }
