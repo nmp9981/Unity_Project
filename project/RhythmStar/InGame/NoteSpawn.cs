@@ -6,13 +6,14 @@ public class NoteSpawn : MonoBehaviour
 {
     ObjectFulling _objectPulling;
 
-    public int bpm = 0;
+    public int bpm;
     double currentTime = 0d;
 
 
     void Awake()
     {
         _objectPulling = GameObject.Find("ObjectFulling").GetComponent<ObjectFulling>();
+        InvokeRepeating("BPMChange", 0f, 1.5f);
         //StartCoroutine(NoteCreates());
     }
     /*
@@ -50,6 +51,10 @@ public class NoteSpawn : MonoBehaviour
         {
             NoteCreate();
         }
+    }
+    void BPMChange()
+    {
+        bpm = Random.Range(60, 300);
     }
     void NoteCreate()
     {
