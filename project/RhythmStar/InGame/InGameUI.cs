@@ -10,6 +10,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _comboText;
     [SerializeField] TextMeshProUGUI _comboTitle;
     [SerializeField] TextMeshProUGUI _comboBonusText;
+    [SerializeField] TextMeshProUGUI _currentHPText;
     [SerializeField] Image hpBar;
 
     int[] bounusCut = new int[4]{ 20,40,70,100};
@@ -76,5 +77,6 @@ public class InGameUI : MonoBehaviour
         GameManager.Instance.HealthPoint = Mathf.Min(GameManager.Instance.MaxHealthPoint, GameManager.Instance.HealthPoint);
         GameManager.Instance.HealthPoint = Mathf.Max(0f, GameManager.Instance.HealthPoint);
         hpBar.fillAmount = GameManager.Instance.HealthPoint / GameManager.Instance.MaxHealthPoint;
+        _currentHPText.text = Mathf.Round(GameManager.Instance.HealthPoint).ToString()+"%";
     }
 }
