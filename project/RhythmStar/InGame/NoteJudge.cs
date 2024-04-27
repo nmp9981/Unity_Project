@@ -99,15 +99,18 @@ public class NoteJudge : MonoBehaviour
         {
             judgeBonusScore = 12;
             StartCoroutine(JudgeTextOn(judgeText[key],"Perfect", Color.magenta));
+            GameManager.Instance.HealthPoint += 3.0f;
         }else if(diff>=judgeSize && diff < 2*judgeSize)
         {
             judgeBonusScore = 10;
             StartCoroutine(JudgeTextOn(judgeText[key], "Great",Color.green));
+            GameManager.Instance.HealthPoint += 2.0f;
         }
         else
         {
             judgeBonusScore = 8;
             StartCoroutine(JudgeTextOn(judgeText[key], "Good",Color.yellow));
+            GameManager.Instance.HealthPoint += 1.0f;
         }
 
         GameManager.Instance.Score += (GameManager.Instance.ComboBonus*judgeBonusScore);
