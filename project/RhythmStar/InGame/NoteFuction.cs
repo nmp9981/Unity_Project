@@ -40,6 +40,7 @@ public class NoteFuction : MonoBehaviour
             }
             this.gameObject.SetActive(false);
             GameManager.Instance.ComboCount = 0;
+            GameManager.Instance.HealthPoint -= 4.0f;
         }
     }
     void NoteMove()
