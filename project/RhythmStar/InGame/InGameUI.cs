@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InGameUI : MonoBehaviour
 {
@@ -9,12 +10,13 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _comboText;
     [SerializeField] TextMeshProUGUI _comboTitle;
     [SerializeField] TextMeshProUGUI _comboBonusText;
+    [SerializeField] Image hpBar;
 
     int[] bounusCut = new int[4]{ 20,40,70,100};
-    // Start is called before the first frame update
-    void Start()
+   
+    void Awake()
     {
-        
+        GameManager.Instance.HealthPoint = GameManager.Instance.MaxHealthPoint;
     }
 
     // Update is called once per frame
@@ -22,6 +24,7 @@ public class InGameUI : MonoBehaviour
     {
         ComboBonusJudge();
         ShowText();
+        ShowHP();
     }
     void ShowText()
     {
@@ -67,5 +70,11 @@ public class InGameUI : MonoBehaviour
             _comboBonusText.text = "X5";
             _comboBonusText.color = Color.magenta;
         }
+    }
+    void ShowHP()
+    {
+        GameManager.Instance.HealthPoint = Mathf.Min(GameManager.Instance.MaxHealthPoint, GameManager.Instance.HealthPoint);
+        GameManager.Instance.HealthPoint = Mathf.Max(0f, GameManager.Instance.HealthPoint);
+        hpBar.fillAmount = GameManager.Instance.HealthPoint / GameManager.Instance.MaxHealthPoint;
     }
 }
