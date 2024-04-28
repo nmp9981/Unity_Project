@@ -47,9 +47,9 @@ public class SoundManager : MonoBehaviour
     {
         if (GameManager.Instance.IsGameOver) _audioBgmSource.Stop();
     }
-    public void PlayBGM()
+    public void PlayBGM(int musicNum)
     {
-        _audioBgmSource.clip = _bgmClip[0];
+        _audioBgmSource.clip = _bgmClip[musicNum];
         _audioBgmSource.volume = GameManager.Instance.BGMVolume;//상시 조절되게 바깥으로 뺌
         if (!_audioBgmSource.isPlaying)
         {
