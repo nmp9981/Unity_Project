@@ -13,6 +13,9 @@ public class NoteSpawn : MonoBehaviour
     void Awake()
     {
         _objectPulling = GameObject.Find("ObjectFulling").GetComponent<ObjectFulling>();
+        GameManager.Instance.TotalNoteCount = 0;
+        GameManager.Instance.IsPlayGame = false;
+        GameManager.Instance.IsGameOver = false;
         InvokeRepeating("BPMChange", 0f, 1.5f);
         //StartCoroutine(NoteCreates());
     }
@@ -42,14 +45,14 @@ public class NoteSpawn : MonoBehaviour
     */
     void Update()
     {
-        BeatTimeCheck();
+        if (GameManager.Instance.IsPlayGame) BeatTimeCheck();
     }
     void BeatTimeCheck()
     {
         currentTime += Time.deltaTime;
         if (currentTime > 60d / bpm)//현재 시간 >= 1beat 시간(노트 생성 속도)
         {
-            NoteCreate();
+            if (!GameManager.Instance.IsGameOver) NoteCreate();
         }
     }
     void BPMChange()
@@ -74,5 +77,6 @@ public class NoteSpawn : MonoBehaviour
                 noteObj.transform.position = new Vector2(1, 6);
                 break;
         }
+        GameManager.Instance.TotalNoteCount += 1;
     }
 }
