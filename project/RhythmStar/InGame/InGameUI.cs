@@ -11,6 +11,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _comboTitle;
     [SerializeField] TextMeshProUGUI _comboBonusText;
     [SerializeField] TextMeshProUGUI _currentHPText;
+    [SerializeField] TextMeshProUGUI _startTimeText;
     [SerializeField] Image hpBar;
 
     int[] bounusCut = new int[4]{ 20,40,70,100};
@@ -18,6 +19,7 @@ public class InGameUI : MonoBehaviour
     void Awake()
     {
         GameManager.Instance.HealthPoint = GameManager.Instance.MaxHealthPoint;
+        StartCoroutine(ShowStartText());
     }
 
     // Update is called once per frame
@@ -26,6 +28,23 @@ public class InGameUI : MonoBehaviour
         ComboBonusJudge();
         ShowText();
         ShowHP();
+    }
+    //3초뒤 시작
+    IEnumerator ShowStartText()
+    {
+        _startTimeText.text = "";
+        yield return new WaitForSecondsRealtime(0.5f);
+        _startTimeText.text = "3";
+        yield return new WaitForSecondsRealtime(1f);
+        _startTimeText.text = "2";
+        yield return new WaitForSecondsRealtime(1f);
+        _startTimeText.text = "1";
+        yield return new WaitForSecondsRealtime(1f);
+        _startTimeText.text = "Start!!";
+        yield return new WaitForSecondsRealtime(1f);
+        GameManager.Instance.IsPlayGame = true;//이때 게임이 시작해야 함
+        SoundManager._sound.PlayBGM();
+        _startTimeText.text = "";
     }
     void ShowText()
     {
