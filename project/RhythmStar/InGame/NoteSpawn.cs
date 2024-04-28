@@ -61,8 +61,10 @@ public class NoteSpawn : MonoBehaviour
     }
     void NoteCreate()
     {
-        int noteNum = Random.Range(0, 3);
-        GameObject noteObj = _objectPulling.MakeObj(noteNum);
+        int noteNum = Random.Range(-1, 3);//몇번 노트?
+        if (noteNum == -1) return;//노트 생성X
+   
+        GameObject noteObj = _objectPulling.MakeObj(noteNum);//노트 생성
         currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
 
         switch (noteNum)
