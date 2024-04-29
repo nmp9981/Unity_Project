@@ -67,6 +67,12 @@ public class NoteSpawn : MonoBehaviour
         GameObject noteObj = _objectPulling.MakeObj(noteNum);//노트 생성
         currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
 
+        if (LongNoteMake())
+        {
+            float noteLength = 0.1f * Random.Range(4, 15);
+            noteObj.transform.localScale = new Vector3(1, noteLength, 1);
+        }
+
         switch (noteNum)
         {
             case 0:
@@ -80,5 +86,14 @@ public class NoteSpawn : MonoBehaviour
                 break;
         }
         GameManager.Instance.TotalNoteCount += 1;
+    }
+    bool LongNoteMake()
+    {
+        int longNoteNum = Random.Range(0, 100);
+        if (longNoteNum >= 70)
+        {
+            return true;
+        }
+        return false;
     }
 }
