@@ -29,7 +29,7 @@ public class NoteJudge : MonoBehaviour
     }
     void JudgeScore()
     {
-
+        //모바일에서는 키 입력이 아닌 버튼 형식으로 변환
         //1번
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
@@ -61,12 +61,20 @@ public class NoteJudge : MonoBehaviour
             {
                 if (hit.collider.gameObject.CompareTag("Green"))
                 {
-                    float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
-                    JudgeScoreAndEffect(diffDistance,1);
-                    hit.collider.gameObject.SetActive(false);
-                    GameManager.Instance.ComboCount += 1;
-                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                    SoundManager._sound.PlaySfx(1);
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        JudgeLongNote(hit.collider.gameObject, 1);
+
+                    }
+                    else
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
+                        JudgeScoreAndEffect(diffDistance, 1);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(1);
+                    }
                 }
             }
         }
@@ -121,5 +129,10 @@ public class NoteJudge : MonoBehaviour
         textObj.color = color;
         yield return new WaitForSeconds(0.3f);
         textObj.text = "";
+    }
+
+    void JudgeLongNote(GameObject gmNote, int keyNum)
+    {
+
     }
 }
