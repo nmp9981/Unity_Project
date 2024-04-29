@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
     float _healthPoint;//HP
     float _maxHealthPoint = 100.0f;//최대 HP
 
+    float _originNoteScale = 0.2f;//원래 노트 크기
+    float _longNoteStandardScale = 0.25f;//롱노트 기준 크기
     float _noteSpeed = 4.0f;//노트 속도
     float _bgmVolume = 0.1f;
     float _sfxVolume = 1.0f;
@@ -70,9 +72,13 @@ public class GameManager : MonoBehaviour
     public int Score { get { return _score; } set { _score = value; } }
     public float HealthPoint { get { return _healthPoint; } set { _healthPoint = value; } }
     public float MaxHealthPoint { get { return _maxHealthPoint; } set { _maxHealthPoint = value; } }
+
+    public float OriginNoteScale { get { return _originNoteScale; }}
+    public float LongNoteStandardScale { get { return _longNoteStandardScale; } }
     public float NoteSpeed { get { return _noteSpeed; } set { _noteSpeed = value; } }
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
+
     public bool IsPlayGame { get { return _isPlayGame; } set { _isPlayGame = value; } }
     public bool IsGameOver { get { return _isGameOver; } set { _isGameOver = value; } }
     #endregion
