@@ -10,14 +10,7 @@ public class NoteSpawn : MonoBehaviour
     double currentTime = 0d;
     int noteLength;
 
-    double waitLongNote1;
-    double waitLongNote2;
-    double waitLongNote3;
     double waitLongNote;
-
-    double currentLongNote1 = 0d;
-    double currentLongNote2 = 0d;
-    double currentLongNote3 = 0d;
     double currentLongNote = 0d;
     void Awake()
     {
@@ -54,12 +47,10 @@ public class NoteSpawn : MonoBehaviour
         int noteNum = Random.Range(-1, 3);//몇번 노트?
         if (noteNum == -1) return;//노트 생성X
 
-        //노트 생성 불가
-        if (waitLongNote > currentLongNote) return;
-       
         if (IslongNoteMake())
         {
-            noteLength = Random.Range(8, 50);
+            if (waitLongNote > currentLongNote) return;//롱노트 생성 불가
+            noteLength = Random.Range(7, 50);
             StartCoroutine(LongNoteMake(noteLength, noteNum));
             return;
         }
@@ -87,7 +78,7 @@ public class NoteSpawn : MonoBehaviour
     bool IslongNoteMake()
     {
         int longNoteNum = Random.Range(0, 100);
-        if (longNoteNum >= 90)
+        if (longNoteNum >= 92)
         {
             return true;
         }
@@ -96,14 +87,14 @@ public class NoteSpawn : MonoBehaviour
     IEnumerator LongNoteMake(int num, int noteNum)
     {
         bpm = 120;
-        for(int i = 0; i < num; i++)
+        currentLongNote = 0d;
+        waitLongNote = num * 0.25f;
+        for (int i = 0; i < num; i++)
         {
             GameObject noteObj = _objectPulling.MakeObj(noteNum);
             NoteCreatePos(noteObj, noteNum);
             GameManager.Instance.TotalNoteCount += 1;
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.045f);
         }
-        currentLongNote = 0d;
-        waitLongNote = num * 0.25f;
     }
 }
