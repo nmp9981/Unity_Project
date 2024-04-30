@@ -5,15 +5,22 @@ public enum NoteColor
 {
     RED, GREEN, BLUE
 }
+public enum NoteType
+{
+    General,Long
+}
 public class NoteFuction : MonoBehaviour
 {
-    [SerializeField] public NoteColor NoteType;
+    [SerializeField] public NoteColor NoteColor;
+    public NoteType noteType;
+    public int longNoteLength = 1;
 
     NoteJudge noteJudge;
     void Awake()
     {
         noteJudge = GameObject.Find("JudgeLine").GetComponent<NoteJudge>();
     }
+
 
     // Update is called once per frame
     void Update()
@@ -25,8 +32,7 @@ public class NoteFuction : MonoBehaviour
     {
         if (gameObject.transform.position.y < -3.3f)
         {
-            Debug.Log(NoteType);
-            switch (NoteType)
+            switch (NoteColor)
             {
                 case NoteColor.RED:
                     StartCoroutine(JudgeMissTextOn(0));
