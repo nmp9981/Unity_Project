@@ -8,7 +8,7 @@ public class NoteSpawn : MonoBehaviour
 
     public int bpm;
     double currentTime = 0d;
-    int noteLength;
+    public int noteLength;
 
     double waitLongNote;
     double currentLongNote = 0d;
@@ -44,7 +44,7 @@ public class NoteSpawn : MonoBehaviour
     }
     void NoteCreate()
     {
-        int noteNum = Random.Range(-1, 3);//몇번 노트?
+        int noteNum = Random.Range(-1, 1);//몇번 노트?
         if (noteNum == -1) return;//노트 생성X
 
         if (IslongNoteMake())
@@ -55,6 +55,7 @@ public class NoteSpawn : MonoBehaviour
             return;
         }
         GameObject noteObj = _objectPulling.MakeObj(noteNum);//노트 생성
+        noteObj.GetComponent<NoteFuction>().noteType = NoteType.General;//일반 노트
         currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
 
         NoteCreatePos(noteObj, noteNum);
@@ -78,7 +79,7 @@ public class NoteSpawn : MonoBehaviour
     bool IslongNoteMake()
     {
         int longNoteNum = Random.Range(0, 100);
-        if (longNoteNum >= 92)
+        if (longNoteNum >= 52)
         {
             return true;
         }
@@ -92,6 +93,8 @@ public class NoteSpawn : MonoBehaviour
         for (int i = 0; i < num; i++)
         {
             GameObject noteObj = _objectPulling.MakeObj(noteNum);
+            noteObj.GetComponent<NoteFuction>().noteType = NoteType.Long;//롱 노트
+            noteObj.GetComponent<NoteFuction>().longNoteLength = num;
             NoteCreatePos(noteObj, noteNum);
             GameManager.Instance.TotalNoteCount += 1;
             yield return new WaitForSeconds(0.045f);
