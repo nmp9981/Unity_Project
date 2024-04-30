@@ -20,25 +20,47 @@ public class NoteJudge : MonoBehaviour
     int judgeBonusScore;//판정 보너스 점수
 
     //롱노트를 누르는 중인가?
-    bool isLongNote1;
-    bool isLongNote2;
-    bool isLongNote3;
+    float keyt1PressTime;
+    float keyt2PressTime;
+    float keyt3PressTime;
+    bool isKey1Press;
+    bool isKey2Press;
+    bool isKey3Press;
 
     void Awake()
     {
-        maxDistance = judgeKey1.transform.localScale.y * 6;//최대 판정 거리 설정
+        maxDistance = judgeKey1.transform.localScale.y * 5;//최대 판정 거리 설정
         for (int i = 0; i < 3; i++) judgeText[i].text = "";//글자 초기화
 
-        isLongNote1 = false;
-        isLongNote2 = false;
-        isLongNote3 = false;
+        keyt1PressTime = 0f;
+        keyt2PressTime = 0f;
+        keyt3PressTime = 0f;
+
+        isKey1Press = true;
+        isKey2Press = true;
+        isKey3Press = true;
     }
 
     // Update is called once per frame
     void Update()
     {
         JudgeScore();
-        JudgeLongNoteScore();
+        KeyPressTimeFlow();
+    }
+    IEnumerator LongNoteKeyDown(float diffDistance,RaycastHit2D hit, int length)
+    {
+        for(int k = 0; k < length; k++)
+        {
+            Debug.Log(length);
+          
+
+            JudgeScoreAndEffect(diffDistance, 0);
+            hit.collider.gameObject.SetActive(false);
+            GameManager.Instance.ComboCount += 1;
+            GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+            SoundManager._sound.PlaySfx(0);
+            yield return new WaitForSeconds(0.045f);
+        }
     }
     void JudgeScore()
     {
@@ -48,17 +70,19 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f*judgeKey1.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+          
             clickEffect[0].Play();
             if (hit.collider != null)
             {
-                if (hit.collider.gameObject.CompareTag("Red"))
+                if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
                 {
                     float diffDistance = 0;
                     if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
                     {
                         diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                    }else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
-                   
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
                     JudgeScoreAndEffect(diffDistance, 0);
                     hit.collider.gameObject.SetActive(false);
                     GameManager.Instance.ComboCount += 1;
@@ -67,7 +91,31 @@ public class NoteJudge : MonoBehaviour
                 }
             }   
         }
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
 
+            clickEffect[0].Play();
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 0);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(0);
+                }
+            }
+        }
         //2번
         if (Input.GetKey(KeyCode.Alpha2))
         {
@@ -121,6 +169,7 @@ public class NoteJudge : MonoBehaviour
             }
         }
     }
+
     void JudgeScoreAndEffect(float diff, int key)
     {
         float judgeSize = judgeKey1.transform.localScale.y/2;
@@ -175,30 +224,28 @@ public class NoteJudge : MonoBehaviour
             StartCoroutine(JudgeTextOn(judgeText[keyNum], "Good", Color.yellow));
             GameManager.Instance.HealthPoint += 1.0f;
         }
-        isLongNote1 = true;
     }
    
-    void JudgeLongNoteScore()
+    void KeyPressTimeFlow()
     {
-        /*
-        //1번 롱노트
-        if (isLongNote1)
-        {
-            if (Input.GetKey(KeyCode.Alpha1))
-            {
-                Debug.Log(111);
-                GameManager.Instance.ComboCount += 1;
-                collision.gameObject.transform.localScale -= new Vector3(0, GameManager.Instance.NoteSpeed * 0.5f * Time.deltaTime, 0);
-                GameManager.Instance.Score += (GameManager.Instance.ComboBonus * judgeBonusScore);
+        keyt1PressTime += Time.deltaTime;
+        keyt2PressTime += Time.deltaTime;
+        keyt3PressTime += Time.deltaTime;
 
-                if (collision.gameObject.transform.localScale.y <= GameManager.Instance.OriginNoteScale / 4)//롱노트 종료
-                {
-                    isLongNote1 = false;
-                    return;
-                }
-            }
+        if (keyt1PressTime > 0.3f)
+        {
+            keyt1PressTime = 0f;
+            isKey1Press = true;
         }
-        Debug.Log(collision.gameObject.transform.localScale.y);
-        */
+        if (keyt2PressTime > 0.1f)
+        {
+            keyt2PressTime = 0f;
+            isKey2Press = true;
+        }
+        if (keyt3PressTime > 0.1f)
+        {
+            keyt3PressTime = 0f;
+            isKey3Press = true;
+        }
     }
 }
