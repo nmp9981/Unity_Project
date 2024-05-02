@@ -55,7 +55,7 @@ public class SoundManager : MonoBehaviour
         {
             _audioBgmSource.playOnAwake = true;
             _audioBgmSource.loop = false;
-            _audioBgmSource.Play();//한개만 적용
+            _audioBgmSource.PlayOneShot(_bgmClip[musicNum]);//한개만 적용
         }
     }
     public void PlaySfx(int soundNum)
