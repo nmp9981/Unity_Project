@@ -43,7 +43,7 @@ public class InGameUI : MonoBehaviour
         _startTimeText.text = "Start!!";
         yield return new WaitForSecondsRealtime(1f);
         GameManager.Instance.IsPlayGame = true;//이때 게임이 시작해야 함
-        SoundManager._sound.PlayBGM();
+        SoundManager._sound.PlayBGM(GameManager.Instance.MusicNumber);
         _startTimeText.text = "";
     }
     void ShowText()
