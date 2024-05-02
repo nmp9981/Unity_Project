@@ -62,8 +62,15 @@ public class GameManager : MonoBehaviour
     float _bgmVolume = 0.1f;
     float _sfxVolume = 1.0f;
 
+    bool _isLongNoteMake1;
+    bool _isLongNoteMake2;
+    bool _isLongNoteMake3;
+
     bool _isPlayGame;//게임 진행 여부
     bool _isGameOver;//게임 오버 여부
+
+    int _musicNum;//재생할 음악 번호
+    int _musicBPM;//재생할 음악 박자
 
     public int KeyCount { get { return _keyCount; } set { _keyCount = value; } }
     public int ComboCount { get { return _comboCount; } set { _comboCount = value; } }
@@ -79,7 +86,14 @@ public class GameManager : MonoBehaviour
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
 
+    public bool IsLongNoteMake1 { get { return _isLongNoteMake1; } set { _isLongNoteMake1 = value; } }
+    public bool IsLongNoteMake2 { get { return _isLongNoteMake2; } set { _isLongNoteMake2 = value; } }
+    public bool IsLongNoteMake3 { get { return _isLongNoteMake3; } set { _isLongNoteMake3 = value; } }
+
     public bool IsPlayGame { get { return _isPlayGame; } set { _isPlayGame = value; } }
     public bool IsGameOver { get { return _isGameOver; } set { _isGameOver = value; } }
+
+    public int MusicNumber { get { return _musicNum; }set { _musicNum = value; } }
+    public int MusicBPM { get { return _musicBPM; } set { _musicBPM = value; } }
     #endregion
 }
