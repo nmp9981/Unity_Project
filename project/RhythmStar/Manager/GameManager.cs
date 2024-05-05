@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -71,6 +72,7 @@ public class GameManager : MonoBehaviour
 
     int _musicNum;//재생할 음악 번호
     int _musicBPM;//재생할 음악 박자
+    int _musicLevel;//재생할 음악 난이도
 
     public int KeyCount { get { return _keyCount; } set { _keyCount = value; } }
     public int ComboCount { get { return _comboCount; } set { _comboCount = value; } }
@@ -95,5 +97,6 @@ public class GameManager : MonoBehaviour
 
     public int MusicNumber { get { return _musicNum; }set { _musicNum = value; } }
     public int MusicBPM { get { return _musicBPM; } set { _musicBPM = value; } }
+    public int MusicLevel { get { return _musicLevel; } set { _musicLevel = value; } }
     #endregion
 }
