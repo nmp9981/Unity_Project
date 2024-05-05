@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class InGameUI : MonoBehaviour
 {
@@ -13,12 +14,14 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _currentHPText;
     [SerializeField] TextMeshProUGUI _startTimeText;
     [SerializeField] Image hpBar;
+    [SerializeField] GameObject gameOverUI;
 
     int[] bounusCut = new int[4]{ 20,40,70,100};
    
     void Awake()
     {
         GameManager.Instance.HealthPoint = GameManager.Instance.MaxHealthPoint;
+        gameOverUI.SetActive(false);
         StartCoroutine(ShowStartText());
     }
 
@@ -28,6 +31,7 @@ public class InGameUI : MonoBehaviour
         ComboBonusJudge();
         ShowText();
         ShowHP();
+        GameOver();
     }
     //3초뒤 시작
     IEnumerator ShowStartText()
@@ -97,5 +101,18 @@ public class InGameUI : MonoBehaviour
         GameManager.Instance.HealthPoint = Mathf.Max(0f, GameManager.Instance.HealthPoint);
         hpBar.fillAmount = GameManager.Instance.HealthPoint / GameManager.Instance.MaxHealthPoint;
         _currentHPText.text = Mathf.Round(GameManager.Instance.HealthPoint).ToString()+"%";
+    }
+    void GameOver()
+    {
+        if (GameManager.Instance.IsGameOver)
+        {
+            gameOverUI.SetActive(true);
+        }
+    }
+    public void CloseGameOverUI()
+    {
+        GameManager.Instance.Score = 0;
+        gameOverUI.SetActive(false);
+        SceneManager.LoadScene("MainUI");
     }
 }
