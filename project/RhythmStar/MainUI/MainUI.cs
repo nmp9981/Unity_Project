@@ -33,6 +33,10 @@ public class MainUI : MonoBehaviour
     {
         SceneManager.LoadScene("RhythmStarIngame");
     }
+    public void BackButton()
+    {
+        SceneManager.LoadScene("StartUI");
+    }
     public void ShowLevel(int idx)
     {
         GameManager.Instance.MusicLevel = musicLevelList[idx];
