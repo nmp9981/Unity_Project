@@ -28,6 +28,7 @@ public class MainUI : MonoBehaviour
     {
         GameManager.Instance.MusicNumber = idx;
         musicTitleText.text = musicList[idx].GetComponentInChildren<TextMeshProUGUI>().text;
+        GameManager.Instance.MusicName = musicTitleText.text;
     }
     public void GameStartButton()
     {
