@@ -14,7 +14,6 @@ public class NoteSpawn : MonoBehaviour
 
     public int bpm;
     double currentTime = 0d;
-    public int noteLength;
     int noteIndex;
     int noteInfoLen;
 
@@ -93,10 +92,9 @@ public class NoteSpawn : MonoBehaviour
         if (IslongNoteMake(noteNum))
         {
             if (waitLongNote > currentLongNote) return;//롱노트 생성 불가
-            char longNoteLen = noteInfo[noteIdx];//롱노트 길이
+            char noteLength = noteInfo[noteIdx];//롱노트 길이
             noteIdx++;
-            noteLength = Random.Range(7, 50);
-            StartCoroutine(LongNoteMake(noteLength, noteNum));
+            StartCoroutine(LongNoteMake(noteLength-'0', noteNum-'a'));
             return;
         }
         */
