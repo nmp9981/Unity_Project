@@ -86,6 +86,7 @@ public class NoteJudge : MonoBehaviour
                     JudgeScoreAndEffect(diffDistance, 0);
                     hit.collider.gameObject.SetActive(false);
                     GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
                     GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
                     SoundManager._sound.PlaySfx(0);
                 }
@@ -111,6 +112,7 @@ public class NoteJudge : MonoBehaviour
                     JudgeScoreAndEffect(diffDistance, 0);
                     hit.collider.gameObject.SetActive(false);
                     GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
                     GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
                     SoundManager._sound.PlaySfx(0);
                 }
@@ -137,6 +139,7 @@ public class NoteJudge : MonoBehaviour
                     JudgeScoreAndEffect(diffDistance, 1);
                     hit.collider.gameObject.SetActive(false);
                     GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
                     GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
                     SoundManager._sound.PlaySfx(1);
                 }
@@ -163,7 +166,8 @@ public class NoteJudge : MonoBehaviour
                     JudgeScoreAndEffect(diffDistance,2);
                     hit.collider.gameObject.SetActive(false);
                     GameManager.Instance.ComboCount += 1;
-                    
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
                     SoundManager._sound.PlaySfx(2);
                 }
             }
@@ -178,17 +182,20 @@ public class NoteJudge : MonoBehaviour
         {
             judgeBonusScore = 12;
             StartCoroutine(JudgeTextOn(judgeText[key],"Perfect", Color.magenta));
+            GameManager.Instance.PerfectCount += 1;
             GameManager.Instance.HealthPoint += 3.0f;
         }else if(diff>=judgeSize && diff < 2*judgeSize)
         {
             judgeBonusScore = 10;
             StartCoroutine(JudgeTextOn(judgeText[key], "Great",Color.green));
+            GameManager.Instance.GreatCount += 1;
             GameManager.Instance.HealthPoint += 2.0f;
         }
         else
         {
             judgeBonusScore = 8;
             StartCoroutine(JudgeTextOn(judgeText[key], "Good",Color.yellow));
+            GameManager.Instance.GoodCount += 1;
             GameManager.Instance.HealthPoint += 1.0f;
         }
 
@@ -210,18 +217,21 @@ public class NoteJudge : MonoBehaviour
         {
             judgeBonusScore = 12;
             StartCoroutine(JudgeTextOn(judgeText[keyNum], "Perfect", Color.magenta));
+            GameManager.Instance.PerfectCount += 1;
             GameManager.Instance.HealthPoint += 3.0f;
         }
         else if (diffLongDistance >= judgeSize && diffLongDistance < 2 * judgeSize)
         {
             judgeBonusScore = 10;
             StartCoroutine(JudgeTextOn(judgeText[keyNum], "Great", Color.green));
+            GameManager.Instance.GreatCount += 1;
             GameManager.Instance.HealthPoint += 2.0f;
         }
         else
         {
             judgeBonusScore = 8;
             StartCoroutine(JudgeTextOn(judgeText[keyNum], "Good", Color.yellow));
+            GameManager.Instance.GoodCount += 1;
             GameManager.Instance.HealthPoint += 1.0f;
         }
     }
