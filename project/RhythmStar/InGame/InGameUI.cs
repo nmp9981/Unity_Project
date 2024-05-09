@@ -13,8 +13,17 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _comboBonusText;
     [SerializeField] TextMeshProUGUI _currentHPText;
     [SerializeField] TextMeshProUGUI _startTimeText;
+
+    [SerializeField] TextMeshProUGUI _maxComboText;
+    [SerializeField] TextMeshProUGUI _perfectCountText;
+    [SerializeField] TextMeshProUGUI _greatCountText;
+    [SerializeField] TextMeshProUGUI _goodCountText;
+    [SerializeField] TextMeshProUGUI _missCountText;
+    [SerializeField] TextMeshProUGUI _scoreResultText;
+
     [SerializeField] Image hpBar;
     [SerializeField] GameObject gameOverUI;
+    [SerializeField] GameObject gameClearUI;
 
     int[] bounusCut = new int[4]{ 20,40,70,100};
    
@@ -32,6 +41,7 @@ public class InGameUI : MonoBehaviour
         ShowText();
         ShowHP();
         GameOver();
+        GameClear();
     }
     //3초뒤 시작
     IEnumerator ShowStartText()
@@ -113,6 +123,29 @@ public class InGameUI : MonoBehaviour
     {
         GameManager.Instance.Score = 0;
         gameOverUI.SetActive(false);
+        SceneManager.LoadScene("MainUI");
+    }
+    void GameClear()
+    {
+        if (GameManager.Instance.IsGameClear)
+        {
+            Invoke("GameClearUISetting", 5f);
+        }
+    }
+    void GameClearUISetting()
+    {
+        gameClearUI.SetActive(true);
+        _maxComboText.text = $"Max Combo : {GameManager.Instance.MaxCombo}";
+        _perfectCountText.text = $"Perfect : {GameManager.Instance.PerfectCount}";
+        _greatCountText.text = $"Great : {GameManager.Instance.GreatCount}";
+        _goodCountText.text = $"Good : {GameManager.Instance.GoodCount}";
+        _missCountText.text = $"Miss : {GameManager.Instance.MissCount}";
+        _scoreResultText.text = $"Score : {GameManager.Instance.Score}";
+    }
+    public void CloseGameClearUI()
+    {
+        GameManager.Instance.Score = 0;
+        gameClearUI.SetActive(false);
         SceneManager.LoadScene("MainUI");
     }
 }
