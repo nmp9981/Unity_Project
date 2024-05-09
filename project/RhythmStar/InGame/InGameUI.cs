@@ -127,7 +127,7 @@ public class InGameUI : MonoBehaviour
     }
     void GameClear()
     {
-        if (GameManager.Instance.IsGameClear)
+        if (GameManager.Instance.IsGameClear && !GameManager.Instance.IsGameOver)
         {
             Invoke("GameClearUISetting", 5f);
         }
