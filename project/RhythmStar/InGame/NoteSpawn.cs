@@ -1,30 +1,65 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
+using System;
 
 public class NoteSpawn : MonoBehaviour
 {
     ObjectFulling _objectPulling;
+    FileInfo _songFile;
+    StreamReader _reader;
+    string filePath;
+    string noteInfo;
 
     public int bpm;
     double currentTime = 0d;
     public int noteLength;
+    int noteIndex;
+    int noteInfoLen;
 
     double waitLongNote;
     double currentLongNote = 0d;
     void Awake()
     {
         _objectPulling = GameObject.Find("ObjectFulling").GetComponent<ObjectFulling>();
-        GameManager.Instance.TotalNoteCount = 0;
-        GameManager.Instance.IsPlayGame = false;
-        GameManager.Instance.IsGameOver = false;
+        GameInfoInit();
+        FileLoad();
         InvokeRepeating("BPMChange", 0f, 1.5f);
     }
-  
+    
     void Update()
     {
         FlowTime();
         if (GameManager.Instance.IsPlayGame) BeatTimeCheck();
+    }
+    //게임 정보 초기화
+    void GameInfoInit()
+    {
+        GameManager.Instance.TotalNoteCount = 0;
+        GameManager.Instance.IsPlayGame = false;
+        GameManager.Instance.IsGameOver = false;
+        GameManager.Instance.IsGameClear = false;
+
+        GameManager.Instance.ComboCount = 0;
+        GameManager.Instance.MaxCombo = 0;
+        GameManager.Instance.MissCount = 0;
+        GameManager.Instance.GoodCount = 0;
+        GameManager.Instance.GreatCount = 0;
+        GameManager.Instance.PerfectCount = 0;
+    }
+    void FileLoad()
+    {
+        filePath = $"C:\\Users\\tybna\\Songs\\{GameManager.Instance.MusicName}.txt";
+        _songFile = new FileInfo(filePath);
+        if (_songFile.Exists)
+        {
+            _reader = new StreamReader(filePath);
+            noteInfo = _reader.ReadToEnd();
+            noteInfoLen = noteInfo.Length;
+            noteIndex = 0;
+        }
+        
     }
     void FlowTime()
     {
@@ -40,25 +75,36 @@ public class NoteSpawn : MonoBehaviour
     }
     void BPMChange()
     {
-        bpm = Random.Range(90, 300);
+         bpm = 120;
     }
     void NoteCreate()
     {
-        int noteNum = Random.Range(-1, 1);//몇번 노트?
-        if (noteNum == -1) return;//노트 생성X
+        if (noteIndex >= noteInfoLen && !GameManager.Instance.IsGameOver)//게임 클리어
+        {
+            GameManager.Instance.IsGameClear = true;
+            return;
+        }
 
-        if (IslongNoteMake())
+        char noteNum = noteInfo[noteIndex];//몇번 노트?
+        noteIndex++;
+        if (noteNum == 'x') return;//노트 생성X
+
+        /*
+        if (IslongNoteMake(noteNum))
         {
             if (waitLongNote > currentLongNote) return;//롱노트 생성 불가
+            char longNoteLen = noteInfo[noteIdx];//롱노트 길이
+            noteIdx++;
             noteLength = Random.Range(7, 50);
             StartCoroutine(LongNoteMake(noteLength, noteNum));
             return;
         }
-        GameObject noteObj = _objectPulling.MakeObj(noteNum);//노트 생성
+        */
+        GameObject noteObj = _objectPulling.MakeObj(noteNum-'0');//노트 생성
         noteObj.GetComponent<NoteFuction>().noteType = NoteType.General;//일반 노트
         currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
 
-        NoteCreatePos(noteObj, noteNum);
+        NoteCreatePos(noteObj, noteNum-'0');
         GameManager.Instance.TotalNoteCount += 1;
     }
     void NoteCreatePos(GameObject noteObj, int noteNum)
@@ -76,13 +122,11 @@ public class NoteSpawn : MonoBehaviour
                 break;
         }
     }
-    bool IslongNoteMake()
+    bool IslongNoteMake(char noteNum)
     {
-        int longNoteNum = Random.Range(0, 100);
-        if (longNoteNum >= 52)
-        {
-            return true;
-        }
+        if (noteNum == 'a') return true;
+        if (noteNum == 'b') return true;
+        if (noteNum == 'c') return true;
         return false;
     }
     IEnumerator LongNoteMake(int num, int noteNum)
