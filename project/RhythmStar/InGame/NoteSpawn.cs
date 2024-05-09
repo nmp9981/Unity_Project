@@ -80,7 +80,7 @@ public class NoteSpawn : MonoBehaviour
     {
         if (noteIndex >= noteInfoLen && !GameManager.Instance.IsGameOver)//게임 클리어
         {
-            GameManager.Instance.IsGameClear = true;
+            Invoke("GameClearJudge", 2.5f);
             return;
         }
 
@@ -141,5 +141,9 @@ public class NoteSpawn : MonoBehaviour
             GameManager.Instance.TotalNoteCount += 1;
             yield return new WaitForSeconds(0.045f);
         }
+    }
+    void GameClearJudge()
+    {
+        GameManager.Instance.IsGameClear = true;
     }
 }
