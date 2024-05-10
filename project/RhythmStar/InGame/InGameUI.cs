@@ -117,6 +117,7 @@ public class InGameUI : MonoBehaviour
         if (GameManager.Instance.IsGameOver)
         {
             gameOverUI.SetActive(true);
+            SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
         }
     }
     public void CloseGameOverUI()
@@ -141,6 +142,8 @@ public class InGameUI : MonoBehaviour
         _goodCountText.text = $"Good : {GameManager.Instance.GoodCount}";
         _missCountText.text = $"Miss : {GameManager.Instance.MissCount}";
         _scoreResultText.text = $"Score : {GameManager.Instance.Score}";
+
+        SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
     }
     public void CloseGameClearUI()
     {
