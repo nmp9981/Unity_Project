@@ -74,7 +74,9 @@ public class NoteSpawn : MonoBehaviour
     }
     void BPMChange()
     {
-         bpm = 120;
+        if (GameManager.Instance.MusicNumber == 0) bpm = 126;//1배
+        if (GameManager.Instance.MusicNumber == 1) bpm = 148;//2배
+        if (GameManager.Instance.MusicNumber == 2) bpm = 240;//3배
     }
     void NoteCreate()
     {
