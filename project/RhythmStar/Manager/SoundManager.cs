@@ -58,6 +58,14 @@ public class SoundManager : MonoBehaviour
             _audioBgmSource.PlayOneShot(_bgmClip[musicNum]);//한개만 적용
         }
     }
+    public void StopBGM(int musicNum)
+    {
+        _audioBgmSource.clip = _bgmClip[musicNum];
+        if (_audioBgmSource.isPlaying)
+        {
+            _audioBgmSource.Stop();
+        }
+    } 
     public void PlaySfx(int soundNum)
     {
         _audioSfxSource.volume = GameManager.Instance.SFXVolume;//변수 값으로 조절
