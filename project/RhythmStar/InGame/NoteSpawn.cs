@@ -74,9 +74,18 @@ public class NoteSpawn : MonoBehaviour
     }
     void BPMChange()
     {
-        if (GameManager.Instance.MusicNumber == 0) bpm = 126;//1배
-        if (GameManager.Instance.MusicNumber == 1) bpm = 148;//2배
-        if (GameManager.Instance.MusicNumber == 2) bpm = 240;//3배
+        switch (GameManager.Instance.MusicNumber)
+        {
+            case 0:
+                bpm = 126;
+                break;
+            case 1:
+                bpm = 148;//2배
+                break;
+            case 2:
+                bpm = 240;//2배
+                break;
+        }
     }
     void NoteCreate()
     {
@@ -87,19 +96,19 @@ public class NoteSpawn : MonoBehaviour
         }
 
         char noteNum = noteInfo[noteIndex];//몇번 노트?
+        Debug.Log(noteNum);
         noteIndex++;
         if (noteNum == 'x') return;//노트 생성X
 
-        /*
         if (IslongNoteMake(noteNum))
         {
-            if (waitLongNote > currentLongNote) return;//롱노트 생성 불가
-            char noteLength = noteInfo[noteIdx];//롱노트 길이
-            noteIdx++;
+            if (waitLongNote > currentLongNote) return;//노트 생성 불가
+            char noteLength = noteInfo[noteIndex];//롱노트 길이
+            noteIndex++;
             StartCoroutine(LongNoteMake(noteLength-'0', noteNum-'a'));
             return;
         }
-        */
+        
         GameObject noteObj = _objectPulling.MakeObj(noteNum-'0');//노트 생성
         noteObj.GetComponent<NoteFuction>().noteType = NoteType.General;//일반 노트
         currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
@@ -133,8 +142,9 @@ public class NoteSpawn : MonoBehaviour
     {
         bpm = 120;
         currentLongNote = 0d;
-        waitLongNote = num * 0.25f;
-        for (int i = 0; i < num; i++)
+        waitLongNote = num * 0.1f;
+        int noteLenRivision = noteNum * (noteNum/2) * 3;
+        for (int i = 0; i < noteLenRivision; i++)
         {
             GameObject noteObj = _objectPulling.MakeObj(noteNum);
             noteObj.GetComponent<NoteFuction>().noteType = NoteType.Long;//롱 노트
