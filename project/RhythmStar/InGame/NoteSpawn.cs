@@ -99,12 +99,12 @@ public class NoteSpawn : MonoBehaviour
             Invoke("GameClearJudge", 2.5f);
             return;
         }
-
+        currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
         char noteNum = noteInfo[noteIndex];//몇번 노트?
-        Debug.Log(noteNum);
+        
         noteIndex++;
         if (noteNum == 'x') return;//노트 생성X
-
+        Debug.Log(noteNum);
         if (IslongNoteMake(noteNum))
         {
             if (waitLongNote > currentLongNote) return;//노트 생성 불가
@@ -113,10 +113,9 @@ public class NoteSpawn : MonoBehaviour
             StartCoroutine(LongNoteMake(noteLength-'0', noteNum-'a'));
             return;
         }
-        
+
         GameObject noteObj = _objectPulling.MakeObj(noteNum-'0');//노트 생성
         noteObj.GetComponent<NoteFuction>().noteType = NoteType.General;//일반 노트
-        currentTime -= 60d / bpm;//currentTime이 정확한 값이 아닌 부동 소수점 오차 존재
 
         NoteCreatePos(noteObj, noteNum-'0');
         GameManager.Instance.TotalNoteCount += 1;
@@ -144,22 +143,22 @@ public class NoteSpawn : MonoBehaviour
         return false;
     }
     //롱노트 생성
-    IEnumerator LongNoteMake(int num, int noteNum)
+    IEnumerator LongNoteMake(int len, int noteNum)
     {
         LongNoteChange(noteNum);
         currentLongNote = 0d;
-        waitLongNote = num * 0.1f;
-        int noteLenRivision = noteNum * (noteNum/2) * 3;
+        waitLongNote = len * 0.1f;
+        int noteLenRivision = len * (len/2) * 3;
         for (int i = 0; i < noteLenRivision; i++)
         {
             GameObject noteObj = _objectPulling.MakeObj(noteNum);
             noteObj.GetComponent<NoteFuction>().noteType = NoteType.Long;//롱 노트
-            noteObj.GetComponent<NoteFuction>().longNoteLength = num;
+            noteObj.GetComponent<NoteFuction>().longNoteLength = len;
             NoteCreatePos(noteObj, noteNum);
             GameManager.Instance.TotalNoteCount += 1;
             yield return new WaitForSeconds(0.045f);
         }
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         GerneralNoteChange(noteNum);//다시 일반 노트로
     }
     void LongNoteChange(int noteNum)
