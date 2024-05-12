@@ -66,58 +66,65 @@ public class NoteJudge : MonoBehaviour
     {
         //모바일에서는 키 입력이 아닌 버튼 형식으로 변환
         //1번
-        if (Input.GetKey(KeyCode.Alpha1))
+        if (GameManager.Instance.IsLongNote1)
         {
-            Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f*judgeKey1.transform.localScale.y);
-            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-          
-            clickEffect[0].Play();
-            if (hit.collider != null)
+            if (Input.GetKey(KeyCode.Alpha1))
             {
-                if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
+                Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+
+                clickEffect[0].Play();
+                if (hit.collider != null)
                 {
-                    float diffDistance = 0;
-                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
                     {
-                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                        float diffDistance = 0;
+                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                        {
+                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                        }
+                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 0);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(0);
                     }
-                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
-
-                    JudgeScoreAndEffect(diffDistance, 0);
-                    hit.collider.gameObject.SetActive(false);
-                    GameManager.Instance.ComboCount += 1;
-                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
-                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                    SoundManager._sound.PlaySfx(0);
-                }
-            }   
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
-            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-
-            clickEffect[0].Play();
-            if (hit.collider != null)
-            {
-                if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
-                {
-                    float diffDistance = 0;
-                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                    {
-                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                    }
-                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
-
-                    JudgeScoreAndEffect(diffDistance, 0);
-                    hit.collider.gameObject.SetActive(false);
-                    GameManager.Instance.ComboCount += 1;
-                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
-                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                    SoundManager._sound.PlaySfx(0);
                 }
             }
         }
+        if (!GameManager.Instance.IsLongNote1)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+
+                clickEffect[0].Play();
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
+                    {
+                        float diffDistance = 0;
+                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                        {
+                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                        }
+                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 0);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(0);
+                    }
+                }
+            }
+        }
+        
         //2번
         if (Input.GetKey(KeyCode.Alpha2))
         {
@@ -157,11 +164,7 @@ public class NoteJudge : MonoBehaviour
                 if (hit.collider.gameObject.CompareTag("Blue"))
                 {
                     float diffDistance = 0;
-                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                    {
-                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                    }
-                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                    diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
                    
                     JudgeScoreAndEffect(diffDistance,2);
                     hit.collider.gameObject.SetActive(false);
