@@ -77,6 +77,10 @@ public class GameManager : MonoBehaviour
     int _musicLevel;//재생할 음악 난이도
     string _musicName;//재생할 음악 제목
 
+    bool _isLongNote1;//롱노트인가?
+    bool _isLongNote2;
+    bool _isLongNote3;
+
     public int KeyCount { get { return _keyCount; } set { _keyCount = value; } }
     public int ComboCount { get { return _comboCount; } set { _comboCount = value; } }
     public int ComboBonus { get { return _comboBonus; } set { _comboBonus = value; } }
@@ -108,5 +112,9 @@ public class GameManager : MonoBehaviour
     public int MusicBPM { get { return _musicBPM; } set { _musicBPM = value; } }
     public int MusicLevel { get { return _musicLevel; } set { _musicLevel = value; } }
     public string MusicName { get { return _musicName; } set { _musicName = value; } }
+
+    public bool IsLongNote1 { get { return _isLongNote1; } set { _isLongNote1 = value; } }
+    public bool IsLongNote2 { get { return _isLongNote2; } set { _isLongNote2 = value; } }
+    public bool IsLongNote3 { get { return _isLongNote3; } set { _isLongNote3 = value; } }
     #endregion
 }
