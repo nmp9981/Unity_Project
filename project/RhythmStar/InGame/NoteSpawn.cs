@@ -146,6 +146,7 @@ public class NoteSpawn : MonoBehaviour
     //롱노트 생성
     IEnumerator LongNoteMake(int num, int noteNum)
     {
+        LongNoteChange(noteNum);
         currentLongNote = 0d;
         waitLongNote = num * 0.1f;
         int noteLenRivision = noteNum * (noteNum/2) * 3;
@@ -158,7 +159,7 @@ public class NoteSpawn : MonoBehaviour
             GameManager.Instance.TotalNoteCount += 1;
             yield return new WaitForSeconds(0.045f);
         }
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(3f);
         GerneralNoteChange(noteNum);//다시 일반 노트로
     }
     void LongNoteChange(int noteNum)
