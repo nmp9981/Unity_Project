@@ -27,6 +27,7 @@ public class NoteFuction : MonoBehaviour
     {
         NoteMove();
         RemoveNote();
+        LongNoteChange();
     }
     void RemoveNote()
     {
@@ -60,5 +61,43 @@ public class NoteFuction : MonoBehaviour
         noteJudge.judgeText[num].color = Color.red;
         yield return new WaitForSeconds(0.3f);
         noteJudge.judgeText[num].text = "";
+    }
+    void LongNoteChange()
+    {
+        if(gameObject.transform.position.y < -2)
+        {
+            if(noteType == NoteType.Long) LongNoteChange((int)NoteColor);
+            else GerneralNoteChange((int)NoteColor);
+        }
+    }
+    void LongNoteChange(int noteNum)
+    {
+        switch (noteNum)
+        {
+            case 0:
+                GameManager.Instance.IsLongNote1 = true;
+                break;
+            case 1:
+                GameManager.Instance.IsLongNote2 = true;
+                break;
+            case 2:
+                GameManager.Instance.IsLongNote3 = true;
+                break;
+        }
+    }
+    void GerneralNoteChange(int noteNum)
+    {
+        switch (noteNum)
+        {
+            case 0:
+                GameManager.Instance.IsLongNote1 = false;
+                break;
+            case 1:
+                GameManager.Instance.IsLongNote2 = false;
+                break;
+            case 2:
+                GameManager.Instance.IsLongNote3 = false;
+                break;
+        }
     }
 }
