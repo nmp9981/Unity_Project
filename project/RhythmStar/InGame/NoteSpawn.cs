@@ -25,11 +25,6 @@ public class NoteSpawn : MonoBehaviour
         GameInfoInit();
         FileLoad();
         InvokeRepeating("BPMChange", 0f, 1.5f);
-
-        //처음엔 모두 일반 노트
-        GerneralNoteChange(0);
-        GerneralNoteChange(1);
-        GerneralNoteChange(2);
     }
     
     void Update()
@@ -51,6 +46,10 @@ public class NoteSpawn : MonoBehaviour
         GameManager.Instance.GoodCount = 0;
         GameManager.Instance.GreatCount = 0;
         GameManager.Instance.PerfectCount = 0;
+
+        GameManager.Instance.IsLongNote1 = false;
+        GameManager.Instance.IsLongNote2 = false;
+        GameManager.Instance.IsLongNote3 = false;
     }
     void FileLoad()
     {
@@ -145,7 +144,6 @@ public class NoteSpawn : MonoBehaviour
     //롱노트 생성
     IEnumerator LongNoteMake(int len, int noteNum)
     {
-        LongNoteChange(noteNum);
         currentLongNote = 0d;
         waitLongNote = len * 0.1f;
         int noteLenRivision = len * (len/2) * 3;
@@ -158,40 +156,7 @@ public class NoteSpawn : MonoBehaviour
             GameManager.Instance.TotalNoteCount += 1;
             yield return new WaitForSeconds(0.045f);
         }
-        yield return new WaitForSeconds(2f);
-        GerneralNoteChange(noteNum);//다시 일반 노트로
     }
-    void LongNoteChange(int noteNum)
-    {
-        switch (noteNum)
-        {
-            case 0:
-                GameManager.Instance.IsLongNote1 = true;
-                break;
-            case 1:
-                GameManager.Instance.IsLongNote2 = true;
-                break;
-            case 2:
-                GameManager.Instance.IsLongNote3 = true;
-                break;
-        }
-    }
-    void GerneralNoteChange(int noteNum)
-    {
-        switch (noteNum)
-        {
-            case 0:
-                GameManager.Instance.IsLongNote1 = false;
-                break;
-            case 1:
-                GameManager.Instance.IsLongNote2 = false;
-                break;
-            case 2:
-                GameManager.Instance.IsLongNote3 = false;
-                break;
-        }
-    }
-
     void GameClearJudge()
     {
         GameManager.Instance.IsGameClear = true;
