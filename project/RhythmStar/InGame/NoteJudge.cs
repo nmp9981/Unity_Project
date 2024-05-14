@@ -78,12 +78,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
                     {
-                        float diffDistance = 0;
-                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                        {
-                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                        }
-                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
 
                         JudgeScoreAndEffect(diffDistance, 0);
                         hit.collider.gameObject.SetActive(false);
@@ -107,12 +102,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
                     {
-                        float diffDistance = 0;
-                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                        {
-                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                        }
-                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
 
                         JudgeScoreAndEffect(diffDistance, 0);
                         hit.collider.gameObject.SetActive(false);
@@ -138,12 +128,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Green") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
                     {
-                        float diffDistance = 0;
-                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                        {
-                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                        }
-                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
 
                         JudgeScoreAndEffect(diffDistance, 1);
                         hit.collider.gameObject.SetActive(false);
@@ -167,13 +152,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Green") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
                     {
-                        float diffDistance = 0;
-                        if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                        {
-                            diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                        }
-                        else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
-
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
                         JudgeScoreAndEffect(diffDistance, 1);
                         hit.collider.gameObject.SetActive(false);
                         GameManager.Instance.ComboCount += 1;
@@ -198,8 +177,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Blue") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
                     {
-                        float diffDistance = 0;
-                        diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey3.transform.position.y);
 
                         JudgeScoreAndEffect(diffDistance, 2);
                         hit.collider.gameObject.SetActive(false);
@@ -223,8 +201,7 @@ public class NoteJudge : MonoBehaviour
                 {
                     if (hit.collider.gameObject.CompareTag("Blue") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
                     {
-                        float diffDistance = 0;
-                        diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey3.transform.position.y);
 
                         JudgeScoreAndEffect(diffDistance, 2);
                         hit.collider.gameObject.SetActive(false);
@@ -341,7 +318,6 @@ public class NoteJudge : MonoBehaviour
             GameManager.Instance.GoodCount += 1;
             GameManager.Instance.HealthPoint += 1.0f;
         }
-
         GameManager.Instance.Score += (GameManager.Instance.ComboBonus*judgeBonusScore);
     }
     IEnumerator JudgeTextOn(TextMeshProUGUI textObj, string restext, Color color)
