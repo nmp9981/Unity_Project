@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class MainUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI musicTitleText;
+    [SerializeField] TextMeshProUGUI musicBPMText;
     public List<Button> musicList;
     public List<Image> musicLevelImage;
 
@@ -16,18 +17,14 @@ public class MainUI : MonoBehaviour
     void Awake()
     {
         musicTitleText.text = "";
+        musicBPMText.text = " = ?";
         for (int i = 0; i < 10; i++) musicLevelImage[i].enabled = false;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
     public void MusicSetting(int idx)
     {
         GameManager.Instance.MusicNumber = idx;
         musicTitleText.text = musicList[idx].GetComponentInChildren<TextMeshProUGUI>().text;
+        musicBPMText.text = " = "+GameManager.Instance.MusicBPMList[idx].ToString();
         GameManager.Instance.MusicName = musicTitleText.text;
     }
     public void GameStartButton()
