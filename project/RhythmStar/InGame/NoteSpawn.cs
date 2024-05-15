@@ -78,18 +78,7 @@ public class NoteSpawn : MonoBehaviour
     }
     void BPMChange()
     {
-        switch (GameManager.Instance.MusicNumber)
-        {
-            case 0:
-                bpm = 126;
-                break;
-            case 1:
-                bpm = 148;//2배
-                break;
-            case 2:
-                bpm = 240;//2배
-                break;
-        }
+        bpm = GameManager.Instance.MusicBPMList[GameManager.Instance.MusicNumber];
     }
     void NoteCreate()
     {
