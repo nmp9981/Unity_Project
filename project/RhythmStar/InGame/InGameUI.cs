@@ -130,6 +130,12 @@ public class InGameUI : MonoBehaviour
     {
         if (GameManager.Instance.IsGameClear && !GameManager.Instance.IsGameOver)
         {
+            //최대치 갱신
+            if(GameManager.Instance.Score > UserDataManager.userRankData[GameManager.Instance.MusicNumber].score)
+            {
+                UserDataManager.userRankData[GameManager.Instance.MusicNumber].score = GameManager.Instance.Score;
+            }
+            UserDataManager.userData.SaveData();
             Invoke("GameClearUISetting", 5f);
         }
     }
