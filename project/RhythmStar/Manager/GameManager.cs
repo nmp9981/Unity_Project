@@ -81,6 +81,7 @@ public class GameManager : MonoBehaviour
     bool _isLongNote2;
     bool _isLongNote3;
 
+    public int[] MusicBPMList = new int[3] { 126, 148, 180 };
     public int KeyCount { get { return _keyCount; } set { _keyCount = value; } }
     public int ComboCount { get { return _comboCount; } set { _comboCount = value; } }
     public int ComboBonus { get { return _comboBonus; } set { _comboBonus = value; } }
