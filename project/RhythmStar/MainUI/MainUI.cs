@@ -10,6 +10,7 @@ public class MainUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI musicTitleText;
     [SerializeField] TextMeshProUGUI musicBPMText;
+    [SerializeField] TextMeshProUGUI musicBestScore;
     public List<Button> musicList;
     public List<Image> musicLevelImage;
 
@@ -19,12 +20,15 @@ public class MainUI : MonoBehaviour
         musicTitleText.text = "";
         musicBPMText.text = " = ?";
         for (int i = 0; i < 10; i++) musicLevelImage[i].enabled = false;
+        if(UserDataManager.userData != null) UserDataManager.userData.LoadData();
     }
     public void MusicSetting(int idx)
     {
         GameManager.Instance.MusicNumber = idx;
         musicTitleText.text = musicList[idx].GetComponentInChildren<TextMeshProUGUI>().text;
         musicBPMText.text = " = "+GameManager.Instance.MusicBPMList[idx].ToString();
+        if (UserDataManager.userRankData[idx].score == 0) musicBestScore.text = " : ?";
+        else musicBestScore.text = " : " + UserDataManager.userRankData[idx].score.ToString();
         GameManager.Instance.MusicName = musicTitleText.text;
     }
     public void GameStartButton()
