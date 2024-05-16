@@ -119,6 +119,11 @@ public class InGameUI : MonoBehaviour
         {
             gameOverUI.SetActive(true);
             GameManager.Instance.Rank = 'F';
+            if (UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == 'F' ||
+                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == ' ')
+            {
+                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
+            }
             SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
         }
     }
@@ -132,11 +137,17 @@ public class InGameUI : MonoBehaviour
     {
         if (GameManager.Instance.IsGameClear && !GameManager.Instance.IsGameOver)
         {
+            RankJudge();//랭크 판정
             //최대치 갱신
-            if(GameManager.Instance.Score > UserDataManager.userRankData[GameManager.Instance.MusicNumber].score)
+            if (GameManager.Instance.Score > UserDataManager.userRankData[GameManager.Instance.MusicNumber].score)
             {
                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].score = GameManager.Instance.Score;
-                RankJudge();
+            }
+            if(GameManager.Instance.Rank == 'S' || 
+                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank-'A' > GameManager.Instance.Rank - 'A' ||
+                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == ' ')
+            {
+                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
             }
             UserDataManager.userData.SaveData();
             Invoke("GameClearUISetting", 5f);
