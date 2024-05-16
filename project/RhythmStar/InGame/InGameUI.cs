@@ -162,7 +162,7 @@ public class InGameUI : MonoBehaviour
         _goodCountText.text = $"Good : {GameManager.Instance.GoodCount}";
         _missCountText.text = $"Miss : {GameManager.Instance.MissCount}";
         _scoreResultText.text = $"Score : {GameManager.Instance.Score}";
-        _rankResultText.text = $"Rank : <size = 130>{GameManager.Instance.Rank}</size>";
+        _rankResultText.text = $"Rank : <size=130>{GameManager.Instance.Rank}</size>";
         _rankResultText.color = RankColor(GameManager.Instance.Rank);
         SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
     }
@@ -196,8 +196,9 @@ public class InGameUI : MonoBehaviour
 
         if (GameManager.Instance.PerfectCount * 100 / totalNote >= 99 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = 'S';
         else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = 'A';
-        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 40 
-            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15) GameManager.Instance.Rank = 'B';
+        else if((GameManager.Instance.PerfectCount * 100 / totalNote >= 40 
+            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15) 
+            || GameManager.Instance.MissCount==0) GameManager.Instance.Rank = 'B';
         else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 40) GameManager.Instance.Rank = 'C';
         else GameManager.Instance.Rank = 'D';
     }
