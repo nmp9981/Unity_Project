@@ -11,6 +11,7 @@ public class MainUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI musicTitleText;
     [SerializeField] TextMeshProUGUI musicBPMText;
     [SerializeField] TextMeshProUGUI musicBestScore;
+    [SerializeField] TextMeshProUGUI musicBestRank;
     public List<Button> musicList;
     public List<Image> musicLevelImage;
 
@@ -27,9 +28,30 @@ public class MainUI : MonoBehaviour
         GameManager.Instance.MusicNumber = idx;
         musicTitleText.text = musicList[idx].GetComponentInChildren<TextMeshProUGUI>().text;
         musicBPMText.text = " = "+GameManager.Instance.MusicBPMList[idx].ToString();
+        musicBestRank.text = UserDataManager.userRankData[idx].rank.ToString();
+        musicBestRank.color = RankColor(musicBestRank.text);
         if (UserDataManager.userRankData[idx].score == 0) musicBestScore.text = " : ?";
         else musicBestScore.text = " : " + UserDataManager.userRankData[idx].score.ToString();
         GameManager.Instance.MusicName = musicTitleText.text;
+    }
+    Color RankColor(string rank)
+    {
+        switch (rank)
+        {
+            case "S":
+                return new Color(0.2f, 0.9f, 0.9f);
+            case "A":
+                return Color.red;
+            case "B":
+                return new Color(1f, 0.5f, 0);
+            case "C":
+                return Color.green;
+            case "D":
+                return Color.blue;
+            case "F":
+                return Color.gray;
+        }
+        return Color.white;
     }
     public void GameStartButton()
     {
