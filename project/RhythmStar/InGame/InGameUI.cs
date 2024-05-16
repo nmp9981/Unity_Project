@@ -20,6 +20,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _goodCountText;
     [SerializeField] TextMeshProUGUI _missCountText;
     [SerializeField] TextMeshProUGUI _scoreResultText;
+    [SerializeField] TextMeshProUGUI _rankResultText;
 
     [SerializeField] Image hpBar;
     [SerializeField] GameObject gameOverUI;
@@ -117,6 +118,7 @@ public class InGameUI : MonoBehaviour
         if (GameManager.Instance.IsGameOver)
         {
             gameOverUI.SetActive(true);
+            GameManager.Instance.Rank = 'F';
             SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
         }
     }
@@ -134,6 +136,7 @@ public class InGameUI : MonoBehaviour
             if(GameManager.Instance.Score > UserDataManager.userRankData[GameManager.Instance.MusicNumber].score)
             {
                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].score = GameManager.Instance.Score;
+                RankJudge();
             }
             UserDataManager.userData.SaveData();
             Invoke("GameClearUISetting", 5f);
@@ -148,7 +151,8 @@ public class InGameUI : MonoBehaviour
         _goodCountText.text = $"Good : {GameManager.Instance.GoodCount}";
         _missCountText.text = $"Miss : {GameManager.Instance.MissCount}";
         _scoreResultText.text = $"Score : {GameManager.Instance.Score}";
-
+        _rankResultText.text = $"Rank : <size = 130>{GameManager.Instance.Rank}</size>";
+        _rankResultText.color = RankColor(GameManager.Instance.Rank);
         SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
     }
     public void CloseGameClearUI()
@@ -156,5 +160,34 @@ public class InGameUI : MonoBehaviour
         GameManager.Instance.Score = 0;
         gameClearUI.SetActive(false);
         SceneManager.LoadScene("MainUI");
+    }
+    Color RankColor(char rank)
+    {
+        switch (rank)
+        {
+            case 'S':
+                return new Color(0.2f,0.9f,0.9f);
+            case 'A':
+                return Color.red;
+            case 'B':
+                return new Color(1f,0.5f,0);
+            case 'C':
+                return Color.green;
+            case 'D':
+                return Color.blue;
+            case 'F':
+                return Color.gray;
+        }
+        return Color.white;
+    }
+    void RankJudge() {
+        int totalNote = GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount + GameManager.Instance.GoodCount + GameManager.Instance.MissCount;
+
+        if (GameManager.Instance.PerfectCount * 100 / totalNote >= 99 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = 'S';
+        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = 'A';
+        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 40 
+            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15) GameManager.Instance.Rank = 'B';
+        else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 40) GameManager.Instance.Rank = 'C';
+        else GameManager.Instance.Rank = 'D';
     }
 }
