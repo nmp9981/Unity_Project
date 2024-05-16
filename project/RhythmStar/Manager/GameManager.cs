@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
     int _comboBonus;//콤보 보너스
     int _totalNoteCount;//총 노트 개수
     int _score = 0;//점수
+    char _rank = ' ';//랭크
     float _healthPoint;//HP
     float _maxHealthPoint = 100.0f;//최대 HP
 
@@ -87,6 +88,7 @@ public class GameManager : MonoBehaviour
     public int ComboBonus { get { return _comboBonus; } set { _comboBonus = value; } }
     public int TotalNoteCount { get { return _totalNoteCount; } set { _totalNoteCount = value; } }
     public int Score { get { return _score; } set { _score = value; } }
+    public char Rank { get { return _rank; } set { _rank = value; } }
     public float HealthPoint { get { return _healthPoint; } set { _healthPoint = value; } }
     public float MaxHealthPoint { get { return _maxHealthPoint; } set { _maxHealthPoint = value; } }
 
