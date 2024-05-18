@@ -3,22 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Events;
+using UnityEngine.SocialPlatforms.Impl;
+using Unity.VisualScripting;
 
+[System.Serializable]
 public class UserRankData
 {
     public int musicNum;//음악 번호
     public int score;//점수
-    public char rank;//랭크
+    public string rank;//랭크
 }
+[System.Serializable]
+public class MusicList
+{
+    public List<UserRankData> musicList;
+}
+
 public class UserDataManager : MonoBehaviour
 {
     public static UserDataManager userData;
-    UserRankData nowPlayer = new UserRankData();
-
-    public static List<UserRankData> userRankData = new List<UserRankData>();
-    string path;
-    string filename = "musicRankdata";
-
+    public static MusicList musicListDatas;
+    string path = "C:\\Users\\tybna\\RhythmStar\\Assets\\RhythmStar\\Data\\musicDataList.json";
+    
     void Awake()
     {
         #region 싱글톤
@@ -32,21 +38,18 @@ public class UserDataManager : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
         #endregion
 
-        path = Application.persistentDataPath+"/";
-
-        userRankData.Add(nowPlayer);
-        userRankData.Add(nowPlayer);
-        userRankData.Add(nowPlayer);
+        LoadData();
     }
 
     public void SaveData()
     {
-        string data = JsonUtility.ToJson(userRankData);
-        File.WriteAllText(path+filename, data);
+        string data = JsonUtility.ToJson(musicListDatas.musicList);
+        File.WriteAllText(path, data);
     }
     public void LoadData()
     {
-        string data = File.ReadAllText(path+filename);
-        userRankData = JsonUtility.FromJson<List<UserRankData>>(data);
+        string data = File.ReadAllText(path);
+        musicListDatas = JsonUtility.FromJson<MusicList>(data);
+        Debug.Log(musicListDatas.musicList[0].score);
     }
 }
