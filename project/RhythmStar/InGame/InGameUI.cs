@@ -118,11 +118,11 @@ public class InGameUI : MonoBehaviour
         if (GameManager.Instance.IsGameOver)
         {
             gameOverUI.SetActive(true);
-            GameManager.Instance.Rank = 'F';
-            if (UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == 'F' ||
-                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == ' ')
+            GameManager.Instance.Rank = "F";
+            if (UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank == "F" ||
+                 UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank == "")
             {
-                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
+                UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
             }
             SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
         }
@@ -139,17 +139,24 @@ public class InGameUI : MonoBehaviour
         {
             RankJudge();//랭크 판정
             //최대치 갱신
-            if (GameManager.Instance.Score > UserDataManager.userRankData[GameManager.Instance.MusicNumber].score)
+            if (GameManager.Instance.Score > UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].score)
             {
-                UserDataManager.userRankData[GameManager.Instance.MusicNumber].score = GameManager.Instance.Score;
+                UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].score = GameManager.Instance.Score;
             }
-            if(GameManager.Instance.Rank == 'S' || 
-                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank-'A' > GameManager.Instance.Rank - 'A' ||
-                 UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank == ' ')
+            //랭크 갱신
+            if (UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank == "")
             {
-                UserDataManager.userRankData[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
+                UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
             }
-            UserDataManager.userData.SaveData();
+            else
+            {
+                if(GameManager.Instance.Rank == "S" ||
+                UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank[0] - 'A' > GameManager.Instance.Rank[0] - 'A')
+                {
+                    UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
+                }
+            } 
+            UserDataManager.userData.SaveData(UserDataManager.musicListDatas.musicList);
             Invoke("GameClearUISetting", 5f);
         }
     }
@@ -162,7 +169,7 @@ public class InGameUI : MonoBehaviour
         _goodCountText.text = $"Good : {GameManager.Instance.GoodCount}";
         _missCountText.text = $"Miss : {GameManager.Instance.MissCount}";
         _scoreResultText.text = $"Score : {GameManager.Instance.Score}";
-        _rankResultText.text = $"Rank : <size=130>{GameManager.Instance.Rank}</size>";
+        _rankResultText.text = $"Rank : <size=150>{GameManager.Instance.Rank}</size>";
         _rankResultText.color = RankColor(GameManager.Instance.Rank);
         SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
     }
@@ -172,34 +179,36 @@ public class InGameUI : MonoBehaviour
         gameClearUI.SetActive(false);
         SceneManager.LoadScene("MainUI");
     }
-    Color RankColor(char rank)
+    Color RankColor(string rank)
     {
         switch (rank)
         {
-            case 'S':
+            case "S":
                 return new Color(0.2f,0.9f,0.9f);
-            case 'A':
+            case "A":
                 return Color.red;
-            case 'B':
+            case "B":
                 return new Color(1f,0.5f,0);
-            case 'C':
+            case "C":
                 return Color.green;
-            case 'D':
+            case "D":
                 return Color.blue;
-            case 'F':
+            case "F":
                 return Color.gray;
         }
         return Color.white;
     }
     void RankJudge() {
+        GameManager.Instance.Rank = "";
         int totalNote = GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount + GameManager.Instance.GoodCount + GameManager.Instance.MissCount;
 
-        if (GameManager.Instance.PerfectCount * 100 / totalNote >= 99 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = 'S';
-        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = 'A';
+        if (GameManager.Instance.PerfectCount * 100 / totalNote >= 99 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = "S";
+        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = "A";
         else if((GameManager.Instance.PerfectCount * 100 / totalNote >= 40 
-            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15) 
-            || GameManager.Instance.MissCount==0) GameManager.Instance.Rank = 'B';
-        else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 40) GameManager.Instance.Rank = 'C';
-        else GameManager.Instance.Rank = 'D';
+            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15)) GameManager.Instance.Rank = "B";
+        else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 40) GameManager.Instance.Rank = "C";
+        else GameManager.Instance.Rank = "D";
+
+        if(GameManager.Instance.MissCount == 0 &&(GameManager.Instance.Rank == "C" || GameManager.Instance.Rank == "D") ) GameManager.Instance.Rank = "B";//올콤
     }
 }
