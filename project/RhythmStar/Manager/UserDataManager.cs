@@ -16,7 +16,7 @@ public class UserRankData
 [System.Serializable]
 public class MusicList
 {
-    public List<UserRankData> musicList;
+    public UserRankData[] musicList;
 }
 
 public class UserDataManager : MonoBehaviour
@@ -41,15 +41,18 @@ public class UserDataManager : MonoBehaviour
         LoadData();
     }
 
-    public void SaveData()
+    public void SaveData(UserRankData[] musicList)
     {
-        string data = JsonUtility.ToJson(musicListDatas.musicList);
+        Debug.Log(musicList[0].rank);
+        Debug.Log(musicList[1].rank);
+        Debug.Log(musicList[2].rank);
+        string data = JsonData.ToJson(musicList);
+        Debug.Log(data);
         File.WriteAllText(path, data);
     }
     public void LoadData()
     {
         string data = File.ReadAllText(path);
         musicListDatas = JsonUtility.FromJson<MusicList>(data);
-        Debug.Log(musicListDatas.musicList[0].score);
     }
 }
