@@ -28,10 +28,10 @@ public class MainUI : MonoBehaviour
         GameManager.Instance.MusicNumber = idx;
         musicTitleText.text = musicList[idx].GetComponentInChildren<TextMeshProUGUI>().text;
         musicBPMText.text = " = "+GameManager.Instance.MusicBPMList[idx].ToString();
-        musicBestRank.text = UserDataManager.userRankData[idx].rank.ToString();
+        musicBestRank.text = UserDataManager.musicListDatas.musicList[idx].rank.ToString();
         musicBestRank.color = RankColor(musicBestRank.text);
-        if (UserDataManager.userRankData[idx].score == 0) musicBestScore.text = " : ?";
-        else musicBestScore.text = " : " + UserDataManager.userRankData[idx].score.ToString();
+        if (UserDataManager.musicListDatas.musicList[idx].score == 0) musicBestScore.text = " : ?";
+        else musicBestScore.text = " : " + UserDataManager.musicListDatas.musicList[idx].score.ToString();
         GameManager.Instance.MusicName = musicTitleText.text;
     }
     Color RankColor(string rank)
