@@ -124,6 +124,7 @@ public class InGameUI : MonoBehaviour
             {
                 UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
             }
+            UserDataManager.userData.SaveData(UserDataManager.musicListDatas.musicList);
             SoundManager._sound.StopBGM(GameManager.Instance.MusicNumber);
         }
     }
@@ -155,7 +156,8 @@ public class InGameUI : MonoBehaviour
                 {
                     UserDataManager.musicListDatas.musicList[GameManager.Instance.MusicNumber].rank = GameManager.Instance.Rank;
                 }
-            } 
+            }
+           
             UserDataManager.userData.SaveData(UserDataManager.musicListDatas.musicList);
             Invoke("GameClearUISetting", 5f);
         }
