@@ -15,7 +15,7 @@ public class MainUI : MonoBehaviour
     public List<Button> musicList;
     public List<Image> musicLevelImage;
 
-    public int[] musicLevelList = new int[3] {1,5,10 };
+    public int[] musicLevelList = new int[5] {1,4,7,3,8};
     void Awake()
     {
         musicTitleText.text = "";
