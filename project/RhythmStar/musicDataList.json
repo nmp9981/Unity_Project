@@ -2,16 +2,26 @@
   "musicList": [
     {
       "musicNum": 0,
-      "score": 0,
-      "rank": ""
+      "score": 2562,
+      "rank": "D"
     },
     {
       "musicNum": 1,
+      "score": 332,
+      "rank": "B"
+    },
+    {
+      "musicNum": 2,
+      "score": 0,
+      "rank": "F"
+    },
+    {
+      "musicNum": 3,
       "score": 0,
       "rank": ""
     },
     {
-      "musicNum": 2,
+      "musicNum": 4,
       "score": 0,
       "rank": ""
     }
