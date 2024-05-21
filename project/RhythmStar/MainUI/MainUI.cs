@@ -15,11 +15,12 @@ public class MainUI : MonoBehaviour
     public List<Button> musicList;
     public List<Image> musicLevelImage;
 
-    public int[] musicLevelList = new int[5] {1,4,7,3,8};
+    public int[] musicLevelList;
     void Awake()
     {
         musicTitleText.text = "";
         musicBPMText.text = " = ?";
+        musicLevelList = new int[9] { 1, 4, 7, 5, 8,10,8,9,3 };
         for (int i = 0; i < 10; i++) musicLevelImage[i].enabled = false;
         if(UserDataManager.userData != null) UserDataManager.userData.LoadData();
     }
