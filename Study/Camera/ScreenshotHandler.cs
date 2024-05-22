@@ -9,7 +9,9 @@ using Table;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Tilemaps;
 using UnityEngine.UIElements;
+using UnityEngine.XR;
 using static UnityEngine.GraphicsBuffer;
 
 namespace ScreenShot
@@ -39,7 +41,11 @@ namespace ScreenShot
         AllObjectPipeOn,
         AllObjectPipeOff,
         PipeOn,
-        PipeOff
+        PipeOff,
+        PipeOnly,
+        PipeEquipmentOnly,
+        PipeEquipmentPairOffInAll,
+        PipeEquipmentPairOnInAll
     }
 
     public class ScreenshotHandler : MonoBehaviour
@@ -90,22 +96,28 @@ namespace ScreenShot
             _cameraOriginPosition = ScreenShotCamera.transform.position;
             _cameraOriginRotation = ScreenShotCamera.transform.rotation;
 
-            _uniquePipelineNameList = ObjectManager.Instance.GetUniquePipelineNameList(PipingTable.Instance.DataList);
+            //_uniquePipelineNameList = ObjectManager.Instance.GetUniquePipelineNameList(PipingTable.Instance.DataList);
+            _uniquePipelineNameList = null;
+            AllObjectCenter();
         }
         #region 키 입력
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                StartCoroutine(TakeScreenShotAll("All Object"));
+                if(ActiveType == EActiveType.All)
+                {
+                    StartCoroutine(TakeScreenShotAll("All Object"));
+                }
             }
 
             // 테이블 데이터를 토대로 장비랑 파이프라인 촬영
             if (Input.GetKeyDown(KeyCode.F2))
             {
-                _validPipelineDic = ObjectManager.Instance.GetValidPipelineDic(_uniquePipelineNameList);
-
-                StartCoroutine(TakeScreenShotsPipeline(_uniquePipelineNameList));
+                //_validPipelineDic = ObjectManager.Instance.GetValidPipelineDic(_uniquePipelineNameList);
+                //StartCoroutine(TakeScreenShotsPipeline(_uniquePipelineNameList));
+                if (ActiveType == EActiveType.PipeEquipmentOnly) ObjSetting(ObjectManager.Instance.pipeNozzleObj);
+                StartCoroutine(TakeScreenShotsNewDataPipeline(ObjectManager.Instance.pipeNozzleObj));
             }
             //전체 촬영
             if (Input.GetKeyDown(KeyCode.F3))
@@ -113,10 +125,17 @@ namespace ScreenShot
                 if (ActiveType == EActiveType.AllObjectPipeOff || ActiveType == EActiveType.AllObjectPipeOn)
                 {
                     StartCoroutine(TakeScreenShotAllObject("All Object"));
-                }else if(ActiveType == EActiveType.PipeOff || ActiveType == EActiveType.PipeOn)
+                }else if(ActiveType == EActiveType.PipeOff || ActiveType == EActiveType.PipeOn || ActiveType == EActiveType.PipeOnly)
                 {
                     StartCoroutine(TakeScreenShotsAllObjectPipe(ObjectManager.Instance.PipelineList));
                 }
+            }
+        }
+        void ObjSetting(List<Transform> nozzlePipeList)
+        {
+            foreach (Transform nozzlechildList in nozzlePipeList)
+            {
+                nozzlechildList.gameObject.SetActive(false);
             }
         }
         #endregion
@@ -152,7 +171,7 @@ namespace ScreenShot
                         Color color = meshRenders[i].sharedMaterial.color;
 
                         _originMaterialArray[i] = meshRenders[i].sharedMaterial;
-                        meshRenders[i].sharedMaterial = NoShadowMaterial;
+                        //meshRenders[i].sharedMaterial = NoShadowMaterial;
                         meshRenders[i].sharedMaterial.color = color;
                     }
                     break;
@@ -170,7 +189,7 @@ namespace ScreenShot
         }
         #endregion
 
-        public void SetCameraPosition(EDirectionType type)
+        public void SetCameraPosition(EDirectionType type, Bounds bound)
         {
             Vector3 forward = Vector3.zero;
             Vector3 upwards = Vector3.zero;
@@ -208,8 +227,114 @@ namespace ScreenShot
             _cameraOriginPosition = ScreenShotCamera.transform.position;
             _cameraOriginRotation = ScreenShotCamera.transform.rotation;
 
-            ScreenShotCamera.transform.position = TargetPosition.position + forward * CameraDistanceOffset;
             ScreenShotCamera.transform.rotation = Quaternion.LookRotation(-forward, upwards);
+            ScreenShotCamera.transform.position = TargetPosition.position + forward * CameraDistanceOffset;
+            ScreenShotCamera.transform.position = TargetPosition.position + forward * 30;
+
+            if (bound != default)
+            {
+                float cameraDistanceOffset = Mathf.Max(bound.size.x, bound.size.y, bound.size.z)*1.5f;
+                ScreenShotCamera.orthographicSize = cameraDistanceOffset;
+               
+                switch (type)
+                {
+                    case EDirectionType.Right:
+                        ScreenShotCamera.orthographicSize = bound.size.x;
+                        cameraDistanceOffset = bound.size.x * 1.5f;
+                        ScreenShotCamera.transform.position = bound.center + Vector3.right * cameraDistanceOffset;
+                        break;
+                    case EDirectionType.Left:
+                        ScreenShotCamera.orthographicSize = bound.size.x;
+                        cameraDistanceOffset = bound.size.x * 1.5f;
+                        ScreenShotCamera.transform.position = bound.center + Vector3.left * cameraDistanceOffset;
+                        break;
+                    case EDirectionType.Top:
+                        ScreenShotCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
+                        ScreenShotCamera.orthographicSize = bound.size.y;
+                        cameraDistanceOffset = bound.size.y*1.5f;
+                        ScreenShotCamera.transform.position = bound.center + Vector3.up * cameraDistanceOffset;
+                        break;
+                    case EDirectionType.Bottom:
+                        ScreenShotCamera.transform.rotation = Quaternion.Euler(-90, 0, 0);
+                        ScreenShotCamera.orthographicSize = bound.size.y;
+                        cameraDistanceOffset = bound.size.y*1.2f;
+                        ScreenShotCamera.transform.position = bound.center + Vector3.down * cameraDistanceOffset;
+                        break;
+                    case EDirectionType.Front:
+                        ScreenShotCamera.transform.rotation = Quaternion.Euler(0, 0, 0);
+                        ScreenShotCamera.orthographicSize = bound.size.z;
+                        cameraDistanceOffset = bound.size.z * 1.5f;
+                        ScreenShotCamera.transform.position = bound.center - Vector3.forward * cameraDistanceOffset;
+                        break;
+                    case EDirectionType.Back:
+                        ScreenShotCamera.transform.rotation = Quaternion.Euler(0, 180, 0);
+                        ScreenShotCamera.orthographicSize = bound.size.z;
+                        cameraDistanceOffset = bound.size.z * 1.3f;
+                        ScreenShotCamera.transform.position = bound.center - Vector3.back * cameraDistanceOffset;
+                        break;
+                    default:
+                        break;
+                }
+                if (ScreenShotCamera.orthographicSize <= 1f) ScreenShotCamera.orthographicSize *= 2;
+                Debug.Log(type+" " + ScreenShotCamera.transform.rotation.x+ " " + ScreenShotCamera.transform.rotation.y+" " + ScreenShotCamera.transform.rotation.z + " "+ScreenShotCamera.transform.position + "  " + ScreenShotCamera.orthographicSize);
+                if (ActiveType == EActiveType.PipeEquipmentOnly || ActiveType == EActiveType.PipeEquipmentPairOffInAll || ActiveType == EActiveType.PipeEquipmentPairOnInAll)
+                {
+                   
+                }
+            }
+        }
+        public void SetCameraAllObjectPosition(EDirectionType type)
+        {
+            CameraDistanceOffset = 300;
+            switch (type)
+            {
+                case EDirectionType.Right:
+                    CameraDistanceOffset = 800;
+                    ScreenShotCamera.orthographicSize = CameraSizeOffset;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(0, 90, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position - Vector3.right * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                case EDirectionType.Left:
+                    CameraDistanceOffset = 800;
+                    ScreenShotCamera.orthographicSize = CameraSizeOffset;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(0, -90, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position - Vector3.left * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                case EDirectionType.Top:
+                    ScreenShotCamera.orthographicSize = 130;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position + Vector3.up * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                case EDirectionType.Bottom:
+                    ScreenShotCamera.orthographicSize = 130;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(-90, 0, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position + Vector3.down * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                case EDirectionType.Front:
+                    ScreenShotCamera.orthographicSize = CameraSizeOffset;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position - Vector3.forward * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                case EDirectionType.Back:
+                    ScreenShotCamera.orthographicSize = CameraSizeOffset;
+                    ScreenShotCamera.transform.rotation = Quaternion.Euler(0, 180, 0);
+                    ScreenShotCamera.transform.position = TargetPosition.transform.position - Vector3.back * CameraDistanceOffset;
+                    Debug.Log(ScreenShotCamera.transform.position + " 타겟 포지션 " + type);
+                    Debug.Log(ScreenShotCamera.transform.rotation.x + " " + ScreenShotCamera.transform.rotation.y + " " + ScreenShotCamera.transform.rotation.z);
+                    break;
+                default:
+                    break;
+            }
         }
         //bounds 사용
         public void SetCameraPositionOnObject(EDirectionType type, Bounds bound, Pipeline pipeobj)
@@ -250,7 +375,7 @@ namespace ScreenShot
             _cameraOriginPosition = ScreenShotCamera.transform.position;
             _cameraOriginRotation = ScreenShotCamera.transform.rotation;
 
-            float cameraDistanceOffset = Mathf.Max(bound.size.x, bound.size.y, bound.size.z);
+            float cameraDistanceOffset = 3*Mathf.Max(bound.size.x, bound.size.y, bound.size.z);
             ScreenShotCamera.orthographicSize = cameraDistanceOffset;
             ScreenShotCamera.transform.position = bound.center + forward * cameraDistanceOffset;
             ScreenShotCamera.transform.rotation = Quaternion.LookRotation(-forward, upwards);
@@ -305,11 +430,12 @@ namespace ScreenShot
                                 activeObjectList.Add(pipelineList[i].gameObject);
                             }
 
-                            SetActiveOnlyObject(activeObjectList, ActiveType);
+                            Bounds newBound = default;
+                            newBound = SetActiveOnlyObject(activeObjectList, ActiveType);
 
                             string fileName = $"{pipelineName}_{lineData.FromEquip.Replace("\"", "")}_{lineData.FromNozzle.Replace("\"", "")}_{lineData.ToEquip.Replace("\"", "")}_{lineData.ToNozzle.Replace("\"", "")}";
 
-                            yield return StartCoroutine(TakeScreenShotAll(fileName));
+                            yield return StartCoroutine(TakeScreenShotPipeEquipmentPair(fileName, pipelineName, newBound));
                         }
                         else
                         {
@@ -323,6 +449,70 @@ namespace ScreenShot
             SetActiveAllObject();
         }
         #endregion
+        public IEnumerator TakeScreenShotsNewDataPipeline(List<Transform> nozzlePipeList)
+        {
+            SetScreenShotMode(ScreenShotMode);
+            SetCameraSettings(Color.white, CameraClearFlags.SolidColor);
+
+            foreach (Transform nozzlechildList in nozzlePipeList)
+            {
+                Bounds newBound1 = default;
+                Vector3 newBound1Center = Vector3.zero;
+                Vector3 newBound1Size = Vector3.zero;
+                int newBound1Count = 0;
+
+                Bounds newBound2 = default;
+                Vector3 newBound2Center = Vector3.zero;
+                Vector3 newBound2Size = Vector3.zero;
+                int newBound2Count = 0;
+
+                if (ActiveType == EActiveType.PipeEquipmentOnly) nozzlechildList.gameObject.SetActive(true);
+                foreach (Transform child in nozzlechildList.GetComponentsInChildren<Transform>())//촬영 대상
+                {
+                    
+                    if (child.gameObject.tag == "PipeNozzle")
+                    {
+                        if (child.GetComponent<MeshRenderer>() != null)
+                        {
+                            Bounds newSubBound = child.GetComponent<MeshRenderer>().bounds;
+                            
+                            newBound1Center += newSubBound.center;
+                            newBound1Size += newSubBound.size;
+                            newBound1Count++;
+                        }
+                    }
+                    else if (child.gameObject.tag == "PipeNozzle2")
+                    {
+                        if (child.GetComponent<MeshRenderer>() != null)
+                        {
+                            Bounds newSubBound = child.GetComponent<MeshRenderer>().bounds;
+                          
+                            newBound2Center += newSubBound.center;
+                            newBound2Size += newSubBound.size;
+                            newBound2Count++;
+                        }
+                    }
+                }
+                if (newBound1Count >= 1)
+                {
+                    newBound1.center = newBound1Center / newBound1Count;
+                    newBound1.size = newBound1Size;
+                }
+                if (newBound2Count >= 1)
+                {
+                    newBound2.center = newBound2Center / newBound2Count;
+                    newBound2.size = newBound2Size;
+                }
+                string fileName = $"{nozzlechildList.name.Replace("\"", "")}";
+                Debug.Log(nozzlechildList.name);
+                yield return StartCoroutine(TakeScreenShotPipeEquipmentPair2(fileName, newBound1,newBound2));
+
+                if (ActiveType == EActiveType.PipeEquipmentOnly) nozzlechildList.gameObject.SetActive(false);
+            }
+            ResetCameraSettings();
+            SetScreenShotMode(EScreenShotType.Defalut);
+            SetActiveAllObject();
+        }
         public IEnumerator TakeScreenShotsAllObjectPipe(List<Pipeline> pipeList)
         {
             SetScreenShotMode(ScreenShotMode);
@@ -331,7 +521,7 @@ namespace ScreenShot
 
             foreach (Pipeline pipeobj in pipeList)
             {
-                if (ActiveType == EActiveType.PipeOff) pipeobj.gameObject.SetActive(true);
+                if (ActiveType == EActiveType.PipeOff || ActiveType == EActiveType.PipeOnly) pipeobj.gameObject.SetActive(true);
 
                 string fileName = $"{pipeobj.name}";
                 if (fileName.Contains("\"")) fileName = fileName.Replace("\"", "@");
@@ -340,7 +530,7 @@ namespace ScreenShot
                 bound = GetPipeBound(pipeobj.gameObject, bound);
                 yield return StartCoroutine(TakeScreenShotAllOnObject(fileName,bound,pipeobj));
 
-                if (ActiveType == EActiveType.PipeOff) pipeobj.gameObject.SetActive(false);
+                if (ActiveType == EActiveType.PipeOnly) pipeobj.gameObject.SetActive(false);
             }
             ResetCameraSettings();
             SetScreenShotMode(EScreenShotType.Defalut);
@@ -364,12 +554,49 @@ namespace ScreenShot
         // 모든 방향(6면) 촬영
         IEnumerator TakeScreenShotAll(string fileName)
         {
+            SetScreenShotMode(ScreenShotMode);
+            SetCameraSettings(Color.white, CameraClearFlags.SolidColor);
+
             for (int i = 0; i < _directionAllTypes.Length; i++)
-            {
+            { 
                 string path = $"{_folderPath}/{fileName}_{_directionAllTypes[i].ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
-                SetCameraPosition(_directionAllTypes[i]);
+                SetCameraAllObjectPosition(_directionAllTypes[i]);
                 yield return new WaitForEndOfFrame();
                 CaptureScreenAndSave(path);
+            }
+
+            ResetCameraSettings();
+            SetScreenShotMode(EScreenShotType.Defalut);
+        }
+        //장비 - 파이프 촬영
+        IEnumerator TakeScreenShotPipeEquipmentPair(string fileName, string obj, Bounds bound)
+        {
+            for (int i = 0; i < _directionAllTypes.Length; i++)
+            {
+                if (!Directory.Exists($"{_folderPath}/{obj}")) Directory.CreateDirectory($"{_folderPath}/{obj}");
+                string path = $"{_folderPath}/{obj}/{fileName}_{_directionAllTypes[i].ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
+                SetCameraPosition(_directionAllTypes[i],bound);
+                yield return new WaitForEndOfFrame();
+                CaptureScreenAndSave(path);
+            }
+        }
+        IEnumerator TakeScreenShotPipeEquipmentPair2(string fileName, Bounds bound1,Bounds bound2)
+        {
+            for(int k = 0; k < 2; k++)
+            {
+                string subname = k == 0 ? "first" : "second";
+                if (k == 1 && bound2 == default) break;
+
+                for (int i = 0; i < _directionAllTypes.Length; i++)
+                {
+                    if (!Directory.Exists($"{_folderPath}/{fileName}")) Directory.CreateDirectory($"{_folderPath}/{fileName}");
+                    string path = $"{_folderPath}/{fileName}/{subname}_{_directionAllTypes[i].ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
+
+                    if(k==0 && bound1 != default) SetCameraPosition(_directionAllTypes[i], bound1);
+                    else if(k==1 && bound2 != default) SetCameraPosition(_directionAllTypes[i], bound2);
+                    yield return new WaitForEndOfFrame();
+                    CaptureScreenAndSave(path);
+                }
             }
         }
         IEnumerator TakeScreenShotAllOnObject(string fileName, Bounds bound,Pipeline pipeobj)
@@ -381,6 +608,7 @@ namespace ScreenShot
 
                 string path = $"{subPath}/{fileName}_{_directionAllTypes[i].ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
                 SetCameraPositionOnObject(_directionAllTypes[i], bound, pipeobj);
+                if (ActiveType == EActiveType.PipeOff) pipeobj.gameObject.SetActive(false);
                 yield return new WaitForEndOfFrame();
                 CaptureScreenAndSave(path);
             }
@@ -396,7 +624,7 @@ namespace ScreenShot
             for (int i = 0; i < _directionAllTypes.Length; i++)
             {
                 string path = $"{_folderPath}/{fileName}_{_directionAllTypes[i].ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
-                SetCameraPosition(_directionAllTypes[i]);
+                SetCameraPosition(_directionAllTypes[i],default);
                 yield return new WaitForEndOfFrame();
                 CaptureScreenAndSave(path);
             }
@@ -410,7 +638,7 @@ namespace ScreenShot
         {
             string path = $"{_folderPath}/{fileName + type.ToString()}_{DateTime.Now.ToString("MMdd_HHmmss")}.{_extName}";
             SetCameraSettings(Color.white, CameraClearFlags.SolidColor);
-            SetCameraPosition(type);
+            SetCameraPosition(type,default);
             yield return new WaitForEndOfFrame();
             Task.Run(() => CaptureScreenAndSave(path));
             ResetCameraSettings();
@@ -445,7 +673,7 @@ namespace ScreenShot
 
             if (succeeded)
             {
-                Debug.Log($"Screen Shot Saved : {path}");
+                //Debug.Log($"Screen Shot Saved : {path}");
             }
         }
         #endregion
@@ -453,12 +681,16 @@ namespace ScreenShot
         {
             List<GameObject> activeObjList = new List<GameObject>();
 
+            bool hasFrom = false;
+            bool hasTo = false;
+
             foreach (GameObject obj in ObjectManager.Instance.ObjectList)
             {
                 if (obj.tag == "Equipment")
                 {
-                    if (obj.name == lineData.FromEquip)
+                    if (obj.name.Contains(lineData.FromEquip))
                     {
+                        hasFrom = true;
                         Equipment equipment = obj.GetComponent<Equipment>();
                         activeObjList.Add(equipment.gameObject);
 
@@ -466,15 +698,17 @@ namespace ScreenShot
                         {
                             foreach (Nozzle nozzle in equipment.NozzleList)
                             {
-                                if (nozzle.name.Contains(lineData.FromNozzle))
-                                {
+                                // 노즐 다 띄우기로 요청해서 주석처리
+                                //if (nozzle.name.Contains(lineData.FromNozzle))
+                                //{
                                     activeObjList.Add(nozzle.gameObject);
-                                }
+                                //}
                             }
                         }
                     }
-                    else if (obj.name == lineData.ToEquip)
+                    else if (obj.name.Contains(lineData.ToEquip))
                     {
+                        hasTo = true;
                         Equipment equipment = obj.GetComponent<Equipment>();
                         activeObjList.Add(equipment.gameObject);
 
@@ -482,34 +716,67 @@ namespace ScreenShot
                         {
                             foreach (Nozzle nozzle in equipment.NozzleList)
                             {
-                                if (nozzle.name.Contains(lineData.ToNozzle))
-                                {
+                                //if (nozzle.name.Contains(lineData.ToNozzle))
+                                //{
                                     activeObjList.Add(nozzle.gameObject);
-                                }
+                                //}
                             }
                         }
                     }
                 }
             }
-            return activeObjList;
+            if (hasTo && hasFrom)
+            {
+                return activeObjList;
+            }
+            else
+            {
+                activeObjList.Clear();
+                return activeObjList;
+            }
+
+
         }
 
-        private void SetActiveOnlyObject(List<GameObject> activeObjectList, EActiveType activeType)
+        private Bounds SetActiveOnlyObject(List<GameObject> activeObjectList, EActiveType activeType)
         {
+            Bounds bound = default;
+            Vector3 boundSize = Vector3.zero;
+            Vector3 boundPos = Vector3.zero;
+            int subBoundCount = 0;
+            int subPipeCount = 0;
+
             if (activeObjectList.Count <= 0)
             {
-                return;
+                return bound;
             }
 
             foreach (var item in ObjectManager.Instance.ObjectList)
             {
-                item.SetActive(false);
+                if (activeType == EActiveType.PipeEquipmentOnly) item.SetActive(false);
+                else item.SetActive(true);
             }
 
             foreach (var item in activeObjectList)
             {
                 string tag = item.tag;
-
+                
+                if (tag == "Pipeline" || tag == "Equipment" )
+                {
+                    if (tag == "Pipeline") subPipeCount++;
+                    Transform[] children = item.GetComponentsInChildren<Transform>();
+                    foreach (Transform child in children)
+                    {
+                        if (child.GetComponent<MeshRenderer>() != null)
+                        {
+                            Bounds newBound = child.GetComponent<MeshRenderer>().bounds;
+                            bound.Encapsulate(newBound);
+                            boundPos += newBound.center;
+                            if (tag == "Pipeline") boundSize += newBound.size;
+                            subBoundCount++;
+                        }
+                    }
+                }
                 switch (activeType)
                 {
                     case EActiveType.EquipmentOnly:
@@ -525,14 +792,32 @@ namespace ScreenShot
                             item.SetActive(true);
                         }
                         break;
-
+                    case EActiveType.PipeEquipmentOnly:
+                        if (tag == "Equipment" || tag == "Pipeline" || tag == "Nozzle")
+                        {
+                            item.SetActive(true);
+                        }
+                        break;
+                    case EActiveType.PipeEquipmentPairOnInAll:
+                        item.SetActive(true);
+                        break;
+                    case EActiveType.PipeEquipmentPairOffInAll:
+                        if (tag == "Pipeline")
+                        {
+                            item.SetActive(false);
+                        }
+                        break;
                     default:
                         item.SetActive(true);
                         break;
                 }
+                
             }
+            bound.size = boundSize / subPipeCount;
+            bound.center = boundPos / subBoundCount;
+            return bound;
         }
-
+       
         private void SetActiveAllObject()
         {
             foreach (GameObject obj in ObjectManager.Instance.ObjectList)
@@ -542,7 +827,7 @@ namespace ScreenShot
         }
         private void SetActiveFalsePipe(EActiveType activeType)
         {
-            if(activeType == EActiveType.AllObjectPipeOff || activeType == EActiveType.PipeOff)
+            if(activeType == EActiveType.AllObjectPipeOff || activeType == EActiveType.PipeOff || activeType == EActiveType.PipeOnly)
             {
                 foreach (Pipeline obj in ObjectManager.Instance.PipelineList)
                 {
@@ -550,6 +835,23 @@ namespace ScreenShot
                 }
             }
             
+        }
+        public void AllObjectCenter()
+        {
+            Transform[] children = TargetRootObject.GetComponentsInChildren<Transform>();
+            Vector3 center = Vector3.zero;
+            int subBoundCount = 0;
+            foreach (Transform child in children)
+            {
+                if (child.GetComponent<MeshRenderer>() != null)
+                {
+                    Bounds newBound = child.GetComponent<MeshRenderer>().bounds;
+                    center += newBound.center;
+                    subBoundCount++;
+                }
+            }
+            center = center / subBoundCount;
+            Debug.Log(center);
         }
     }
 }
