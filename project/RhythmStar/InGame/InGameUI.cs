@@ -204,11 +204,11 @@ public class InGameUI : MonoBehaviour
         GameManager.Instance.Rank = "";
         int totalNote = GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount + GameManager.Instance.GoodCount + GameManager.Instance.MissCount;
 
-        if (GameManager.Instance.PerfectCount * 100 / totalNote >= 99 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = "S";
-        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = "A";
-        else if((GameManager.Instance.PerfectCount * 100 / totalNote >= 40 
-            && GameManager.Instance.GreatCount * 100 / totalNote >= 30 && GameManager.Instance.MissCount <= 15)) GameManager.Instance.Rank = "B";
-        else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 40) GameManager.Instance.Rank = "C";
+        if (GameManager.Instance.PerfectCount * 100 / totalNote >= 90 && GameManager.Instance.MissCount == 0) GameManager.Instance.Rank = "S";
+        else if(GameManager.Instance.PerfectCount * 100 / totalNote >= 70 && GameManager.Instance.MissCount <= 3) GameManager.Instance.Rank = "A";
+        else if((GameManager.Instance.PerfectCount+ GameManager.Instance.GreatCount) * 100 / totalNote >= 55 
+            && GameManager.Instance.MissCount <= 15) GameManager.Instance.Rank = "B";
+        else if((GameManager.Instance.PerfectCount + GameManager.Instance.GreatCount) * 100 / totalNote >= 30) GameManager.Instance.Rank = "C";
         else GameManager.Instance.Rank = "D";
 
         if(GameManager.Instance.MissCount == 0 &&(GameManager.Instance.Rank == "C" || GameManager.Instance.Rank == "D") ) GameManager.Instance.Rank = "B";//올콤
