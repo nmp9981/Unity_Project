@@ -7,9 +7,8 @@ using System;
 public class NoteSpawn : MonoBehaviour
 {
     ObjectFulling _objectPulling;
-    FileInfo _songFile;
-    StreamReader _reader;
-    string filePath;
+    TextAsset _songFile;
+    StringReader stringReader;
     string noteInfo;
 
     public int bpm;
@@ -53,16 +52,11 @@ public class NoteSpawn : MonoBehaviour
     }
     void FileLoad()
     {
-        filePath = $"C:\\Users\\tybna\\Songs\\{GameManager.Instance.MusicName}.txt";
-        _songFile = new FileInfo(filePath);
-        if (_songFile.Exists)
-        {
-            _reader = new StreamReader(filePath);
-            noteInfo = _reader.ReadToEnd();
-            noteInfoLen = noteInfo.Length;
-            noteIndex = 0;
-        }
-        
+        _songFile = Resources.Load($"{GameManager.Instance.MusicName}") as TextAsset;
+        stringReader = new StringReader(_songFile.text);
+        noteInfo = stringReader.ReadLine();
+        noteInfoLen = noteInfo.Length;
+        noteIndex = 0;
     }
     void FlowTime()
     {
