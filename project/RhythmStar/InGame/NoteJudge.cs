@@ -217,82 +217,179 @@ public class NoteJudge : MonoBehaviour
     #region 버튼 클릭(빌드)
     public void PressButton1()
     {
-        Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
-        RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-
-        clickEffect[0].Play();
-        if (hit.collider != null)
+        if (!GameManager.Instance.IsLongNote1)
         {
-            if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
-            {
-                float diffDistance = 0;
-                if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                {
-                    diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                }
-                else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+            Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
 
-                JudgeScoreAndEffect(diffDistance, 0);
-                hit.collider.gameObject.SetActive(false);
-                GameManager.Instance.ComboCount += 1;
-                if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
-                GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                SoundManager._sound.PlaySfx(0);
+            clickEffect[0].Play();
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 0);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(0);
+                }
             }
         }
     }
     public void PressButton2()
     {
-        Vector2 startPoint = new Vector2(judgeKey2.transform.position.x, judgeKey2.transform.position.y) - new Vector2(0, 2.5f * judgeKey2.transform.localScale.y);
-        RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-        clickEffect[1].Play();
-
-        if (hit.collider != null)
+        if (!GameManager.Instance.IsLongNote2)
         {
-            if (hit.collider.gameObject.CompareTag("Green"))
-            {
-                float diffDistance = 0;
-                if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                {
-                    diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                }
-                else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+            Vector2 startPoint = new Vector2(judgeKey2.transform.position.x, judgeKey2.transform.position.y) - new Vector2(0, 2.5f * judgeKey2.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+            clickEffect[1].Play();
 
-                JudgeScoreAndEffect(diffDistance, 1);
-                hit.collider.gameObject.SetActive(false);
-                GameManager.Instance.ComboCount += 1;
-                if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
-                GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                SoundManager._sound.PlaySfx(1);
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Green"))
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 1);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(1);
+                }
             }
         }
     }
     public void PressButton3()
     {
-        Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
-        RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-        clickEffect[2].Play();
-
-        if (hit.collider != null)
+        if (!GameManager.Instance.IsLongNote3)
         {
-            if (hit.collider.gameObject.CompareTag("Blue"))
-            {
-                float diffDistance = 0;
-                if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
-                {
-                    diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
-                }
-                else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+            Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+            clickEffect[2].Play();
 
-                JudgeScoreAndEffect(diffDistance, 2);
-                hit.collider.gameObject.SetActive(false);
-                GameManager.Instance.ComboCount += 1;
-                if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
-                GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
-                SoundManager._sound.PlaySfx(2);
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Blue"))
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 2);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(2);
+                }
             }
         }
     }
+    public void PressLongButton1()
+    {
+        if (GameManager.Instance.IsLongNote1)
+        {
+            Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+            clickEffect[2].Play();
+
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Blue"))
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 2);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(2);
+                }
+            }
+        }
+    }
+    public void PressLongButton2()
+    {
+        if (GameManager.Instance.IsLongNote2)
+        {
+            Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+            clickEffect[2].Play();
+
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Blue"))
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 2);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(2);
+                }
+            }
+        }
+    }
+    public void PressLongButton3()
+    {
+        if (GameManager.Instance.IsLongNote3)
+        {
+            Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+            RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+            clickEffect[2].Play();
+
+            if (hit.collider != null)
+            {
+                if (hit.collider.gameObject.CompareTag("Blue"))
+                {
+                    float diffDistance = 0;
+                    if (hit.collider.gameObject.transform.localScale.y >= GameManager.Instance.LongNoteStandardScale)
+                    {
+                        diffDistance = Mathf.Abs(0.1f + hit.collider.gameObject.transform.position.y - hit.collider.gameObject.transform.localScale.y - judgeKey1.transform.position.y);
+                    }
+                    else diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                    JudgeScoreAndEffect(diffDistance, 2);
+                    hit.collider.gameObject.SetActive(false);
+                    GameManager.Instance.ComboCount += 1;
+                    if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                    GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                    SoundManager._sound.PlaySfx(2);
+                }
+            }
+        }
+    }
+
     #endregion
     void JudgeScoreAndEffect(float diff, int key)
     {
