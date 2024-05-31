@@ -7,6 +7,12 @@ using System;
 public class NoteSpawn : MonoBehaviour
 {
     ObjectFulling _objectPulling;
+    /*
+    FileInfo _songFile;
+    StreamReader _reader;
+    string filePath;
+    string noteInfo;
+    */
     TextAsset _songFile;
     StringReader stringReader;
     string noteInfo;
