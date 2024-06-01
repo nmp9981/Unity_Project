@@ -12,8 +12,8 @@ public class StartUI : MonoBehaviour
 
     private void Start()
     {
-        bgmSlider.value = GameManager.Instance.BGMVolume;
-        sfxSlider.value = GameManager.Instance.SFXVolume;
+        bgmSlider.value = PlayerPrefs.GetFloat("BGMVolume");
+        sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume");
     }
     private void Update()
     {
@@ -34,6 +34,8 @@ public class StartUI : MonoBehaviour
     }
     public void CloseSetting()
     {
+        PlayerPrefs.SetFloat("BGMVolume", GameManager.Instance.BGMVolume);
+        PlayerPrefs.SetFloat("SFXVolume", GameManager.Instance.SFXVolume);
         settingUI.SetActive(false);
     }
     public void GameExit()
