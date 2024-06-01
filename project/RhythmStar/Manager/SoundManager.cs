@@ -46,6 +46,8 @@ public class SoundManager : MonoBehaviour
     void Update()
     {
         if (GameManager.Instance.IsGameOver) _audioBgmSource.Stop();
+        _audioBgmSource.volume = GameManager.Instance.BGMVolume;
+        _audioSfxSource.volume = GameManager.Instance.SFXVolume;
     }
     public void PlayBGM(int musicNum)
     {
