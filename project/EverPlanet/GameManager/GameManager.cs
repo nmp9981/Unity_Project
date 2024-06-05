@@ -32,9 +32,13 @@ public class GameManager : MonoBehaviour
     
     #region 데이터
     float _playerMoveSpeed = 4.0f;//기본 이속
+    float _playerJumpSpeed = 4.0f;//기본 점프력
+    int _maxJumpCount = 2;//최대 점프 횟수
+    
     bool _playerHit = true;//플레이어 피격 여부
     long _playerAttack = 2;//플레이어 공격력
-    
+    float _playerAttackSpeed = 4.0f;//플레이어 공격 속도
+
     string _playerJob;
     int _playerLV;
     int _playerHP;
@@ -45,8 +49,12 @@ public class GameManager : MonoBehaviour
     float _sfxVolume = 1.0f;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
+    public float PlayerJumpSpeed { get { return _playerJumpSpeed; } set { _playerJumpSpeed = value; } }
+    public int MaxJumpCount{ get { return _maxJumpCount; } set { _maxJumpCount = value; } }
+    
     public bool PlayerHit { get { return _playerHit; } set { _playerHit = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
+    public float PlayerAttackSpeed { get { return _playerAttackSpeed; } set { _playerAttackSpeed = value; } }
 
     public string PlayerJob { get { return _playerJob; } set { _playerJob = value; } }
     public int PlayerLV { get { return _playerLV; } set { _playerLV = value; } }
