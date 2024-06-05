@@ -1,11 +1,12 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using TMPro;
 using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
-using static TreeEditor.TreeEditorHelper;
+using UnityEngine.EventSystems;
 
 public class NoteJudge : MonoBehaviour
 {
@@ -213,6 +214,169 @@ public class NoteJudge : MonoBehaviour
                 }
             }
         }
+        #region 버튼 클릭(빌드)
+#if Unity_Android
+        //1번
+        if (GameManager.Instance.IsLongNote1)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key1Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+
+                clickEffect[0].Play();
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 0);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(0);
+                    }
+                }
+            }
+        }
+        if (!GameManager.Instance.IsLongNote1)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key1Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+
+                clickEffect[0].Play();
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Red") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey1.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 0);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(0);
+                    }
+                }
+            }
+        }
+        //2번
+        if (!GameManager.Instance.IsLongNote2)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key2Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey2.transform.position.x, judgeKey2.transform.position.y) - new Vector2(0, 2.5f * judgeKey2.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+                clickEffect[1].Play();
+
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Green") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 1);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(1);
+                    }
+                }
+            }
+        }
+        if (GameManager.Instance.IsLongNote2)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key2Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey2.transform.position.x, judgeKey2.transform.position.y) - new Vector2(0, 2.5f * judgeKey2.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+                clickEffect[1].Play();
+
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Green") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey2.transform.position.y);
+                        JudgeScoreAndEffect(diffDistance, 1);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(1);
+                    }
+                }
+            }
+        }
+
+        //3번
+        if (!GameManager.Instance.IsLongNote3)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key3Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+                clickEffect[2].Play();
+
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Blue") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.General)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey3.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 2);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(2);
+                    }
+                }
+            }
+        }
+        if (GameManager.Instance.IsLongNote3)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                if (EventSystem.current.currentSelectedGameObject.name != "Key3Jugde") return;
+
+                Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
+                RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+                clickEffect[2].Play();
+
+                if (hit.collider != null)
+                {
+                    if (hit.collider.gameObject.CompareTag("Blue") && hit.collider.gameObject.GetComponent<NoteFuction>().noteType == NoteType.Long)
+                    {
+                        float diffDistance = Mathf.Abs(hit.collider.gameObject.transform.position.y - judgeKey3.transform.position.y);
+
+                        JudgeScoreAndEffect(diffDistance, 2);
+                        hit.collider.gameObject.SetActive(false);
+                        GameManager.Instance.ComboCount += 1;
+                        if (GameManager.Instance.ComboCount > GameManager.Instance.MaxCombo) GameManager.Instance.MaxCombo = GameManager.Instance.ComboCount;
+                        GameManager.Instance.Score += (10 * GameManager.Instance.ComboBonus);
+                        SoundManager._sound.PlaySfx(2);
+                    }
+                }
+            }
+        }
+#endif
+        #endregion
     }
     #region 버튼 클릭(빌드)
     public void PressButton1()
@@ -221,7 +385,7 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey1.transform.position.x, judgeKey1.transform.position.y) - new Vector2(0, 2.5f * judgeKey1.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
-
+            Debug.DrawRay(startPoint, Vector2.up,Color.red, maxDistance);
             clickEffect[0].Play();
             if (hit.collider != null)
             {
@@ -308,6 +472,7 @@ public class NoteJudge : MonoBehaviour
         {
             Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
+           
             clickEffect[2].Play();
 
             if (hit.collider != null)
@@ -338,7 +503,7 @@ public class NoteJudge : MonoBehaviour
             Vector2 startPoint = new Vector2(judgeKey3.transform.position.x, judgeKey3.transform.position.y) - new Vector2(0, 2.5f * judgeKey3.transform.localScale.y);
             RaycastHit2D hit = Physics2D.Raycast(startPoint, Vector2.up, maxDistance);
             clickEffect[2].Play();
-
+            Debug.DrawRay(startPoint, Vector2.up, Color.red, maxDistance);
             if (hit.collider != null)
             {
                 if (hit.collider.gameObject.CompareTag("Blue"))
