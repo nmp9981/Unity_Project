@@ -4,14 +4,22 @@ using UnityEngine;
 
 public class DragFunction : MonoBehaviour
 {
-    [SerializeField] GameObject player;
+    GameObject player;
+    GameObject target;
     float moveDist;//표창 이동거리
+    Vector3 moveVec;
 
-    void Start()
+    void Awake()
+    {
+        player = GameObject.Find("Body05");
+        target = GameObject.Find("DragTarget");
+    }
+    private void OnEnable()
     {
         moveDist = 0f;
+        moveVec = (target.transform.position - player.transform.position).normalized;
+        moveVec.y = 0f;
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -19,10 +27,12 @@ public class DragFunction : MonoBehaviour
     }
     void DragMove()
     {
-        Vector3 moveVec = (Camera.main.transform.position - player.transform.position).normalized;
         gameObject.transform.position += moveVec * GameManager.Instance.PlayerAttackSpeed * Time.deltaTime;
         moveDist += moveVec.sqrMagnitude;
 
-        if (moveDist > 100f) gameObject.SetActive(false);
+        if (moveDist > 1000f)
+        {
+            gameObject.SetActive(false);
+        }
     }
 }
