@@ -10,7 +10,9 @@ public class PlayerMove : MonoBehaviour
     Rigidbody rigid = null;
 
     float distance;
+    public Vector3 moveVec;
     [SerializeField] LayerMask layerMask = 0;
+    [SerializeField] Animator anim;
 
     void Awake()
     {
@@ -27,12 +29,43 @@ public class PlayerMove : MonoBehaviour
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        Vector3 moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
 
         if(hAxis!=0 || vAxis != 0)
         {
             transform.position += moveVec * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;//좌표 이동
             transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(moveVec), Time.deltaTime *rotateSpeed);//캐릭터가 바라보는 방향으로 회전
+        }
+        MoveAnimation(hAxis,vAxis);
+    }
+    void MoveAnimation(float hAxis, float vAxis)
+    {
+        if(hAxis == 0 && vAxis == 0)//정지
+        {
+            anim.SetBool("Front", false);
+            anim.SetBool("Back", false);
+            anim.SetBool("Right", false);
+            anim.SetBool("Left", false);
+        }
+        if (hAxis > 0)//오른쪽
+        {
+            anim.SetBool("Right", true);
+            anim.SetBool("Left", false);
+        }
+        if (hAxis < 0)//왼쪽
+        {
+            anim.SetBool("Left", true);
+            anim.SetBool("Right", false);
+        }
+        if (vAxis > 0)//뒤
+        {
+            anim.SetBool("Front", true);
+            anim.SetBool("Back", false);
+        }
+        if (vAxis > 0)//앞
+        {
+            anim.SetBool("Front", false);
+            anim.SetBool("Back", true);
         }
     }
     void TryJump()
