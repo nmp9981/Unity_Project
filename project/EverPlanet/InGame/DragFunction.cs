@@ -19,8 +19,9 @@ public class DragFunction : MonoBehaviour
         moveDist = 0f;
         moveVec = (target.transform.position - player.transform.position).normalized;
         moveVec.y = 0f;
+
+        gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), 90);
     }
-    // Update is called once per frame
     void Update()
     {
         DragMove();
@@ -30,9 +31,17 @@ public class DragFunction : MonoBehaviour
         gameObject.transform.position += moveVec * GameManager.Instance.PlayerAttackSpeed * Time.deltaTime;
         moveDist += moveVec.sqrMagnitude;
 
-        if (moveDist > 1000f)
+        if (moveDist > 900f)
         {
             gameObject.SetActive(false);
         }
+    }
+    //표창 y축 회전 정도
+    float DotAngle()
+    {
+        float dot = -moveVec.x;
+        float cosTheta = dot / moveVec.magnitude;
+        float theta = -Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+        return theta;
     }
 }
