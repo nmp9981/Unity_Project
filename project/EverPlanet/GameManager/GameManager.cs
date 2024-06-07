@@ -37,7 +37,8 @@ public class GameManager : MonoBehaviour
     
     bool _playerHit = true;//플레이어 피격 여부
     long _playerAttack = 2;//플레이어 공격력
-    float _playerAttackSpeed = 4.0f;//플레이어 공격 속도
+    float _playerDragSpeed = 5.0f;//표창 날아가는 속도
+    float _playerAttackSpeed = 0.25f;//플레이어 공격 속도
 
     string _playerJob;
     int _playerLV;
@@ -54,6 +55,7 @@ public class GameManager : MonoBehaviour
     
     public bool PlayerHit { get { return _playerHit; } set { _playerHit = value; } }
     public long PlayerAttack { get { return _playerAttack; } set { _playerAttack = value; } }
+    public float PlayerDragSpeed { get { return _playerDragSpeed; } set { _playerDragSpeed = value; } }
     public float PlayerAttackSpeed { get { return _playerAttackSpeed; } set { _playerAttackSpeed = value; } }
 
     public string PlayerJob { get { return _playerJob; } set { _playerJob = value; } }
