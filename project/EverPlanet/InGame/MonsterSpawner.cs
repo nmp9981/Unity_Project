@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MonsterSpawner : MonoBehaviour
 {
-    int mobCount;
+    public int mobCount;
     ObjectFulling objectfulling;
     void Awake()
     {
