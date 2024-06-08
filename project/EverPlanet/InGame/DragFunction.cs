@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class DragFunction : MonoBehaviour
@@ -10,6 +11,7 @@ public class DragFunction : MonoBehaviour
     float moveDist;//표창 이동거리
     Vector3 moveVec;
 
+    [SerializeField] TextMeshProUGUI DamegeText;
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
@@ -46,13 +48,21 @@ public class DragFunction : MonoBehaviour
         float theta = -Mathf.Acos(cosTheta) * 180 / Mathf.PI;
         return theta;
     }
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)//피격
     {
         if(collision.gameObject.tag == "Monster")//몬스터 공격
         {
+            StartCoroutine(ShowDamage(collision.gameObject));
             gameObject.SetActive(false);
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= GameManager.Instance.PlayerAttack;
-            monsterSpawner.mobCount--;
         }
+    }
+    //데미지 보여주기
+    IEnumerator ShowDamage(GameObject gm)
+    {
+        DamegeText.transform.position = Camera.main.WorldToScreenPoint(gm.transform.position + new Vector3(0, 1f, 0));
+        DamegeText.text = GameManager.Instance.PlayerAttack.ToString();
+        yield return new WaitForSeconds(0.1f);
+        DamegeText.text = "";
     }
 }
