@@ -51,7 +51,7 @@ public class DragFunction : MonoBehaviour
         if(collision.gameObject.tag == "Monster")//몬스터 공격
         {
             gameObject.SetActive(false);
-            collision.gameObject.SetActive(false);
+            collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= GameManager.Instance.PlayerAttack;
             monsterSpawner.mobCount--;
         }
     }
