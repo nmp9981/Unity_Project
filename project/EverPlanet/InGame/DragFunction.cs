@@ -118,17 +118,7 @@ public class DragFunction : MonoBehaviour
     {
         if(collision.gameObject.tag == "Monster")//몬스터 공격
         {
-            DamegeText.transform.position = Camera.main.WorldToScreenPoint(collision.gameObject.transform.position + new Vector3(0, 1f, 0));
-            DamegeText.text = GameManager.Instance.PlayerAttack.ToString();
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= GameManager.Instance.PlayerAttack;
-            StartCoroutine(ShowDamage());
         }
-    }
-    //데미지 보여주기
-    IEnumerator ShowDamage()
-    {
-        yield return new WaitForSeconds(0.3f);
-        DamegeText.text = "";
-        gameObject.SetActive(false);
     }
 }
