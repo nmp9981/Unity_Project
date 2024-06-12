@@ -37,7 +37,7 @@ public class DragFunction : MonoBehaviour
             moveVec = (monsterTarget.transform.position - player.transform.position).normalized;
         }
         
-        gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), 90);
+        gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), DotZAngle());
     }
     void Update()
     {
@@ -102,6 +102,15 @@ public class DragFunction : MonoBehaviour
         float dot = -moveVec.x;
         float cosTheta = dot / moveVec.magnitude;
         float theta = -Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+        return theta;
+    }
+    //표창 z축 회전 각도
+    float DotZAngle()
+    {
+        if (monsterTarget == null) return 90;
+        float dot = moveVec.y;
+        float cosTheta = dot / moveVec.magnitude;
+        float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
         return theta;
     }
     //피격
