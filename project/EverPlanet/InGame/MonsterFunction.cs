@@ -46,7 +46,7 @@ public class MonsterFunction : MonoBehaviour
         {
             monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
-            Invoke("DieMonster", 0.25f);
+            Invoke("DieMonster", 0.35f);
         }
     }
     void DieMonster()
