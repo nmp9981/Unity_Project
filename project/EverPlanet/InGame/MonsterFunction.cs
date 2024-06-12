@@ -41,6 +41,7 @@ public class MonsterFunction : MonoBehaviour
         if (monsterHP <= 0)
         {
             monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
+            MonsterSpawner.spawnMonster.Remove(this.gameObject);
             gameObject.SetActive(false);
         }
     }
