@@ -46,8 +46,12 @@ public class MonsterFunction : MonoBehaviour
         {
             monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
-            gameObject.SetActive(false);
+            Invoke("DieMonster", 0.25f);
         }
+    }
+    void DieMonster()
+    {
+        gameObject.SetActive(false);
     }
     private void OnCollisionEnter(Collision collision)
     {
