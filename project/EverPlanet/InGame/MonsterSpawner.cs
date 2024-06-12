@@ -9,10 +9,13 @@ public class MonsterSpawner : MonoBehaviour
 
     float curTime = 0;
     float coolTime = 8.0f;
+
+    static public List<GameObject> spawnMonster = new List<GameObject>();
     void Awake()
     {
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         mobCount = 0;
+        curTime = 7.0f;
         GameManager.Instance.MaxMonsterCount = 18;
     }
     private void Update()
@@ -35,7 +38,8 @@ public class MonsterSpawner : MonoBehaviour
             if (mobCount >= GameManager.Instance.MaxMonsterCount) yield break;
             int monsterNumber = Random.Range(4, 6);
             GameObject gm = objectfulling.MakeObj(monsterNumber);
-            gm.transform.position = new Vector3(Random.Range(-9, 9), -1f, Random.Range(-9, 9));
+            gm.transform.position = new Vector3(Random.Range(-9, 9), 1f, Random.Range(-9, 9));
+            spawnMonster.Add(gm);
             mobCount++;
         }
     }
