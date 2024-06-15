@@ -48,10 +48,10 @@ public class MonsterFunction : MonoBehaviour
         if (monsterHP <= 0)
         {
             monsterDieCount += 1;
-            monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
-            if (monsterDieCount == 1)
+            if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
             }
             Invoke("DieMonster", 0.35f);
