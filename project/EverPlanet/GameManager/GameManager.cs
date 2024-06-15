@@ -43,8 +43,11 @@ public class GameManager : MonoBehaviour
     string _playerJob;
     int _playerLV;
     int _playerHP;
+    int _playerMaxHP;
     int _playerMP;
-    int _playerExp;
+    int _playerMaxMP;
+    long _playerExp;
+    long _playerReqExp;
 
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
@@ -63,8 +66,11 @@ public class GameManager : MonoBehaviour
     public string PlayerJob { get { return _playerJob; } set { _playerJob = value; } }
     public int PlayerLV { get { return _playerLV; } set { _playerLV = value; } }
     public int PlayerHP { get { return _playerHP; } set { _playerHP = value; } }
+    public int PlayerMaxHP { get { return _playerMaxHP; }set { _playerMaxHP = value; } }
     public int PlayerMP { get { return _playerMP; } set { _playerMP = value; } }
-    public int PlayerEXP { get { return _playerExp; } set { _playerExp = value; } }
+    public int PlayerMaxMP { get { return _playerMaxMP; } set { _playerMaxMP = value; } }
+    public long PlayerEXP { get { return _playerExp; } set { _playerExp = value; } }
+    public long PlayerReqExp { get { return _playerReqExp; } set { _playerReqExp = value; } }
 
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
 
