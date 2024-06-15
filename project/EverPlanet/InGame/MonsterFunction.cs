@@ -10,6 +10,7 @@ public class MonsterFunction : MonoBehaviour
     public string name;
     public long monsterFullHP;
     public long monsterHP;
+    public long monsterExp;
 
     [SerializeField] Image monsterHPBarBack;
     [SerializeField] Image monsterHPBar;
@@ -51,6 +52,7 @@ public class MonsterFunction : MonoBehaviour
     }
     void DieMonster()
     {
+        GameManager.Instance.PlayerEXP += monsterExp;
         gameObject.SetActive(false);
     }
     private void OnCollisionEnter(Collision collision)
