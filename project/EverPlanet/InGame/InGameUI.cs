@@ -6,22 +6,30 @@ using UnityEngine.UI;
 
 public class InGameUI : MonoBehaviour
 {
+    [SerializeField] TextMeshProUGUI playerLVText;
+    [SerializeField] TextMeshProUGUI playerHPText;
+    [SerializeField] TextMeshProUGUI playerMPText;
     [SerializeField] TextMeshProUGUI playerExpText;
-    [SerializeField] Image playerExpFill;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
+    [SerializeField] Image playerHPFill;
+    [SerializeField] Image playerMPFill;
+    [SerializeField] Image playerExpFill;
+ 
     void Update()
     {
         ShowPlayerUI();
     }
     void ShowPlayerUI()
     {
-        playerExpText.text = GameManager.Instance.PlayerEXP.ToString();
-        playerExpFill.fillAmount = (float)GameManager.Instance.PlayerEXP / (float)2000;
+        playerLVText.text = $"Lv. {GameManager.Instance.PlayerLV}";
+
+        playerHPText.text = $"HP. {GameManager.Instance.PlayerHP} / {GameManager.Instance.PlayerMaxHP}";
+        playerHPFill.fillAmount = (float)GameManager.Instance.PlayerHP / (float)GameManager.Instance.PlayerMaxHP;
+
+        playerMPText.text = $"MP. {GameManager.Instance.PlayerMP} / {GameManager.Instance.PlayerMaxMP}";
+        playerMPFill.fillAmount = (float)GameManager.Instance.PlayerMP / (float)GameManager.Instance.PlayerMaxMP;
+
+        playerExpText.text = "EXP. "+GameManager.Instance.PlayerEXP.ToString()+" / "+GameManager.Instance.PlayerReqExp.ToString();
+        playerExpFill.fillAmount = (float)GameManager.Instance.PlayerEXP / (float) GameManager.Instance.PlayerReqExp;
     }
 }
