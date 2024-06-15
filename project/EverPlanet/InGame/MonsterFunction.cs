@@ -11,7 +11,8 @@ public class MonsterFunction : MonoBehaviour
     public long monsterFullHP;
     public long monsterHP;
     public long monsterExp;
-
+    int monsterDieCount;
+    
     [SerializeField] Image monsterHPBarBack;
     [SerializeField] Image monsterHPBar;
     [SerializeField] TextMeshProUGUI monsterInfo;
@@ -23,6 +24,7 @@ public class MonsterFunction : MonoBehaviour
     private void OnEnable()
     {
         monsterHP = monsterFullHP;
+        monsterDieCount = 0;
         foreach (var damage in hitDamage) damage.text = "";
     }
     void Update()
@@ -45,14 +47,18 @@ public class MonsterFunction : MonoBehaviour
     {
         if (monsterHP <= 0)
         {
+            monsterDieCount += 1;
             monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
+            if (monsterDieCount == 1)
+            {
+                GameManager.Instance.PlayerEXP += monsterExp;
+            }
             Invoke("DieMonster", 0.35f);
         }
     }
     void DieMonster()
     {
-        GameManager.Instance.PlayerEXP += monsterExp;
         gameObject.SetActive(false);
     }
     private void OnCollisionEnter(Collision collision)
