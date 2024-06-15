@@ -12,6 +12,7 @@ public class PlayerSetting : MonoBehaviour
 
     void Update()
     {
+        HPMPManager();
         LevelUP();
     }
     void PlayerInfoInit(int lv)
@@ -34,5 +35,12 @@ public class PlayerSetting : MonoBehaviour
             GameManager.Instance.PlayerLV += 1;
             PlayerInfoInit(GameManager.Instance.PlayerLV);
         }
+    }
+    void HPMPManager()
+    {
+        GameManager.Instance.PlayerHP = Mathf.Max(GameManager.Instance.PlayerHP, 0);
+        GameManager.Instance.PlayerHP = Mathf.Min(GameManager.Instance.PlayerHP, GameManager.Instance.PlayerMaxHP);
+        GameManager.Instance.PlayerMP = Mathf.Max(GameManager.Instance.PlayerMP, 0);
+        GameManager.Instance.PlayerMP = Mathf.Min(GameManager.Instance.PlayerMP, GameManager.Instance.PlayerMaxMP);
     }
 }
