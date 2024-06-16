@@ -12,11 +12,16 @@ public class MonsterFunction : MonoBehaviour
     public long monsterHP;
     public long monsterExp;
     int monsterDieCount;
-    
+
+    float curMoveAmount;
+    float goalMoveAmount;
+    Vector3 moveAmount;
+
     [SerializeField] Image monsterHPBarBack;
     [SerializeField] Image monsterHPBar;
     [SerializeField] TextMeshProUGUI monsterInfo;
     [SerializeField] TextMeshProUGUI[] hitDamage;
+
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
@@ -25,11 +30,14 @@ public class MonsterFunction : MonoBehaviour
     {
         monsterHP = monsterFullHP;
         monsterDieCount = 0;
+        goalMoveAmount = 0;
+        MonsterMove();
         foreach (var damage in hitDamage) damage.text = "";
     }
     void Update()
     {
         MonsterUISetting();
+        MonsterMove();
         isDie();
     }
     void MonsterUISetting()
@@ -81,5 +89,20 @@ public class MonsterFunction : MonoBehaviour
         damage.text = GameManager.Instance.PlayerAttack.ToString();
         yield return new WaitForSeconds(0.5f);
         damage.text = "";
+    }
+    //몬스터 이동
+    void MonsterMove()
+    {
+        if(curMoveAmount >= goalMoveAmount)
+        {
+            curMoveAmount = 0;
+            float moveX = Random.Range(-1, 2);
+            float moveZ = Random.Range(-1, 2);
+            goalMoveAmount = Random.Range(2, 11);
+            float speed = Random.Range(3, 5);
+            moveAmount = new Vector3(moveX, 0, moveZ) * speed;
+        }
+        this.transform.position += moveAmount * Time.deltaTime;
+        curMoveAmount += moveAmount.magnitude;
     }
 }
