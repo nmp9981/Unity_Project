@@ -36,11 +36,17 @@ public class PlayerAttack : MonoBehaviour
     IEnumerator ShotDrag()
     {
         anim.SetBool("BasicAttack", true);
+        GameManager.Instance.PlayerMP -= 11;
+       
         for (int i = 0; i < 3; i++)
         {
             GameObject gm = objectfulling.MakeObj(2);
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
-            yield return new WaitForSeconds(0.2f);
+
+            if(gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
+            else gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
+
+            yield return new WaitForSeconds(0.1f);
         }
         anim.SetBool("BasicAttack", false);
     }
