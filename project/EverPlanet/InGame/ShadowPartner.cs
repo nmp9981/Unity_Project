@@ -7,6 +7,7 @@ public class ShadowPartner : MonoBehaviour
 {
     [SerializeField] GameObject player;
     [SerializeField] GameObject playerShadow;
+   
     void Update()
     {
         ShadowPartnerSkill();
@@ -16,12 +17,14 @@ public class ShadowPartner : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             playerShadow.SetActive(true);
-            
             foreach (MeshRenderer mesh in playerShadow.GetComponentsInChildren<MeshRenderer>())
             {
                 mesh.material.color = Color.black;
             }
-            
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            playerShadow.SetActive(false);
         }
     }
 }
