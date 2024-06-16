@@ -30,7 +30,7 @@ public class MonsterFunction : MonoBehaviour
     {
         monsterHP = monsterFullHP;
         monsterDieCount = 0;
-        goalMoveAmount = 0;
+        goalMoveAmount = -1;
         MonsterMove();
         foreach (var damage in hitDamage) damage.text = "";
     }
@@ -98,8 +98,10 @@ public class MonsterFunction : MonoBehaviour
             curMoveAmount = 0;
             float moveX = Random.Range(-1, 2);
             float moveZ = Random.Range(-1, 2);
-            goalMoveAmount = Random.Range(2, 11);
-            float speed = Random.Range(3, 5);
+
+            if (moveX == 0 && moveZ == 0) moveX = 1;//예외 처리
+            goalMoveAmount = Random.Range(3, 18);
+            float speed = Random.Range(3, 7);
             moveAmount = new Vector3(moveX, 0, moveZ) * speed;
         }
         this.transform.position += moveAmount * Time.deltaTime;
