@@ -37,7 +37,7 @@ public class AvengerSkill : MonoBehaviour
     }
     void SizeUp()
     {
-        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(12,8,12), 2*Time.deltaTime);
+        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(15,8,15), 3*Time.deltaTime);
     }
    
     //표창 이동
@@ -58,7 +58,12 @@ public class AvengerSkill : MonoBehaviour
         if (collision.gameObject.tag == "Monster")//몬스터 공격
         {
             hitCount++;
-            long attackDamage = GameManager.Instance.PlayerAttack*180/100;
+            /*
+            long attackMaxDamage = GameManager.Instance.PlayerAttack*180/100;
+            long attackMinDamage = attackMaxDamage * GameManager.Instance.Workmanship;
+            long attackDamage = Random.Range(attackMinDamage, attackMaxDamage);
+            */
+            long attackDamage = GameManager.Instance.PlayerAttack * 180 / 100;
             if (isShadow) attackDamage = GameManager.Instance.PlayerAttack / 2;
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
