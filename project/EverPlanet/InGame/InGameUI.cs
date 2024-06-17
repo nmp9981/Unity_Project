@@ -29,7 +29,8 @@ public class InGameUI : MonoBehaviour
         playerMPText.text = $"MP. {GameManager.Instance.PlayerMP} / {GameManager.Instance.PlayerMaxMP}";
         playerMPFill.fillAmount = (float)GameManager.Instance.PlayerMP / (float)GameManager.Instance.PlayerMaxMP;
 
-        playerExpText.text = "EXP. "+GameManager.Instance.PlayerEXP.ToString()+" / "+GameManager.Instance.PlayerReqExp.ToString();
+        float expRate = (float)GameManager.Instance.PlayerEXP*100 / (float)GameManager.Instance.PlayerReqExp;
+        playerExpText.text = string.Format("Exp. {0} / {1} [{2:N2}%]", GameManager.Instance.PlayerEXP, GameManager.Instance.PlayerReqExp, expRate);
         playerExpFill.fillAmount = (float)GameManager.Instance.PlayerEXP / (float) GameManager.Instance.PlayerReqExp;
     }
 }
