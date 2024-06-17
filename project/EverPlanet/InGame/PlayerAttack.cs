@@ -66,10 +66,10 @@ public class PlayerAttack : MonoBehaviour
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
             gm.transform.rotation = Quaternion.Euler(90, 0, 0);
 
-            if (gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
-            else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
+            if (gameObject.name == "Player") gm.GetComponent<AvengerSkill>().isShadow = false;//쉐파 여부에 따른 공격력
+            else gm.GetComponent<AvengerSkill>().isShadow = true;//쉐파 여부에 따른 공격력
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
         }
         anim.SetBool("BasicAttack", false);
     }
