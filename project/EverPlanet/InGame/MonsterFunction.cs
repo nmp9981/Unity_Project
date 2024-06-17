@@ -83,11 +83,22 @@ public class MonsterFunction : MonoBehaviour
                 }
             }
         }
+        if (collision.gameObject.tag == "Avenger")
+        {
+            for (int idx = 0; idx < hitDamage.Length; idx++)
+            {
+                if (hitDamage[idx].text == "")
+                {
+                    bool isShadow = collision.gameObject.GetComponent<AvengerSkill>().isShadow;
+                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow));
+                    return;
+                }
+            }
+        }
     }
     //데미지 보여주기
     IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow)
     {
-        //long attackDamage = GameManager.Instance.PlayerAttack * GameManager.Instance.ShadowAttack / 100;
         if (isShadow) damage.text = (GameManager.Instance.PlayerAttack/2).ToString();
         else damage.text = GameManager.Instance.PlayerAttack.ToString();
         yield return new WaitForSeconds(0.5f);
