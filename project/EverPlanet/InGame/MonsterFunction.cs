@@ -78,7 +78,7 @@ public class MonsterFunction : MonoBehaviour
                 if (hitDamage[idx].text == "")
                 {
                     bool isShadow = collision.gameObject.GetComponent<DragFunction>().isShadow;
-                    StartCoroutine(ShowDamage(hitDamage[idx],idx,isShadow));
+                    StartCoroutine(ShowDamage(hitDamage[idx],idx,isShadow,150));
                     return;
                 }
             }
@@ -90,17 +90,18 @@ public class MonsterFunction : MonoBehaviour
                 if (hitDamage[idx].text == "")
                 {
                     bool isShadow = collision.gameObject.GetComponent<AvengerSkill>().isShadow;
-                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow));
+                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow,180));
                     return;
                 }
             }
         }
     }
     //데미지 보여주기
-    IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow)
+    IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, long skillDamage)
     {
-        if (isShadow) damage.text = (GameManager.Instance.PlayerAttack/2).ToString();
-        else damage.text = GameManager.Instance.PlayerAttack.ToString();
+        long finalDamage = GameManager.Instance.PlayerAttack*skillDamage/100;
+        if (isShadow) damage.text = (finalDamage / 2).ToString();
+        else damage.text = finalDamage.ToString();
         yield return new WaitForSeconds(0.5f);
         damage.text = "";
     }
