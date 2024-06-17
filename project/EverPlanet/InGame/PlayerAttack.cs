@@ -28,6 +28,11 @@ public class PlayerAttack : MonoBehaviour
             StartCoroutine(ShotDrag());
             curTime = 0;
         }
+        if (Input.GetKeyDown(KeyCode.C) && curTime >= coolTime)
+        {
+            StartCoroutine(ShotAvenger());
+            curTime = 0;
+        }
     }
     void TimeFlow()
     {
@@ -44,7 +49,25 @@ public class PlayerAttack : MonoBehaviour
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
 
             if(gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
-            else gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
+            else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
+
+            yield return new WaitForSeconds(0.1f);
+        }
+        anim.SetBool("BasicAttack", false);
+    }
+    IEnumerator ShotAvenger()
+    {
+        anim.SetBool("BasicAttack", true);
+        GameManager.Instance.PlayerMP -= 30;
+
+        for (int i = 0; i < 1; i++)
+        {
+            GameObject gm = objectfulling.MakeObj(1);
+            gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
+            gm.transform.rotation = Quaternion.Euler(90, 0, 0);
+
+            if (gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
+            else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
 
             yield return new WaitForSeconds(0.1f);
         }
