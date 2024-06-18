@@ -16,6 +16,8 @@ public class AvengerSkill : MonoBehaviour
 
     public bool isShadow;
     public int hitCount;
+    public long attackDamage;
+
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
@@ -58,16 +60,17 @@ public class AvengerSkill : MonoBehaviour
         if (collision.gameObject.tag == "Monster")//몬스터 공격
         {
             hitCount++;
-            /*
-            long attackMaxDamage = GameManager.Instance.PlayerAttack*180/100;
-            long attackMinDamage = attackMaxDamage * GameManager.Instance.Workmanship;
-            long attackDamage = Random.Range(attackMinDamage, attackMaxDamage);
-            */
-            long attackDamage = GameManager.Instance.PlayerAttack * 180 / 100;
-            if (isShadow) attackDamage = GameManager.Instance.PlayerAttack / 2;
+            attackDamage = AttackDamage();
+            if (isShadow) attackDamage = attackDamage / 2;
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
             if (hitCount >= 6) gameObject.SetActive(false);
         }
+    }
+    public long AttackDamage()
+    {
+        long attackMaxDamage = GameManager.Instance.PlayerAttack * 180 / 100;
+        int attackRate = Random.Range(GameManager.Instance.Workmanship,100);
+        return attackMaxDamage * (long)attackRate / 100;
     }
 }
