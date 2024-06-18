@@ -15,7 +15,8 @@ public class DragFunction : MonoBehaviour
     const float distMax = 900;
 
     [SerializeField] TextMeshProUGUI DamegeText;
-    public long shadowAttack;
+    public bool isShadow;
+    public long attackDamage;
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
@@ -25,6 +26,7 @@ public class DragFunction : MonoBehaviour
     private void OnEnable()
     {
         NearMonster();
+
         moveDist = 0f;
 
         if (monsterTarget == null)
@@ -118,7 +120,8 @@ public class DragFunction : MonoBehaviour
     {
         if(collision.gameObject.tag == "Monster")//몬스터 공격
         {
-            long attackDamage = GameManager.Instance.PlayerAttack * GameManager.Instance.ShadowAttack/ 100;
+            attackDamage = AttackDamage();
+            if (isShadow) attackDamage = attackDamage / 2;
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
         }
     }
@@ -130,5 +133,11 @@ public class DragFunction : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
         DamegeText.text = "";
         gameObject.SetActive(false);
+    }
+    public long AttackDamage()
+    {
+        long attackMaxDamage = GameManager.Instance.PlayerAttack * 150 / 100;
+        int attackRate = Random.Range(GameManager.Instance.Workmanship, 100);
+        return attackMaxDamage * (long)attackRate / 100;
     }
 }
