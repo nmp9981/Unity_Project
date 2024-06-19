@@ -7,7 +7,8 @@ public class PlayerHeal : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        GameManager.Instance.HPPosionCount = 100;
+        GameManager.Instance.MPPosionCount = 100;
     }
 
     // Update is called once per frame
@@ -26,10 +27,12 @@ public class PlayerHeal : MonoBehaviour
     {
         int healHPAmount = 1000;
         GameManager.Instance.PlayerHP = Mathf.Min(GameManager.Instance.PlayerHP+ healHPAmount, GameManager.Instance.PlayerMaxHP);
+        GameManager.Instance.HPPosionCount -= 1;
     }
     void HealMP()
     {
         int healMPAmount = 300;
         GameManager.Instance.PlayerMP = Mathf.Min(GameManager.Instance.PlayerMP + healMPAmount, GameManager.Instance.PlayerMaxMP);
+        GameManager.Instance.MPPosionCount -= 1;
     }
 }
