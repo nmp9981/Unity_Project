@@ -25,6 +25,10 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI statHPText;
     [SerializeField] TextMeshProUGUI statMPText;
     [SerializeField] TextMeshProUGUI statEXPText;
+    [SerializeField] TextMeshProUGUI statAttackText;
+    [SerializeField] TextMeshProUGUI statDEXText;
+    [SerializeField] TextMeshProUGUI statLUKText;
+    [SerializeField] TextMeshProUGUI statACCText;
 
     void Update()
     {
@@ -64,5 +68,9 @@ public class InGameUI : MonoBehaviour
         statHPText.text = $"{GameManager.Instance.PlayerHP} / {GameManager.Instance.PlayerMaxHP}";
         statMPText.text = $"{GameManager.Instance.PlayerMP} / {GameManager.Instance.PlayerMaxMP}";
         statEXPText.text = $"{GameManager.Instance.PlayerEXP} [{GameManager.Instance.PlayerEXP*100/ GameManager.Instance.PlayerReqExp}%]";
+        statAttackText.text = $"{GameManager.Instance.PlayerAttack}";
+        statDEXText.text = $"{GameManager.Instance.PlayerDEX}";
+        statLUKText.text = $"{GameManager.Instance.PlayerLUK}";
+        statACCText.text = $"{GameManager.Instance.PlayerACC}";
     }
 }
