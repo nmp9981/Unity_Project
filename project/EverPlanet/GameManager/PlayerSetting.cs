@@ -27,10 +27,11 @@ public class PlayerSetting : MonoBehaviour
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
         GameManager.Instance.PlayerReqExp = lv*lv/2+10*lv;
-        
+
         GameManager.Instance.PlayerDEX = 15+ GameManager.Instance.PlayerLV;
         GameManager.Instance.PlayerLUK = 5+4*GameManager.Instance.PlayerLV;
         GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX*8+ GameManager.Instance.PlayerLUK*5)/10;
+        GameManager.Instance.PlayerAttack = 5* GameManager.Instance.PlayerLUK/2+ GameManager.Instance.PlayerDEX;
     }
 
     void LevelUP()
