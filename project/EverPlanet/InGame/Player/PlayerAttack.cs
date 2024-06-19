@@ -23,12 +23,12 @@ public class PlayerAttack : MonoBehaviour
     }
     void Attack()
     {
-        if (Input.GetKeyDown(KeyCode.X) && curTime >= coolTime)
+        if (Input.GetKeyDown(KeyCode.X) && curTime >= coolTime && GameManager.Instance.PlayerMP>=11)
         {
             StartCoroutine(ShotDrag());
             curTime = 0;
         }
-        if (Input.GetKeyDown(KeyCode.C) && curTime >= coolTime)
+        if (Input.GetKeyDown(KeyCode.C) && curTime >= coolTime && GameManager.Instance.PlayerMP >= 30)
         {
             StartCoroutine(ShotAvenger());
             curTime = 0;
