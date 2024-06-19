@@ -6,7 +6,8 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 30;
+        GameManager.Instance.PlayerLV = 70;
+        GameManager.Instance.PlayerJob = "Assassin";
         PlayerInfoInit(GameManager.Instance.PlayerLV);
     }
 
@@ -25,7 +26,7 @@ public class PlayerSetting : MonoBehaviour
 
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
-        GameManager.Instance.PlayerReqExp = lv*lv;
+        GameManager.Instance.PlayerReqExp = lv*lv/2+10*lv;
     }
 
     void LevelUP()
