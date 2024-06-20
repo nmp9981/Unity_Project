@@ -14,6 +14,7 @@ public class PlayerSetting : MonoBehaviour
 
     void Update()
     {
+        SetStat();
         HPMPManager();
         LevelUP();
     }
@@ -28,13 +29,12 @@ public class PlayerSetting : MonoBehaviour
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
         GameManager.Instance.PlayerReqExp = lv*lv/2+10*lv;
-
-        GameManager.Instance.PlayerDEX = 15+ GameManager.Instance.PlayerLV;
-        GameManager.Instance.PlayerLUK = 5+4*GameManager.Instance.PlayerLV;
-        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX*8+ GameManager.Instance.PlayerLUK*5)/10;
-        GameManager.Instance.PlayerAttack = 5* GameManager.Instance.PlayerLUK/2+ GameManager.Instance.PlayerDEX;
     }
-
+    void SetStat()
+    {
+        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10;
+        GameManager.Instance.PlayerAttack = 5 * GameManager.Instance.PlayerLUK / 2 + GameManager.Instance.PlayerDEX;
+    }
     void LevelUP()
     {
         if (GameManager.Instance.PlayerEXP >= GameManager.Instance.PlayerReqExp)
@@ -56,6 +56,7 @@ public class PlayerSetting : MonoBehaviour
         GameManager.Instance.PlayerDEX +=(GameManager.Instance.ApPoint/5);
         GameManager.Instance.ApPoint -= (GameManager.Instance.ApPoint / 5);
         GameManager.Instance.PlayerLUK += GameManager.Instance.ApPoint;
+        GameManager.Instance.ApPoint = 0;
     }
     public void UpDEX()
     {
