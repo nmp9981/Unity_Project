@@ -53,8 +53,9 @@ public class PlayerSetting : MonoBehaviour
     }
     public void AutoStatSetting()
     {
-        GameManager.Instance.PlayerDEX +=1;
-        GameManager.Instance.PlayerLUK +=4;
+        GameManager.Instance.PlayerDEX +=(GameManager.Instance.ApPoint/5);
+        GameManager.Instance.ApPoint -= (GameManager.Instance.ApPoint / 5);
+        GameManager.Instance.PlayerLUK += GameManager.Instance.ApPoint;
     }
     public void UpDEX()
     {
