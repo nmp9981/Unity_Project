@@ -7,6 +7,7 @@ public class PlayerSetting : MonoBehaviour
     void Awake()
     {
         GameManager.Instance.PlayerLV = 70;
+        GameManager.Instance.ApPoint = 0;
         GameManager.Instance.PlayerJob = "Assassin";
         PlayerInfoInit(GameManager.Instance.PlayerLV);
     }
@@ -40,6 +41,7 @@ public class PlayerSetting : MonoBehaviour
         {
             GameManager.Instance.PlayerLV += 1;
             PlayerInfoInit(GameManager.Instance.PlayerLV);
+            GameManager.Instance.ApPoint += 5;
         }
     }
     void HPMPManager()
@@ -48,5 +50,26 @@ public class PlayerSetting : MonoBehaviour
         GameManager.Instance.PlayerHP = Mathf.Min(GameManager.Instance.PlayerHP, GameManager.Instance.PlayerMaxHP);
         GameManager.Instance.PlayerMP = Mathf.Max(GameManager.Instance.PlayerMP, 0);
         GameManager.Instance.PlayerMP = Mathf.Min(GameManager.Instance.PlayerMP, GameManager.Instance.PlayerMaxMP);
+    }
+    public void AutoStatSetting()
+    {
+        GameManager.Instance.PlayerDEX +=1;
+        GameManager.Instance.PlayerLUK +=4;
+    }
+    public void UpDEX()
+    {
+        if (GameManager.Instance.ApPoint >= 1)
+        {
+            GameManager.Instance.PlayerDEX += 1;
+            GameManager.Instance.ApPoint -= 1;
+        }
+    }
+    public void UpLuk()
+    {
+        if (GameManager.Instance.ApPoint >= 1)
+        {
+            GameManager.Instance.PlayerLUK += 1;
+            GameManager.Instance.ApPoint -= 1;
+        }
     }
 }
