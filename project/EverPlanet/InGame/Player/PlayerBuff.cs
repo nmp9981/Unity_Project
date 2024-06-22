@@ -8,14 +8,24 @@ public class PlayerBuff : MonoBehaviour
 {
     [SerializeField] GameObject hasteImage;
     [SerializeField] TextMeshProUGUI hasteTimeText;
+    [SerializeField] GameObject attackBuffImage;
+    [SerializeField] TextMeshProUGUI attackBuffTimeText;
 
     float hasteFullTime;
     float hasteTime;
+    float attackbuffFullTime;
+    float attackBuffTime;
+
+    public bool attackBuffOn;
     private void Awake()
     {
         hasteImage.SetActive(false);
         hasteTime = 0f;
         hasteFullTime = 180f;
+
+        attackBuffTime = 0f;
+        attackbuffFullTime = 300f;
+        
     }
     void Update()
     {
@@ -23,7 +33,12 @@ public class PlayerBuff : MonoBehaviour
         {
             StartCoroutine(Haste());
         }
-        ShowBuffTime();
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            StartCoroutine(AttackBuff());
+        }
+        ShowHasteBuffTime();
+        ShowAttackBuffTime();
     }
     IEnumerator Haste()
     {
@@ -33,7 +48,14 @@ public class PlayerBuff : MonoBehaviour
         GameManager.Instance.PlayerJumpSpeed = 8f;
         yield break;
     }
-    void ShowBuffTime()
+    IEnumerator AttackBuff()
+    {
+        attackBuffImage.SetActive(true);
+        attackBuffTime = attackbuffFullTime;
+        attackBuffOn = true;
+        yield break;
+    }
+    void ShowHasteBuffTime()
     {
         if (hasteTime < 1)//원래대로
         {
@@ -45,5 +67,17 @@ public class PlayerBuff : MonoBehaviour
         }
         hasteTime -= Time.deltaTime;
         hasteTimeText.text = string.Format("{0:N0}", hasteTime);
+    }
+    void ShowAttackBuffTime()
+    {
+        if (attackBuffTime < 1)//원래대로
+        {
+            attackBuffTimeText.text = "";
+            attackBuffOn = false;
+            attackBuffImage.SetActive(false);
+            return;
+        }
+        attackBuffTime -= Time.deltaTime;
+        attackBuffTimeText.text = string.Format("{0:N0}", attackBuffTime);
     }
 }
