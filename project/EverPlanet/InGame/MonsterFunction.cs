@@ -13,6 +13,8 @@ public class MonsterFunction : MonoBehaviour
     public long monsterExp;
     int monsterDieCount;
 
+    public int monsterHitDamage;//피격 데미지
+
     float curMoveAmount;
     float goalMoveAmount;
     Vector3 moveAmount;
@@ -78,7 +80,7 @@ public class MonsterFunction : MonoBehaviour
                 if (hitDamage[idx].text == "")
                 {
                     bool isShadow = collision.gameObject.GetComponent<DragFunction>().isShadow;
-                    StartCoroutine(ShowDamage(hitDamage[idx],idx,isShadow,150));
+                    StartCoroutine(ShowDamage(hitDamage[idx],idx,isShadow,collision.gameObject));
                     return;
                 }
             }
@@ -90,18 +92,31 @@ public class MonsterFunction : MonoBehaviour
                 if (hitDamage[idx].text == "")
                 {
                     bool isShadow = collision.gameObject.GetComponent<AvengerSkill>().isShadow;
-                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow,180));
+                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow, collision.gameObject));
                     return;
                 }
             }
         }
     }
     //데미지 보여주기
-    IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, long skillDamage)
+    IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, GameObject gm)
     {
-        long finalDamage = GameManager.Instance.PlayerAttack*skillDamage/100;
-        if (isShadow) damage.text = (finalDamage / 2).ToString();
-        else damage.text = finalDamage.ToString();
+        long finalDamage = 0;
+        yield return new WaitForSeconds(0.05f);
+        if (gm.tag == "Weapon")
+        {
+            finalDamage = gm.GetComponent<DragFunction>().attackDamage;
+            if (gm.GetComponent<DragFunction>().isCritical) damage.color = Color.red;
+            else damage.color = new Color(219f/255f,132f/255f,0);
+        }
+        else if(gm.tag == "Avenger")
+        {
+            finalDamage = gm.GetComponent<AvengerSkill>().attackDamage;
+            if (gm.GetComponent<AvengerSkill>().isCritical) damage.color = Color.red;
+            else damage.color = new Color(219f / 255f, 132f / 255f, 0);
+        }
+        
+        damage.text = finalDamage.ToString();
         yield return new WaitForSeconds(0.5f);
         damage.text = "";
     }
