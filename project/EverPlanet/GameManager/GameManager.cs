@@ -36,10 +36,12 @@ public class GameManager : MonoBehaviour
     int _maxJumpCount = 2;//최대 점프 횟수
     
     bool _playerHit = true;//플레이어 피격 여부
-    long _playerAttack = 450;//플레이어 공격력
+    long _playerAttack;//플레이어 공격력
     float _playerDragSpeed = 12.0f;//표창 날아가는 속도
     float _playerAttackSpeed = 0.5f;//플레이어 공격 속도
     long _shadowAttack = 50;//그림자 공격력
+    int _criticalRate = 50;//크리티컬 확률
+    int _criticalDamage = 200;//크리티컬 데미지
 
     int _workmanship = 50;
 
@@ -60,6 +62,8 @@ public class GameManager : MonoBehaviour
 
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
+    int _apPoint;
+
     float _bgmVolume = 1.0f;
     float _sfxVolume = 1.0f;
 
@@ -72,6 +76,8 @@ public class GameManager : MonoBehaviour
     public float PlayerDragSpeed { get { return _playerDragSpeed; } set { _playerDragSpeed = value; } }
     public float PlayerAttackSpeed { get { return _playerAttackSpeed; } set { _playerAttackSpeed = value; } }
     public long ShadowAttack { get { return _shadowAttack; } set { _shadowAttack = value; } }
+    public int CriticalRate { get { return _criticalRate; } set { _criticalRate = value; } }
+    public int CriticalDamage { get { return _criticalDamage; } set { _criticalDamage = value; } }
 
     public int Workmanship { get { return _workmanship; } set { _workmanship = value; } }
 
@@ -91,6 +97,8 @@ public class GameManager : MonoBehaviour
     public int MPPosionCount { get { return _mpPosionCount; } set { _mpPosionCount = value; } }
 
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
+
+    public int ApPoint { get { return _apPoint; } set { _apPoint = value; } }
 
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
