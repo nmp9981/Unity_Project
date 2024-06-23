@@ -17,6 +17,8 @@ public class AvengerSkill : MonoBehaviour
     public bool isShadow;
     public int hitCount;
     public long attackDamage;
+    public float criticalNum;
+    public bool isCritical;
 
     void Awake()
     {
@@ -31,6 +33,10 @@ public class AvengerSkill : MonoBehaviour
 
         moveVec = (target.transform.position - player.transform.position).normalized;
         moveVec.y = 0f;
+
+        criticalNum = Random.Range(0, 100);
+        if (criticalNum >= GameManager.Instance.CriticalRate) isCritical = true;
+        else isCritical = false;
     }
     void Update()
     {
@@ -39,7 +45,7 @@ public class AvengerSkill : MonoBehaviour
     }
     void SizeUp()
     {
-        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(15,8,15), 3*Time.deltaTime);
+        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(18,8,18), 3*Time.deltaTime);
     }
    
     //표창 이동
@@ -71,6 +77,7 @@ public class AvengerSkill : MonoBehaviour
     {
         long attackMaxDamage = GameManager.Instance.PlayerAttack * 180 / 100;
         int attackRate = Random.Range(GameManager.Instance.Workmanship,100);
+        if (isCritical) attackMaxDamage = attackMaxDamage * GameManager.Instance.CriticalDamage / 100;//크리 데미지
         return attackMaxDamage * (long)attackRate / 100;
     }
 }
