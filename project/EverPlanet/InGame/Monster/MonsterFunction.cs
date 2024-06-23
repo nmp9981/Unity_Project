@@ -7,10 +7,12 @@ using UnityEngine.UI;
 public class MonsterFunction : MonoBehaviour
 {
     MonsterSpawner monsterSpawner;
+    ObjectFulling objectfulling;
     public string name;
     public long monsterFullHP;
     public long monsterHP;
     public long monsterExp;
+    public int monsterGetMeso;
     int monsterDieCount;
 
     public int monsterHitDamage;//피격 데미지
@@ -27,6 +29,7 @@ public class MonsterFunction : MonoBehaviour
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
+        objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
     }
     private void OnEnable()
     {
@@ -63,6 +66,13 @@ public class MonsterFunction : MonoBehaviour
             {
                 monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
+                int mobDrop = Random.Range(0, 100);
+                if (mobDrop < 60)//메소 드랍
+                {
+                    GameObject mesoObj = objectfulling.MakeObj(6);
+                    mesoObj.transform.position = gameObject.transform.position;
+                    mesoObj.GetComponent<MonsterDrop>().monsterMeso = monsterGetMeso;
+                }
             }
             Invoke("DieMonster", 0.35f);
         }
