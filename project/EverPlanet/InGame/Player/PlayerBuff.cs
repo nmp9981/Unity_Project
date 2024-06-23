@@ -16,7 +16,6 @@ public class PlayerBuff : MonoBehaviour
     float attackbuffFullTime;
     float attackBuffTime;
 
-    public bool attackBuffOn;
     private void Awake()
     {
         hasteImage.SetActive(false);
@@ -52,7 +51,7 @@ public class PlayerBuff : MonoBehaviour
     {
         attackBuffImage.SetActive(true);
         attackBuffTime = attackbuffFullTime;
-        attackBuffOn = true;
+        GameManager.Instance.IsAtaackBuffOn = true;
         yield break;
     }
     void ShowHasteBuffTime()
@@ -73,7 +72,7 @@ public class PlayerBuff : MonoBehaviour
         if (attackBuffTime < 1)//원래대로
         {
             attackBuffTimeText.text = "";
-            attackBuffOn = false;
+            GameManager.Instance.IsAtaackBuffOn = false;
             attackBuffImage.SetActive(false);
             return;
         }
