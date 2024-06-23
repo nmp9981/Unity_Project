@@ -17,6 +17,9 @@ public class DragFunction : MonoBehaviour
     [SerializeField] TextMeshProUGUI DamegeText;
     public bool isShadow;
     public long attackDamage;
+    public float criticalNum;
+    public bool isCritical;
+    
     void Awake()
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
@@ -40,6 +43,9 @@ public class DragFunction : MonoBehaviour
         }
         
         gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), DotZAngle());
+        criticalNum = Random.Range(0, 100);
+        if (criticalNum > GameManager.Instance.CriticalRate) isCritical = true;
+        else isCritical = false;
     }
     void Update()
     {
@@ -126,18 +132,20 @@ public class DragFunction : MonoBehaviour
         }
     }
     //데미지 보여주기
-    IEnumerator ShowDamage(GameObject collisionObject)
+    IEnumerator ShowDamage(GameObject gm)
     {
-        DamegeText.transform.position = Camera.main.WorldToScreenPoint(collisionObject.transform.position + new Vector3(0, 1f, 0));
-        DamegeText.text = GameManager.Instance.PlayerAttack.ToString();
+        DamegeText.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
+        DamegeText.text = gm.GetComponent<MonsterFunction>().monsterHitDamage.ToString();
         yield return new WaitForSeconds(0.3f);
         DamegeText.text = "";
         gameObject.SetActive(false);
     }
+    //공격 데미지
     public long AttackDamage()
     {
         long attackMaxDamage = GameManager.Instance.PlayerAttack * 150 / 100;
         int attackRate = Random.Range(GameManager.Instance.Workmanship, 100);
+        if (isCritical) attackMaxDamage = attackMaxDamage*GameManager.Instance.CriticalDamage/100;//크리 데미지
         return attackMaxDamage * (long)attackRate / 100;
     }
 }
