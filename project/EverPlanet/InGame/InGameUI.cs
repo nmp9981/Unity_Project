@@ -31,11 +31,16 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI statLUKText;
     [SerializeField] TextMeshProUGUI statACCText;
 
+    [Header("Item")]
+    [SerializeField] GameObject itemUI;
+    [SerializeField] TextMeshProUGUI playerMesoText;
+
     void Update()
     {
         ShowPlayerUI();
         ShowStatUI();
         StatUIInfo();
+        ItemUIUInfo();
     }
     void ShowPlayerUI()
     {
@@ -61,6 +66,11 @@ public class InGameUI : MonoBehaviour
             if (statUI.activeSelf) statUI.SetActive(false);
             else statUI.SetActive(true);
         }
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            if (itemUI.activeSelf) itemUI.SetActive(false);
+            else itemUI.SetActive(true);
+        }
     }
     void StatUIInfo()
     {
@@ -76,5 +86,9 @@ public class InGameUI : MonoBehaviour
         statDEXText.text = $"{GameManager.Instance.PlayerDEX}";
         statLUKText.text = $"{GameManager.Instance.PlayerLUK}";
         statACCText.text = $"{GameManager.Instance.PlayerACC}";
+    }
+    void ItemUIUInfo()
+    {
+        playerMesoText.text = string.Format("{0:#,0}", GameManager.Instance.PlayerMeso);
     }
 }
