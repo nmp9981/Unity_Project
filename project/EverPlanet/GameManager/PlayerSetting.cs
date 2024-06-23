@@ -6,10 +6,13 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 70;
+        GameManager.Instance.PlayerLV = 71;
         GameManager.Instance.ApPoint = 0;
         GameManager.Instance.PlayerJob = "Assassin";
+        GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
+        GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
         PlayerInfoInit(GameManager.Instance.PlayerLV);
+
     }
 
     void Update()
@@ -28,12 +31,13 @@ public class PlayerSetting : MonoBehaviour
 
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
-        GameManager.Instance.PlayerReqExp = lv*lv/2+10*lv;
+        GameManager.Instance.PlayerReqExp = lv*lv/3+10*lv;
     }
     void SetStat()
     {
         GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10;
-        GameManager.Instance.PlayerAttack = 5 * GameManager.Instance.PlayerLUK / 2 + GameManager.Instance.PlayerDEX;
+        long addAttack = GameManager.Instance.IsAtaackBuffOn ? 8 : 0;
+        GameManager.Instance.PlayerAttack = 5 * GameManager.Instance.PlayerLUK / 2 + GameManager.Instance.PlayerDEX+addAttack;
     }
     void LevelUP()
     {
