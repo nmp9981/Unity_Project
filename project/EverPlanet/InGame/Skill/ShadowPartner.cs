@@ -44,6 +44,7 @@ public class ShadowPartner : MonoBehaviour
         {
             shadowPartnerTimeText.text = "";
             shadowPartnerImage.SetActive(false);
+            playerShadow.SetActive(false);
             return;
         }
         shadowPartnerTime -= Time.deltaTime;
