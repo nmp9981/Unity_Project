@@ -24,7 +24,7 @@ public class PlayerBuff : MonoBehaviour
 
         attackBuffTime = 0f;
         attackbuffFullTime = 300f;
-        
+        GameManager.Instance.AttackUPCount = 100;
     }
     void Update()
     {
@@ -32,7 +32,7 @@ public class PlayerBuff : MonoBehaviour
         {
             StartCoroutine(Haste());
         }
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W) && GameManager.Instance.AttackUPCount>=1)
         {
             StartCoroutine(AttackBuff());
         }
@@ -50,6 +50,7 @@ public class PlayerBuff : MonoBehaviour
     IEnumerator AttackBuff()
     {
         attackBuffImage.SetActive(true);
+        GameManager.Instance.AttackUPCount -= 1;
         attackBuffTime = attackbuffFullTime;
         GameManager.Instance.IsAtaackBuffOn = true;
         yield break;
