@@ -17,6 +17,10 @@ public class InGameUI : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI curHPPosionCount;
     [SerializeField] TextMeshProUGUI curMPPosionCount;
+    [SerializeField] TextMeshProUGUI curAttackUPCount;
+
+    [Header("Message")]
+    [SerializeField] List<TextMeshProUGUI> messageList;
 
     [Header ("Stat")] 
     [SerializeField] GameObject statUI;
@@ -35,6 +39,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField] GameObject itemUI;
     [SerializeField] TextMeshProUGUI playerMesoText;
 
+   
     void Update()
     {
         ShowPlayerUI();
@@ -42,6 +47,7 @@ public class InGameUI : MonoBehaviour
         StatUIInfo();
         ItemUIUInfo();
     }
+    
     void ShowPlayerUI()
     {
         playerLVText.text = $"Lv. {GameManager.Instance.PlayerLV}";
@@ -58,6 +64,7 @@ public class InGameUI : MonoBehaviour
 
         curHPPosionCount.text = $"{GameManager.Instance.HPPosionCount}";
         curMPPosionCount.text = $"{GameManager.Instance.MPPosionCount}";
+        curAttackUPCount.text = $"{GameManager.Instance.AttackUPCount}";
     }
     void ShowStatUI()
     {
@@ -90,5 +97,23 @@ public class InGameUI : MonoBehaviour
     void ItemUIUInfo()
     {
         playerMesoText.text = string.Format("{0:#,0}", GameManager.Instance.PlayerMeso);
+    }
+    public void ShowGetText(string type, int amount)
+    {
+        for(int i = 0; i < messageList.Count; i++)
+        {
+            if (messageList[i].text == "")
+            {
+                StartCoroutine(ShowGetTextCor(type, amount, i));
+                return;
+            }
+        }
+        StartCoroutine(ShowGetTextCor(type, amount, 0));
+    }
+    IEnumerator ShowGetTextCor(string type, int amount, int idx)
+    {
+        messageList[idx].text = $"Get {type} +{amount}";
+        yield return new WaitForSeconds(0.75f);
+        messageList[idx].text = "";
     }
 }
