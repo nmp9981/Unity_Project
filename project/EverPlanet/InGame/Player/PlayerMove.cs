@@ -29,9 +29,10 @@ public class PlayerMove : MonoBehaviour
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        //moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        moveVec = this.gameObject.transform.right * hAxis + this.gameObject.transform.forward * vAxis;
 
-        if(hAxis!=0 || vAxis != 0)
+        if (hAxis!=0 || vAxis != 0)
         {
             transform.position += moveVec * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;//좌표 이동
             transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(moveVec), Time.deltaTime *rotateSpeed);//캐릭터가 바라보는 방향으로 회전
