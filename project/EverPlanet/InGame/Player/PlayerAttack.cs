@@ -10,6 +10,7 @@ public class PlayerAttack : MonoBehaviour
 
     float curTime = 0;
     float coolTime;
+    int[] mpCost = new int[4]{0,0,16,22}; 
     void Awake()
     {
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
@@ -23,9 +24,14 @@ public class PlayerAttack : MonoBehaviour
     }
     void Attack()
     {
-        if (Input.GetKeyDown(KeyCode.X) && curTime >= coolTime && GameManager.Instance.PlayerMP>=11)
+        if (Input.GetKeyDown(KeyCode.Z) && curTime >= coolTime && GameManager.Instance.PlayerMP >= mpCost[2])
         {
-            StartCoroutine(ShotDrag());
+            StartCoroutine(ShotDrag(2));
+            curTime = 0;
+        }
+        if (Input.GetKeyDown(KeyCode.X) && curTime >= coolTime && GameManager.Instance.PlayerMP >= mpCost[3])
+        {
+            StartCoroutine(ShotDrag(3));
             curTime = 0;
         }
         if (Input.GetKeyDown(KeyCode.C) && curTime >= coolTime && GameManager.Instance.PlayerMP >= 30)
@@ -38,12 +44,12 @@ public class PlayerAttack : MonoBehaviour
     {
         curTime += Time.deltaTime;
     }
-    IEnumerator ShotDrag()
+    IEnumerator ShotDrag(int throwCount)
     {
         anim.SetBool("BasicAttack", true);
-        GameManager.Instance.PlayerMP -= 11;
+        GameManager.Instance.PlayerMP -= mpCost[throwCount];
        
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < throwCount; i++)
         {
             GameObject gm = objectfulling.MakeObj(2);
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
