@@ -6,10 +6,13 @@ using UnityEngine;
 public class PlayerHit : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI hitDamageText;
+    [SerializeField] GameObject tombStone;
+   
     // Start is called before the first frame update
     void Awake()
     {
         hitDamageText.text = "";
+        tombStone.SetActive(false);
     }
 
     // Update is called once per frame
@@ -25,15 +28,27 @@ public class PlayerHit : MonoBehaviour
             int finalHit = Random.Range(hit * 90 / 100, hit * 110 / 100);
             GameManager.Instance.PlayerHP -= finalHit;
             StartCoroutine(ShowDamage(finalHit));
+
+            if(GameManager.Instance.PlayerHP <= 0)//캐릭터 사망
+            {
+                GameManager.Instance.IsCharacterDie = true;
+                tombStone.SetActive(true);
+            }
         }
     }
     //데미지 보여주기
     IEnumerator ShowDamage(int finalHit)
     {
         hitDamageText.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 2f, 0));
-        Debug.Log(finalHit);
         hitDamageText.text = finalHit.ToString();
         yield return new WaitForSeconds(0.3f);
         hitDamageText.text = "";
+    }
+    //부활
+    public void Resurrection()
+    {
+        GameManager.Instance.IsCharacterDie = false;
+        tombStone.SetActive(false);
+        this.gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;//마을로 이동
     }
 }
