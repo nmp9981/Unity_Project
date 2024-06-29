@@ -17,21 +17,24 @@ public class PlayerMove : MonoBehaviour
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
+        //gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;
     }
     void Update()
     {
-        Move();
-        TryJump();
-        CheckGround();
+        if (!GameManager.Instance.IsCharacterDie)
+        {
+            Move();
+            TryJump();
+            CheckGround();
+        }
     }
     private void Move()
     {
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
-        //moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
-        moveVec = this.gameObject.transform.right * hAxis + this.gameObject.transform.forward * vAxis;
-
+        moveVec = new Vector3(hAxis, 0, vAxis).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        
         if (hAxis!=0 || vAxis != 0)
         {
             transform.position += moveVec * GameManager.Instance.PlayerMoveSpeed * Time.deltaTime;//좌표 이동
@@ -75,6 +78,7 @@ public class PlayerMove : MonoBehaviour
         {
             if (curJumpCount < GameManager.Instance.MaxJumpCount)//점프 횟수 남음
             {
+                SoundManager._sound.PlaySfx(3);
                 curJumpCount++;
                 rigid.velocity = Vector3.up * GameManager.Instance.PlayerJumpSpeed;
             }
