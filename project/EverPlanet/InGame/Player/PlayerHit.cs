@@ -7,12 +7,14 @@ public class PlayerHit : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI hitDamageText;
     [SerializeField] GameObject tombStone;
+    [SerializeField] GameObject tombStoneMessage;
    
     // Start is called before the first frame update
     void Awake()
     {
         hitDamageText.text = "";
         tombStone.SetActive(false);
+        tombStoneMessage.SetActive(false);
     }
 
     // Update is called once per frame
@@ -33,6 +35,7 @@ public class PlayerHit : MonoBehaviour
             {
                 GameManager.Instance.IsCharacterDie = true;
                 tombStone.SetActive(true);
+                tombStoneMessage.SetActive(true);
             }
         }
     }
@@ -48,7 +51,9 @@ public class PlayerHit : MonoBehaviour
     public void Resurrection()
     {
         GameManager.Instance.IsCharacterDie = false;
-        tombStone.SetActive(false);
+        GameManager.Instance.PlayerHP = GameManager.Instance.PlayerMaxHP / 2;
         this.gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;//마을로 이동
+        tombStone.SetActive(false);
+        tombStoneMessage.SetActive(false);
     }
 }
