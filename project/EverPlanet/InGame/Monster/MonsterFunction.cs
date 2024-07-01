@@ -8,6 +8,9 @@ public class MonsterFunction : MonoBehaviour
 {
     MonsterSpawner monsterSpawner;
     ObjectFulling objectfulling;
+    InGameUI inGameUI;
+
+    public int mobID;
     public string name;
     public long monsterFullHP;
     public long monsterHP;
@@ -30,6 +33,7 @@ public class MonsterFunction : MonoBehaviour
     {
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+        inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
     }
     private void OnEnable()
     {
@@ -64,15 +68,19 @@ public class MonsterFunction : MonoBehaviour
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
-                monsterSpawner.GetComponent<MonsterSpawner>().mobCount -= 1;
+                int mapNumber = MonsterInMapNum();
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mapNumber] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
+                
                 int mobDrop = Random.Range(0, 100);
                 if (mobDrop < 60)//메소 드랍
                 {
-                    GameObject mesoObj = objectfulling.MakeObj(6);
+                    SoundManager._sound.PlaySfx(1);
+                    GameObject mesoObj = objectfulling.MakeObj(8);
                     mesoObj.transform.position = gameObject.transform.position;
                     mesoObj.GetComponent<MonsterDrop>().monsterMeso = monsterGetMeso;
                 }
+                inGameUI.ShowGetText("Exp", (int)monsterExp);
             }
             Invoke("DieMonster", 0.35f);
         }
@@ -146,5 +154,11 @@ public class MonsterFunction : MonoBehaviour
         }
         this.transform.position += moveAmount * Time.deltaTime;
         curMoveAmount += moveAmount.magnitude;
+    }
+    //몬스터 아이디에 따른 맵 번호
+    int MonsterInMapNum()
+    {
+        if (mobID <= 1) return 0;
+        return 1;
     }
 }
