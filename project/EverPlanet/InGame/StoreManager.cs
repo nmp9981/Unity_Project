@@ -18,6 +18,8 @@ public class StoreManager : MonoBehaviour
     [SerializeField] List<Button> itemList;
     [SerializeField] TMP_InputField howMany;
 
+    [SerializeField] GameObject mesoInsufficientImage;
+
     string itemText;
     string priceText;
     string manyText;
@@ -25,6 +27,7 @@ public class StoreManager : MonoBehaviour
     private void Awake()
     {
         BuyInfoUI.SetActive(false);
+        mesoInsufficientImage.SetActive(false);
     }
     void Update()
     {
@@ -63,7 +66,10 @@ public class StoreManager : MonoBehaviour
     {
         int price = int.Parse(priceText.Substring(0, priceText.Length - 5));
         int many = int.Parse(manyText);
-        GameManager.Instance.PlayerMeso -= (price * many);
+
+        int totalMeso = price * many;
+        if (GameManager.Instance.PlayerMeso >= totalMeso) GameManager.Instance.PlayerMeso -= totalMeso;
+        else mesoInsufficientImage.SetActive(true);
 
         switch (itemText)
         {
@@ -88,6 +94,10 @@ public class StoreManager : MonoBehaviour
     public void BuyInfoClose()
     {
         BuyInfoUI.SetActive(false);
+    }
+    public void MesoInsufficientClose()
+    {
+        mesoInsufficientImage.SetActive(false);
     }
     void SelectItem()
     {
