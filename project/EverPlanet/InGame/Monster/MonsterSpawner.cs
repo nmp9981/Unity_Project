@@ -18,7 +18,8 @@ public class MonsterSpawner : MonoBehaviour
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         mobCount = new int[2] { 0, 0 };
         curTime = 7.0f;
-        GameManager.Instance.MaxMonsterCount = 30;
+        GameManager.Instance.MaxMonsterCount = 31;
+        InitSpawn();
     }
     private void Update()
     {
