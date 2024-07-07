@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class PlayerAttack : MonoBehaviour
 {
     ObjectFulling objectfulling;
+    GameObject target;
     [SerializeField] Transform startDragPosition;
     [SerializeField] Animator anim;
 
@@ -14,6 +16,7 @@ public class PlayerAttack : MonoBehaviour
     void Awake()
     {
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+        target = GameObject.Find("DragTarget");
         coolTime = GameManager.Instance.PlayerAttackSpeed;
     }
 
@@ -24,6 +27,7 @@ public class PlayerAttack : MonoBehaviour
     }
     void Attack()
     {
+        if (GameManager.Instance.IsCharacterDie) return;
         if (Input.GetKeyDown(KeyCode.Z) && curTime >= coolTime && GameManager.Instance.PlayerMP >= mpCost[2])
         {
             StartCoroutine(ShotDrag(2));
@@ -48,11 +52,12 @@ public class PlayerAttack : MonoBehaviour
     {
         anim.SetBool("BasicAttack", true);
         GameManager.Instance.PlayerMP -= mpCost[throwCount];
-       
+        SoundManager._sound.PlaySfx(4);
         for (int i = 0; i < throwCount; i++)
         {
             GameObject gm = objectfulling.MakeObj(2);
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
+
 
             if(gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
             else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
@@ -65,7 +70,7 @@ public class PlayerAttack : MonoBehaviour
     {
         anim.SetBool("BasicAttack", true);
         GameManager.Instance.PlayerMP -= 30;
-
+        SoundManager._sound.PlaySfx(4);
         for (int i = 0; i < 1; i++)
         {
             GameObject gm = objectfulling.MakeObj(1);
@@ -78,5 +83,40 @@ public class PlayerAttack : MonoBehaviour
             yield return new WaitForSeconds(0.05f);
         }
         anim.SetBool("BasicAttack", false);
+    }
+    //가장 가까운 몹 찾기
+    public Transform NearMonster()
+    {
+        Transform monsterTarget = null;
+        const float distMax = 900;
+        float betweenDist = distMax;//캐릭터와 몬스터 간 거리
+        Vector3 seeVector = (target.transform.position - gameObject.transform.position).normalized;//시야 벡터
+
+        foreach (var gm in MonsterSpawner.spawnMonster)
+        {
+            float newDist = (gm.transform.position - this.gameObject.transform.position).sqrMagnitude;
+            Vector3 monsterVector = (gm.transform.position - gameObject.transform.position).normalized;//캐릭터와 몬스터간 방향
+
+            if (!MonsterInPlayerSee(seeVector, monsterVector)) continue;//캐릭터 시야내에 없음
+            if (betweenDist > newDist)
+            {
+                betweenDist = newDist;
+                monsterTarget = gm.transform;
+            }
+        }
+        return monsterTarget;
+    }
+    //캐릭터 시야와 몬스터 간 각도
+    public bool MonsterInPlayerSee(Vector3 seeVector, Vector3 monsterVector)
+    {
+        seeVector.y = 0;
+        monsterVector.y = 0;
+
+        float dot = seeVector.x * monsterVector.x + seeVector.z * monsterVector.z;
+        float cosTheta = dot / (seeVector.magnitude * monsterVector.magnitude);
+        float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+
+        if (Mathf.Abs(theta) <= 60f) return true;
+        return false;
     }
 }
