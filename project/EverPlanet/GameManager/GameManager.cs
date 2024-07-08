@@ -56,16 +56,22 @@ public class GameManager : MonoBehaviour
     int _playerDex;
     int _playerLuk;
     int _playerAcc;
+    int _playerMeso = 0;
 
     int _hpPosionCount;
     int _mpPosionCount;
+    int _attackUPCount;
 
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
     int _apPoint;
 
+    bool _isAttackBuffOn;
+
     float _bgmVolume = 1.0f;
     float _sfxVolume = 1.0f;
+
+    bool _isCharacterDie = false;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerJumpSpeed { get { return _playerJumpSpeed; } set { _playerJumpSpeed = value; } }
@@ -92,15 +98,21 @@ public class GameManager : MonoBehaviour
     public int PlayerDEX { get { return _playerDex; } set { _playerDex = value; } }
     public int PlayerLUK { get { return _playerLuk; } set { _playerLuk = value; } }
     public int PlayerACC { get { return _playerAcc; } set { _playerAcc = value; } }
+    public int PlayerMeso { get { return _playerMeso; } set { _playerMeso = value; } }
 
     public int HPPosionCount { get { return _hpPosionCount; } set { _hpPosionCount = value; } }
     public int MPPosionCount { get { return _mpPosionCount; } set { _mpPosionCount = value; } }
+    public int AttackUPCount { get { return _attackUPCount; } set { _attackUPCount = value; } }
 
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
 
     public int ApPoint { get { return _apPoint; } set { _apPoint = value; } }
 
+
+    public bool IsAtaackBuffOn { get { return _isAttackBuffOn; } set { _isAttackBuffOn = value; } }
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
+
+    public bool IsCharacterDie { get { return _isCharacterDie; }set { _isCharacterDie = value; } }
     #endregion
 }
