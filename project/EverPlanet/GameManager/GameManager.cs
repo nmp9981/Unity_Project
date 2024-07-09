@@ -65,8 +65,23 @@ public class GameManager : MonoBehaviour
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
     int _apPoint;
+    int _skillPoint;
 
     bool _isAttackBuffOn;
+
+    //스킬 관련
+    float _throwDist;
+    long _luckySevenCoefficient;
+    long _proficiency;
+    float _addMoveSpeed;
+    float _addJumpSpeed;
+    float _hasteTime;//지속시간
+    int _addMeso;
+    float _mesoUpTime;//지속시간
+    long _avengerCoefficient;
+    long _tripleThrowCoefficient;
+    float _boosterTime;//지속시간
+    float _shadowTime;//지속시간
 
     float _bgmVolume = 1.0f;
     float _sfxVolume = 1.0f;
@@ -107,9 +122,24 @@ public class GameManager : MonoBehaviour
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
 
     public int ApPoint { get { return _apPoint; } set { _apPoint = value; } }
-
+    public int SkillPoint { get { return _skillPoint; } set { _skillPoint = value; } }
 
     public bool IsAtaackBuffOn { get { return _isAttackBuffOn; } set { _isAttackBuffOn = value; } }
+
+    //스킬 관련
+    public float ThrowDist { get { return _throwDist; } set { _throwDist = value; } }
+    public long LuckySevenCoefficient { get { return _luckySevenCoefficient; } set { _luckySevenCoefficient = value; } }
+    public long Proficiency { get { return _proficiency; } set { _proficiency = value; } }
+    public float AddMoveSpeed { get { return _addMoveSpeed; } set { _addMoveSpeed = value; } }
+    public float AddJumpSpeed { get { return _addJumpSpeed; } set { _addJumpSpeed = value; } }
+    public float HasteTime { get { return _hasteTime; } set { _hasteTime = value; } }
+    public int AddMeso { get { return _addMeso; } set { _addMeso = value; } }
+    public float MesoUpTime { get { return _mesoUpTime; } set { _mesoUpTime = value; } }
+    public long AvengerCoefficient { get { return _avengerCoefficient; } set { _avengerCoefficient = value; } }
+    public long TripleThrowCoefficient { get { return _tripleThrowCoefficient; } set { _tripleThrowCoefficient = value; } }
+    public float BoosterTime { get { return _boosterTime; } set { _boosterTime = value; } }
+    public float ShadowTime { get { return _shadowTime; } set { _shadowTime = value; } }
+
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
 
