@@ -43,7 +43,7 @@ public class DragFunction : MonoBehaviour
         
         gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), DotZAngle());
         criticalNum = Random.Range(0, 100);
-        if (criticalNum >= GameManager.Instance.CriticalRate) isCritical = true;
+        if (criticalNum < GameManager.Instance.CriticalRate) isCritical = true;
         else isCritical = false;
     }
     void Update()
