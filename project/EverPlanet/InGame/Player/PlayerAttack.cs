@@ -57,7 +57,7 @@ public class PlayerAttack : MonoBehaviour
         {
             GameObject gm = objectfulling.MakeObj(2);
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
-
+            gm.GetComponent<DragFunction>().skillDigit = throwCount;//럭키세븐인지 트리플스로우인지 구분
 
             if(gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
             else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
