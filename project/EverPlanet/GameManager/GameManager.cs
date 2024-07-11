@@ -39,9 +39,9 @@ public class GameManager : MonoBehaviour
     long _playerAttack;//플레이어 공격력
     float _playerDragSpeed = 12.0f;//표창 날아가는 속도
     float _playerAttackSpeed = 0.5f;//플레이어 공격 속도
-    long _shadowAttack = 50;//그림자 공격력
-    int _criticalRate = 50;//크리티컬 확률
-    int _criticalDamage = 200;//크리티컬 데미지
+    long _shadowAttack = 0;//그림자 공격력
+    int _criticalRate = 0;//크리티컬 확률
+    int _criticalDamage = 100;//크리티컬 데미지
 
     int _workmanship = 50;
 
@@ -70,18 +70,19 @@ public class GameManager : MonoBehaviour
     bool _isAttackBuffOn;
 
     //스킬 관련
-    float _throwDist;
-    long _luckySevenCoefficient;
-    long _proficiency;
-    float _addMoveSpeed;
-    float _addJumpSpeed;
-    float _hasteTime;//지속시간
-    int _addMeso;
-    float _mesoUpTime;//지속시간
-    long _avengerCoefficient;
-    long _tripleThrowCoefficient;
-    float _boosterTime;//지속시간
-    float _shadowTime;//지속시간
+    float _throwDist = 550;
+    long _luckySevenCoefficient = 58;
+    int _proficiency = 10;
+    int _playerAddAcc = 0;
+    float _addMoveSpeed = 0;
+    float _addJumpSpeed = 0;
+    float _hasteTime = 0;//지속시간
+    int _addMeso = 0;
+    float _mesoUpTime = 0;//지속시간
+    long _avengerCoefficient = 0;
+    long _tripleThrowCoefficient = 0;
+    float _boosterTime = 0;//지속시간
+    float _shadowTime = 0;//지속시간
 
     float _bgmVolume = 1.0f;
     float _sfxVolume = 1.0f;
@@ -129,7 +130,8 @@ public class GameManager : MonoBehaviour
     //스킬 관련
     public float ThrowDist { get { return _throwDist; } set { _throwDist = value; } }
     public long LuckySevenCoefficient { get { return _luckySevenCoefficient; } set { _luckySevenCoefficient = value; } }
-    public long Proficiency { get { return _proficiency; } set { _proficiency = value; } }
+    public int Proficiency { get { return _proficiency; } set { _proficiency = value; } }
+    public int PlayerAddACC { get { return _playerAddAcc; } set { _playerAddAcc = value; } }
     public float AddMoveSpeed { get { return _addMoveSpeed; } set { _addMoveSpeed = value; } }
     public float AddJumpSpeed { get { return _addJumpSpeed; } set { _addJumpSpeed = value; } }
     public float HasteTime { get { return _hasteTime; } set { _hasteTime = value; } }
