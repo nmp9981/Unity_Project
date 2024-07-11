@@ -12,8 +12,7 @@ public class AvengerSkill : MonoBehaviour
    
     float moveDist;//표창 이동거리
     Vector3 moveVec;
-    const float distMax = 1000;
-
+   
     public bool isShadow;
     public int hitCount;
     public long attackDamage;
@@ -45,7 +44,7 @@ public class AvengerSkill : MonoBehaviour
     }
     void SizeUp()
     {
-        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(18,8,18), 3*Time.deltaTime);
+        gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(18,9,18), 3*Time.deltaTime);
     }
    
     //표창 이동
@@ -55,7 +54,7 @@ public class AvengerSkill : MonoBehaviour
         moveDist += moveVec.sqrMagnitude;
 
         //사정 거리 초과
-        if (moveDist > distMax)
+        if (moveDist > GameManager.Instance.ThrowDist)
         {
             gameObject.SetActive(false);
         }
@@ -66,8 +65,9 @@ public class AvengerSkill : MonoBehaviour
         if (collision.gameObject.tag == "Monster")//몬스터 공격
         {
             hitCount++;
+            SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
-            if (isShadow) attackDamage = attackDamage / 2;
+            if (isShadow) attackDamage = (attackDamage * GameManager.Instance.ShadowAttack*100)/10000;
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
             if (hitCount >= 6) gameObject.SetActive(false);
@@ -75,8 +75,8 @@ public class AvengerSkill : MonoBehaviour
     }
     public long AttackDamage()
     {
-        long attackMaxDamage = GameManager.Instance.PlayerAttack * 180 / 100;
-        int attackRate = Random.Range(GameManager.Instance.Workmanship,100);
+        long attackMaxDamage = (GameManager.Instance.PlayerAttack * GameManager.Instance.AvengerCoefficient*100) / 10000;
+        int attackRate = Random.Range(GameManager.Instance.Proficiency,100);
         if (isCritical) attackMaxDamage = attackMaxDamage * GameManager.Instance.CriticalDamage / 100;//크리 데미지
         return attackMaxDamage * (long)attackRate / 100;
     }
