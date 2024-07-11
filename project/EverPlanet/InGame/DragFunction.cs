@@ -94,17 +94,17 @@ public class DragFunction : MonoBehaviour
         {
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
-            if (isShadow) attackDamage = attackDamage / 2;
+            if (isShadow) attackDamage = (attackDamage*GameManager.Instance.ShadowAttack*100)/10000;
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
         }
     }
     //공격 데미지
     public long AttackDamage()
     {
-        long attackMaxDamage = skillDigit==2?GameManager.Instance.PlayerAttack * GameManager.Instance.LuckySevenCoefficient / 100
-            : GameManager.Instance.PlayerAttack * GameManager.Instance.TripleThrowCoefficient / 100;
-        int attackRate = Random.Range(GameManager.Instance.Workmanship, 100);
-        if (isCritical) attackMaxDamage = attackMaxDamage*GameManager.Instance.CriticalDamage/100;//크리 데미지
+        long attackMaxDamage = skillDigit==2?(GameManager.Instance.PlayerAttack * GameManager.Instance.LuckySevenCoefficient*100) / 10000
+            : (GameManager.Instance.PlayerAttack * GameManager.Instance.TripleThrowCoefficient*100) / 10000;
+        int attackRate = Random.Range(GameManager.Instance.Proficiency, 100);
+        if (isCritical) attackMaxDamage = (attackMaxDamage*GameManager.Instance.CriticalDamage*100)/10000;//크리 데미지
         return attackMaxDamage * (long)attackRate / 100;
     }
 }
