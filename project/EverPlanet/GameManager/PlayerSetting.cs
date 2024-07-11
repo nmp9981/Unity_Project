@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerSetting : MonoBehaviour
@@ -31,11 +32,11 @@ public class PlayerSetting : MonoBehaviour
 
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
-        GameManager.Instance.PlayerReqExp = lv*lv/5+15*lv;
+        GameManager.Instance.PlayerReqExp = (lv<100)? lv*lv/5+15*lv:2147483647;
     }
     void SetStat()
     {
-        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10;
+        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10+GameManager.Instance.PlayerAddACC;
         long addAttack = GameManager.Instance.IsAtaackBuffOn ? 8 : 0;
         GameManager.Instance.PlayerAttack = (5 * GameManager.Instance.PlayerLUK / 2 + GameManager.Instance.PlayerDEX)+addAttack;
     }
@@ -44,6 +45,7 @@ public class PlayerSetting : MonoBehaviour
         if (GameManager.Instance.PlayerEXP >= GameManager.Instance.PlayerReqExp)
         {
             GameManager.Instance.PlayerLV += 1;
+            if (GameManager.Instance.PlayerLV > 100) GameManager.Instance.PlayerLV = 100;
             PlayerInfoInit(GameManager.Instance.PlayerLV);
             GameManager.Instance.ApPoint += 5;
             GameManager.Instance.SkillPoint += 3;
