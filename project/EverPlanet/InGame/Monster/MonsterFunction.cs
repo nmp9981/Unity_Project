@@ -76,13 +76,13 @@ public class MonsterFunction : MonoBehaviour
                 if (mobDrop < 60)//메소 드랍
                 {
                     SoundManager._sound.PlaySfx(1);
-                    GameObject mesoObj = objectfulling.MakeObj(8);
+                    GameObject mesoObj = objectfulling.MakeObj(26);
                     mesoObj.transform.position = gameObject.transform.position;
-                    mesoObj.GetComponent<MonsterDrop>().monsterMeso = monsterGetMeso;
+                    mesoObj.GetComponent<MonsterDrop>().monsterMeso = (int)((float)monsterGetMeso*GameManager.Instance.AddMeso/100.0f);
                 }
                 inGameUI.ShowGetText("Exp", (int)monsterExp);
             }
-            Invoke("DieMonster", 0.35f);
+            Invoke("DieMonster", 0.45f);
         }
     }
     void DieMonster()
