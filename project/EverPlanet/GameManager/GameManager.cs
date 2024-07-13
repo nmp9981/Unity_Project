@@ -2,7 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
+public struct Item
+{
+    public GameObject gm;
+    public int theNumber;
+}
 public class GameManager : MonoBehaviour
 {
     static GameManager _instance;
@@ -63,6 +69,7 @@ public class GameManager : MonoBehaviour
     int _mpPosionCount;
     int _attackUPCount;
     int _returnVillegeCount;
+    public Item[] storeItemList = new Item[11];
     #endregion
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
