@@ -22,6 +22,10 @@ public class PlayerHeal : MonoBehaviour
         {
             HealMP();
         }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            ReturnToVillege();
+        }
     }
     void HealHP()
     {
@@ -36,5 +40,11 @@ public class PlayerHeal : MonoBehaviour
         int healMPAmount = 300;
         GameManager.Instance.PlayerMP = Mathf.Min(GameManager.Instance.PlayerMP + healMPAmount, GameManager.Instance.PlayerMaxMP);
         GameManager.Instance.MPPosionCount -= 1;
+    }
+    void ReturnToVillege()
+    {
+        if (GameManager.Instance.ReturnVillegeCount < 0) return;
+        GameManager.Instance.ReturnVillegeCount -= 1;
+        this.gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;//마을로 귀환
     }
 }
