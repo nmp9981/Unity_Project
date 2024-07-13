@@ -9,6 +9,20 @@ using UnityEngine.UI;
 using static UnityEditor.Progress;
 using static UnityEngine.GraphicsBuffer;
 
+public enum ConsumeItem
+{
+    WhitePossion,
+    ManaElixir,
+    BroiledEel,
+    ClearWater,
+    LceBar,
+    Patbingsu,
+    Cheeze,
+    WarriorFill,
+    BowmanFill,
+    DrakeBlood,
+    ReturnToVillage
+}
 public class StoreManager : MonoBehaviour
 {
     [SerializeField] GameObject StoreUI;
@@ -73,7 +87,7 @@ public class StoreManager : MonoBehaviour
 
         switch (itemText)
         {
-            case "Broiled eels":
+            case "White Possion":
                 GameManager.Instance.HPPosionCount += many;
                 break;
             case "Mana elixir":
@@ -81,6 +95,30 @@ public class StoreManager : MonoBehaviour
                 break;
             case "Drake's blood":
                 GameManager.Instance.AttackUPCount += many;
+                break;
+            case "Broiled eels":
+                GameManager.Instance.HPPosionCount += many;
+                break;
+            case "Clear Water":
+                GameManager.Instance.MPPosionCount += many;
+                break;
+            case "Ice Bar":
+                GameManager.Instance.HPPosionCount += many;
+                break;
+            case "Patbingsu":
+                GameManager.Instance.MPPosionCount += many;
+                break;
+            case "Cheeze":
+                GameManager.Instance.HPPosionCount += many;
+                break;
+            case "Warrior's Pill":
+                GameManager.Instance.AttackUPCount += many;
+                break;
+            case "Bowman's Pill":
+                GameManager.Instance.AttackUPCount += many;
+                break;
+            case "Return to village":
+                GameManager.Instance.ReturnVillegeCount += many;
                 break;
         }
 
