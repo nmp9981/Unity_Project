@@ -10,49 +10,92 @@ public class PlayerBuff : MonoBehaviour
     [SerializeField] TextMeshProUGUI hasteTimeText;
     [SerializeField] GameObject attackBuffImage;
     [SerializeField] TextMeshProUGUI attackBuffTimeText;
+    [SerializeField] GameObject boosterImage;
+    [SerializeField] TextMeshProUGUI boosterTimeText;
+    [SerializeField] GameObject mesoUpImage;
+    [SerializeField] TextMeshProUGUI mesoUpTimeText;
 
     float hasteFullTime;
     float hasteTime;
     float attackbuffFullTime;
     float attackBuffTime;
+    float boosterTime;
+    float boosterFullTime;
+    float mesoUpTime;
+    float mesoUpFullTime;
 
     private void Awake()
     {
         hasteImage.SetActive(false);
         hasteTime = 0f;
-        hasteFullTime = 180f;
-
+       
         attackBuffTime = 0f;
         attackbuffFullTime = 300f;
         GameManager.Instance.AttackUPCount = 100;
+
+        boosterImage.SetActive(false);
+        boosterTime = 0f;
+
+        mesoUpImage.SetActive(false);
+        mesoUpTime = 0f;
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && GameManager.Instance.AddJumpSpeed>0)
         {
+            hasteFullTime = GameManager.Instance.HasteTime;
             StartCoroutine(Haste());
         }
         if (Input.GetKeyDown(KeyCode.W) && GameManager.Instance.AttackUPCount>=1)
         {
             StartCoroutine(AttackBuff());
         }
+        if (Input.GetKeyDown(KeyCode.R) && GameManager.Instance.BoosterTime >= 10)
+        {
+            boosterFullTime = GameManager.Instance.BoosterTime;
+            StartCoroutine(Booster());
+        }
+        if (Input.GetKeyDown(KeyCode.T) && GameManager.Instance.MesoUpTime >= 37)
+        {
+            mesoUpFullTime = GameManager.Instance.MesoUpTime;
+            StartCoroutine(MesoUp());
+        }
         ShowHasteBuffTime();
         ShowAttackBuffTime();
+        ShowMesoUpBuffTime();
+        ShowBoosterTime();
     }
     IEnumerator Haste()
     {
         hasteImage.SetActive(true);
+        SoundManager._sound.PlaySfx(6);
         hasteTime = hasteFullTime;
-        GameManager.Instance.PlayerMoveSpeed = 6f;
-        GameManager.Instance.PlayerJumpSpeed = 8f;
+        GameManager.Instance.PlayerMoveSpeed = 5*(float)(GameManager.Instance.AddMoveSpeed/100);
+        GameManager.Instance.PlayerJumpSpeed = 7 * (float)(GameManager.Instance.AddJumpSpeed / 100);
         yield break;
     }
     IEnumerator AttackBuff()
     {
         attackBuffImage.SetActive(true);
+        SoundManager._sound.PlaySfx(8);
         GameManager.Instance.AttackUPCount -= 1;
         attackBuffTime = attackbuffFullTime;
         GameManager.Instance.IsAtaackBuffOn = true;
+        yield break;
+    }
+    IEnumerator MesoUp()
+    {
+        mesoUpImage.SetActive(true);
+        SoundManager._sound.PlaySfx(6);
+        mesoUpTime = mesoUpFullTime;
+        yield break;
+    }
+    IEnumerator Booster()
+    {
+        boosterImage.SetActive(true);
+        SoundManager._sound.PlaySfx(6);
+        boosterTime = boosterFullTime;
+        GameManager.Instance.PlayerAttackSpeed = 0.38f;
         yield break;
     }
     void ShowHasteBuffTime()
@@ -60,8 +103,8 @@ public class PlayerBuff : MonoBehaviour
         if (hasteTime < 1)//원래대로
         {
             hasteTimeText.text = "";
-            GameManager.Instance.PlayerMoveSpeed = 4f;
-            GameManager.Instance.PlayerJumpSpeed = 6f;
+            GameManager.Instance.PlayerMoveSpeed = 5f;
+            GameManager.Instance.PlayerJumpSpeed = 7f;
             hasteImage.SetActive(false);
             return;
         }
@@ -79,5 +122,28 @@ public class PlayerBuff : MonoBehaviour
         }
         attackBuffTime -= Time.deltaTime;
         attackBuffTimeText.text = string.Format("{0:N0}", attackBuffTime);
+    }
+    void ShowMesoUpBuffTime()
+    {
+        if (mesoUpTime < 1)//원래대로
+        {
+            mesoUpTimeText.text = "";
+            mesoUpImage.SetActive(false);
+            return;
+        }
+        mesoUpTime -= Time.deltaTime;
+        mesoUpTimeText.text = string.Format("{0:N0}", mesoUpTime);
+    }
+    void ShowBoosterTime()
+    {
+        if (boosterTime < 1)//원래대로
+        {
+            boosterTimeText.text = "";
+            GameManager.Instance.PlayerAttackSpeed = 0.5f;
+            boosterImage.SetActive(false);
+            return;
+        }
+        boosterTime -= Time.deltaTime;
+        boosterTimeText.text = string.Format("{0:N0}", boosterTime);
     }
 }
