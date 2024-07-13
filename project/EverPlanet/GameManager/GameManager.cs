@@ -31,8 +31,8 @@ public class GameManager : MonoBehaviour
     }
     
     #region 데이터
-    float _playerMoveSpeed = 4.0f;//기본 이속
-    float _playerJumpSpeed = 6.0f;//기본 점프력
+    float _playerMoveSpeed = 5.0f;//기본 이속
+    float _playerJumpSpeed = 7.0f;//기본 점프력
     int _maxJumpCount = 2;//최대 점프 횟수
     
     bool _playerHit = true;//플레이어 피격 여부
@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
     int _criticalDamage = 100;//크리티컬 데미지
 
     int _workmanship = 50;
-
+    #region 캐릭터 스탯 관련
     string _playerJob;
     int _playerLV;
     int _playerHP;
@@ -57,19 +57,21 @@ public class GameManager : MonoBehaviour
     int _playerLuk;
     int _playerAcc;
     int _playerMeso = 0;
-
+    #endregion
+    #region 아이템 관련
     int _hpPosionCount;
     int _mpPosionCount;
     int _attackUPCount;
-
+    int _returnVillegeCount;
+    #endregion
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
     int _apPoint;
-    int _skillPoint;
+    int _skillPoint = 180;
 
     bool _isAttackBuffOn;
 
-    //스킬 관련
+    #region 스킬 관련
     float _throwDist = 550;
     long _luckySevenCoefficient = 58;
     int _proficiency = 10;
@@ -83,7 +85,7 @@ public class GameManager : MonoBehaviour
     long _tripleThrowCoefficient = 0;
     float _boosterTime = 0;//지속시간
     float _shadowTime = 0;//지속시간
-
+    #endregion
     float _bgmVolume = 1.0f;
     float _sfxVolume = 1.0f;
 
@@ -102,7 +104,7 @@ public class GameManager : MonoBehaviour
     public int CriticalDamage { get { return _criticalDamage; } set { _criticalDamage = value; } }
 
     public int Workmanship { get { return _workmanship; } set { _workmanship = value; } }
-
+    #region 캐릭터 스탯 관련
     public string PlayerJob { get { return _playerJob; } set { _playerJob = value; } }
     public int PlayerLV { get { return _playerLV; } set { _playerLV = value; } }
     public int PlayerHP { get { return _playerHP; } set { _playerHP = value; } }
@@ -115,11 +117,13 @@ public class GameManager : MonoBehaviour
     public int PlayerLUK { get { return _playerLuk; } set { _playerLuk = value; } }
     public int PlayerACC { get { return _playerAcc; } set { _playerAcc = value; } }
     public int PlayerMeso { get { return _playerMeso; } set { _playerMeso = value; } }
-
+    #endregion
+    #region 아이템 관련
     public int HPPosionCount { get { return _hpPosionCount; } set { _hpPosionCount = value; } }
     public int MPPosionCount { get { return _mpPosionCount; } set { _mpPosionCount = value; } }
     public int AttackUPCount { get { return _attackUPCount; } set { _attackUPCount = value; } }
-
+    public int ReturnVillegeCount { get { return _returnVillegeCount; } set { _returnVillegeCount = value; } }
+#endregion
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
 
     public int ApPoint { get { return _apPoint; } set { _apPoint = value; } }
@@ -127,7 +131,7 @@ public class GameManager : MonoBehaviour
 
     public bool IsAtaackBuffOn { get { return _isAttackBuffOn; } set { _isAttackBuffOn = value; } }
 
-    //스킬 관련
+    #region 스킬 관련
     public float ThrowDist { get { return _throwDist; } set { _throwDist = value; } }
     public long LuckySevenCoefficient { get { return _luckySevenCoefficient; } set { _luckySevenCoefficient = value; } }
     public int Proficiency { get { return _proficiency; } set { _proficiency = value; } }
@@ -141,7 +145,7 @@ public class GameManager : MonoBehaviour
     public long TripleThrowCoefficient { get { return _tripleThrowCoefficient; } set { _tripleThrowCoefficient = value; } }
     public float BoosterTime { get { return _boosterTime; } set { _boosterTime = value; } }
     public float ShadowTime { get { return _shadowTime; } set { _shadowTime = value; } }
-
+    #endregion
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
 
