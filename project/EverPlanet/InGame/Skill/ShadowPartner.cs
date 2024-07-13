@@ -17,7 +17,6 @@ public class ShadowPartner : MonoBehaviour
     {
         shadowPartnerImage.SetActive(false);
         shadowPartnerTime = 0f;
-        shadowPartnerFullTime = 180f;
     }
     void Update()
     {
@@ -26,10 +25,12 @@ public class ShadowPartner : MonoBehaviour
     }
     void ShadowPartnerSkill()
     {
+        shadowPartnerFullTime = GameManager.Instance.ShadowTime;
         if (Input.GetKeyDown(KeyCode.Q))
         {
             playerShadow.SetActive(true);
             shadowPartnerImage.SetActive(true);
+            SoundManager._sound.PlaySfx(7);
             shadowPartnerTime = shadowPartnerFullTime;
             GameManager.Instance.PlayerMP -= 50;
             foreach (MeshRenderer mesh in playerShadow.GetComponentsInChildren<MeshRenderer>())
