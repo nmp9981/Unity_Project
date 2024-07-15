@@ -32,7 +32,9 @@ public class StoreManager : MonoBehaviour
     [SerializeField] List<Button> itemList;
     [SerializeField] TMP_InputField howMany;
 
+    [SerializeField] GameObject itemManager;
     [SerializeField] GameObject mesoInsufficientImage;
+    [SerializeField] Sprite[] itemImageList = new Sprite[11];
 
     string itemText;
     string priceText;
@@ -42,6 +44,7 @@ public class StoreManager : MonoBehaviour
     {
         BuyInfoUI.SetActive(false);
         mesoInsufficientImage.SetActive(false);
+        SettingItemImage();
     }
     void Update()
     {
@@ -67,6 +70,20 @@ public class StoreManager : MonoBehaviour
            
         }
     }
+    void SettingItemImage()
+    {
+        GameManager.Instance.storeItemList[0].itemImage = itemImageList[0];
+        GameManager.Instance.storeItemList[1].itemImage = itemImageList[1];
+        GameManager.Instance.storeItemList[2].itemImage = itemImageList[2];
+        GameManager.Instance.storeItemList[3].itemImage = itemImageList[3];
+        GameManager.Instance.storeItemList[4].itemImage = itemImageList[4];
+        GameManager.Instance.storeItemList[5].itemImage = itemImageList[5];
+        GameManager.Instance.storeItemList[6].itemImage = itemImageList[6];
+        GameManager.Instance.storeItemList[7].itemImage = itemImageList[7];
+        GameManager.Instance.storeItemList[8].itemImage = itemImageList[8];
+        GameManager.Instance.storeItemList[9].itemImage = itemImageList[9];
+        GameManager.Instance.storeItemList[10].itemImage = itemImageList[10];
+    }
     void ShowStore()
     {
         myMesoText.text = string.Format("{0:#,0}", GameManager.Instance.PlayerMeso);
@@ -88,37 +105,84 @@ public class StoreManager : MonoBehaviour
         switch (itemText)
         {
             case "White Possion":
-                GameManager.Instance.HPPosionCount += many;
+                GameManager.Instance.storeItemList[0].theNumber += many;
+                if(GameManager.Instance.storeItemList[0].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[0]);
+                }
                 break;
             case "Mana elixir":
+                GameManager.Instance.storeItemList[1].theNumber += many;
+                if (GameManager.Instance.storeItemList[1].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[1]);
+                }
                 GameManager.Instance.MPPosionCount += many;
                 break;
             case "Drake's blood":
+                GameManager.Instance.storeItemList[2].theNumber += many;
+                if (GameManager.Instance.storeItemList[2].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[2]);
+                }
                 GameManager.Instance.AttackUPCount += many;
                 break;
             case "Broiled eels":
+                GameManager.Instance.storeItemList[3].theNumber += many;
+                if (GameManager.Instance.storeItemList[3].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[3]);
+                }
                 GameManager.Instance.HPPosionCount += many;
                 break;
             case "Clear Water":
-                GameManager.Instance.MPPosionCount += many;
+                GameManager.Instance.storeItemList[4].theNumber += many;
+                if (GameManager.Instance.storeItemList[4].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[4]);
+                }
                 break;
             case "Ice Bar":
-                GameManager.Instance.HPPosionCount += many;
+                GameManager.Instance.storeItemList[5].theNumber += many;
+                if (GameManager.Instance.storeItemList[5].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[5]);
+                }
                 break;
             case "Patbingsu":
-                GameManager.Instance.MPPosionCount += many;
+                GameManager.Instance.storeItemList[6].theNumber += many;
+                if (GameManager.Instance.storeItemList[6].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[6]);
+                }
                 break;
             case "Cheeze":
-                GameManager.Instance.HPPosionCount += many;
+                GameManager.Instance.storeItemList[7].theNumber += many;
+                if (GameManager.Instance.storeItemList[7].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[7]);
+                }
                 break;
             case "Warrior's Pill":
-                GameManager.Instance.AttackUPCount += many;
+                GameManager.Instance.storeItemList[8].theNumber += many;
+                if (GameManager.Instance.storeItemList[8].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[8]);
+                }
                 break;
             case "Bowman's Pill":
-                GameManager.Instance.AttackUPCount += many;
+                GameManager.Instance.storeItemList[9].theNumber += many;
+                if (GameManager.Instance.storeItemList[9].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[9]);
+                }
                 break;
             case "Return to village":
-                GameManager.Instance.ReturnVillegeCount += many;
+                GameManager.Instance.storeItemList[10].theNumber += many;
+                if (GameManager.Instance.storeItemList[10].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[10]);
+                }
                 break;
         }
 
