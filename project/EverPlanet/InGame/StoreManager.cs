@@ -83,6 +83,7 @@ public class StoreManager : MonoBehaviour
         GameManager.Instance.storeItemList[8].itemImage = itemImageList[8];
         GameManager.Instance.storeItemList[9].itemImage = itemImageList[9];
         GameManager.Instance.storeItemList[10].itemImage = itemImageList[10];
+        for(int i=0;i<11;i++) GameManager.Instance.storeItemList[0].itemIdx = i;
     }
     void ShowStore()
     {
