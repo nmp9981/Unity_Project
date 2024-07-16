@@ -34,7 +34,8 @@ public class StoreManager : MonoBehaviour
 
     [SerializeField] GameObject itemManager;
     [SerializeField] GameObject mesoInsufficientImage;
-    [SerializeField] Sprite[] itemImageList = new Sprite[11];
+    [SerializeField] Sprite[] itemImageSpriteList = new Sprite[11];
+    [SerializeField] Image[] itemImageList = new Image[11];
 
     string itemText;
     string priceText;
@@ -72,18 +73,12 @@ public class StoreManager : MonoBehaviour
     }
     void SettingItemImage()
     {
-        GameManager.Instance.storeItemList[0].itemImage = itemImageList[0];
-        GameManager.Instance.storeItemList[1].itemImage = itemImageList[1];
-        GameManager.Instance.storeItemList[2].itemImage = itemImageList[2];
-        GameManager.Instance.storeItemList[3].itemImage = itemImageList[3];
-        GameManager.Instance.storeItemList[4].itemImage = itemImageList[4];
-        GameManager.Instance.storeItemList[5].itemImage = itemImageList[5];
-        GameManager.Instance.storeItemList[6].itemImage = itemImageList[6];
-        GameManager.Instance.storeItemList[7].itemImage = itemImageList[7];
-        GameManager.Instance.storeItemList[8].itemImage = itemImageList[8];
-        GameManager.Instance.storeItemList[9].itemImage = itemImageList[9];
-        GameManager.Instance.storeItemList[10].itemImage = itemImageList[10];
-        for(int i=0;i<11;i++) GameManager.Instance.storeItemList[0].itemIdx = i;
+        for (int i = 0; i < 11; i++)
+        {
+            GameManager.Instance.storeItemList[i].itemIdx = i;
+            GameManager.Instance.storeItemList[i].itemSpriteImage = itemImageSpriteList[i];
+            GameManager.Instance.storeItemList[i].itemImage = itemImageList[i];
+        }
     }
     void ShowStore()
     {
