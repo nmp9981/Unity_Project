@@ -27,9 +27,17 @@ public class ItemManager : MonoBehaviour
         
     }
     //아이템 창 키면 보임
-    void ShowItemIcon()
+    public void ShowItemIcon()
     {
-        foreach(var item in GameManager.Instance.storeItemList)
+        foreach (var item in GameManager.Instance.storeItemList)
+        {
+            
+            if (!UserHaveItem[item.itemIdx].activeSelf) UserHaveItem[item.itemIdx].SetActive(true);
+            UserHaveItem[item.itemIdx].GetComponent<Image>().sprite = item.itemSpriteImage;
+            UserHaveItem[item.itemIdx].GetComponentInChildren<TextMeshProUGUI>().text = item.theNumber.ToString();
+        }
+        /*
+        foreach (var item in GameManager.Instance.storeItemList)
         {
             if (item.theNumber > 0)
             {
@@ -49,5 +57,6 @@ public class ItemManager : MonoBehaviour
                 }
             }
         }
+        */
     }
 }
