@@ -35,7 +35,6 @@ public class StoreManager : MonoBehaviour
     [SerializeField] GameObject itemManager;
     [SerializeField] GameObject mesoInsufficientImage;
     [SerializeField] Sprite[] itemImageSpriteList = new Sprite[11];
-    [SerializeField] Image[] itemImageList = new Image[11];
 
     string itemText;
     string priceText;
@@ -77,7 +76,6 @@ public class StoreManager : MonoBehaviour
         {
             GameManager.Instance.storeItemList[i].itemIdx = i;
             GameManager.Instance.storeItemList[i].itemSpriteImage = itemImageSpriteList[i];
-            GameManager.Instance.storeItemList[i].itemImage = itemImageList[i];
         }
     }
     void ShowStore()
@@ -113,64 +111,64 @@ public class StoreManager : MonoBehaviour
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[1]);
                 }
-                GameManager.Instance.MPPosionCount += many;
+                //GameManager.Instance.MPPosionCount += many;
                 break;
             case "Drake's blood":
+                GameManager.Instance.storeItemList[9].theNumber += many;
+                if (GameManager.Instance.storeItemList[9].theNumber == many)//0개였으면
+                {
+                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[9]);
+                }
+                //GameManager.Instance.AttackUPCount += many;
+                break;
+            case "Broiled eels":
                 GameManager.Instance.storeItemList[2].theNumber += many;
                 if (GameManager.Instance.storeItemList[2].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[2]);
                 }
-                GameManager.Instance.AttackUPCount += many;
+                //GameManager.Instance.HPPosionCount += many;
                 break;
-            case "Broiled eels":
+            case "Clear Water":
                 GameManager.Instance.storeItemList[3].theNumber += many;
                 if (GameManager.Instance.storeItemList[3].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[3]);
                 }
-                GameManager.Instance.HPPosionCount += many;
                 break;
-            case "Clear Water":
+            case "Ice Bar":
                 GameManager.Instance.storeItemList[4].theNumber += many;
                 if (GameManager.Instance.storeItemList[4].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[4]);
                 }
                 break;
-            case "Ice Bar":
+            case "Patbingsu":
                 GameManager.Instance.storeItemList[5].theNumber += many;
                 if (GameManager.Instance.storeItemList[5].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[5]);
                 }
                 break;
-            case "Patbingsu":
+            case "Cheeze":
                 GameManager.Instance.storeItemList[6].theNumber += many;
                 if (GameManager.Instance.storeItemList[6].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[6]);
                 }
                 break;
-            case "Cheeze":
+            case "Warrior's Pill":
                 GameManager.Instance.storeItemList[7].theNumber += many;
                 if (GameManager.Instance.storeItemList[7].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[7]);
                 }
                 break;
-            case "Warrior's Pill":
+            case "Bowman's Pill":
                 GameManager.Instance.storeItemList[8].theNumber += many;
                 if (GameManager.Instance.storeItemList[8].theNumber == many)//0개였으면
                 {
                     itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[8]);
-                }
-                break;
-            case "Bowman's Pill":
-                GameManager.Instance.storeItemList[9].theNumber += many;
-                if (GameManager.Instance.storeItemList[9].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[9]);
                 }
                 break;
             case "Return to village":
