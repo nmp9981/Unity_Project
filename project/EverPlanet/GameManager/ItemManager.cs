@@ -1,12 +1,17 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class ItemManager : MonoBehaviour
 {
+    [SerializeField] GameObject itemOptionUI;
+    [SerializeField] GameObject canvas;
+
     public Item[] UserItemList = new Item[11];
     public GameObject[] UserHaveItem = new GameObject[20];
     public List<GameObject> UserHaveItemList = new List<GameObject>();
@@ -17,15 +22,18 @@ public class ItemManager : MonoBehaviour
     void Update()
     {
         ShowItemIcon();
+        //ShowOption();
     }
+    
     void EmptyItemShow()
     {
         for (int idx = 0; idx < 20; idx++)
         {
             UserHaveItem[idx].SetActive(false);
         }
-        
+        itemOptionUI.SetActive(false);
     }
+ 
     //아이템 창 키면 보임
     public void ShowItemIcon()
     {
@@ -59,4 +67,5 @@ public class ItemManager : MonoBehaviour
         }
         */
     }
+    //단축키 등록
 }
