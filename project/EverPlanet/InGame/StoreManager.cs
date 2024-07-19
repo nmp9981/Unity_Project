@@ -60,7 +60,6 @@ public class StoreManager : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
-                Debug.Log(hit.transform.name);
                 if (hit.transform.tag == "Store")
                 {
                     if (!StoreUI.activeSelf) StoreUI.SetActive(true);
@@ -93,92 +92,51 @@ public class StoreManager : MonoBehaviour
         int many = int.Parse(manyText);
 
         int totalMeso = price * many;
-        if (GameManager.Instance.PlayerMeso >= totalMeso) GameManager.Instance.PlayerMeso -= totalMeso;
-        else mesoInsufficientImage.SetActive(true);
-
-        switch (itemText)
+        if (GameManager.Instance.PlayerMeso >= totalMeso)
         {
-            case "White Possion":
-                GameManager.Instance.storeItemList[0].theNumber += many;
-                if(GameManager.Instance.storeItemList[0].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[0]);
-                }
-                break;
-            case "Mana elixir":
-                GameManager.Instance.storeItemList[1].theNumber += many;
-                if (GameManager.Instance.storeItemList[1].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[1]);
-                }
-                //GameManager.Instance.MPPosionCount += many;
-                break;
-            case "Drake's blood":
-                GameManager.Instance.storeItemList[9].theNumber += many;
-                if (GameManager.Instance.storeItemList[9].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[9]);
-                }
-                //GameManager.Instance.AttackUPCount += many;
-                break;
-            case "Broiled eels":
-                GameManager.Instance.storeItemList[2].theNumber += many;
-                if (GameManager.Instance.storeItemList[2].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[2]);
-                }
-                //GameManager.Instance.HPPosionCount += many;
-                break;
-            case "Clear Water":
-                GameManager.Instance.storeItemList[3].theNumber += many;
-                if (GameManager.Instance.storeItemList[3].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[3]);
-                }
-                break;
-            case "Ice Bar":
-                GameManager.Instance.storeItemList[4].theNumber += many;
-                if (GameManager.Instance.storeItemList[4].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[4]);
-                }
-                break;
-            case "Patbingsu":
-                GameManager.Instance.storeItemList[5].theNumber += many;
-                if (GameManager.Instance.storeItemList[5].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[5]);
-                }
-                break;
-            case "Cheeze":
-                GameManager.Instance.storeItemList[6].theNumber += many;
-                if (GameManager.Instance.storeItemList[6].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[6]);
-                }
-                break;
-            case "Warrior's Pill":
-                GameManager.Instance.storeItemList[7].theNumber += many;
-                if (GameManager.Instance.storeItemList[7].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[7]);
-                }
-                break;
-            case "Bowman's Pill":
-                GameManager.Instance.storeItemList[8].theNumber += many;
-                if (GameManager.Instance.storeItemList[8].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[8]);
-                }
-                break;
-            case "Return to village":
-                GameManager.Instance.storeItemList[10].theNumber += many;
-                if (GameManager.Instance.storeItemList[10].theNumber == many)//0개였으면
-                {
-                    itemManager.GetComponent<ItemManager>().UserItemList.Add(GameManager.Instance.storeItemList[10]);
-                }
-                break;
+            GameManager.Instance.PlayerMeso -= totalMeso;
+
+            switch (itemText)
+            {
+                case "White Possion":
+                    GameManager.Instance.storeItemList[0].theNumber += many;
+                    break;
+                case "Mana Elixer":
+                    GameManager.Instance.storeItemList[1].theNumber += many;
+                    //GameManager.Instance.MPPosionCount += many;
+                    break;
+                case "Drake's blood":
+                    GameManager.Instance.storeItemList[9].theNumber += many;
+                    //GameManager.Instance.AttackUPCount += many;
+                    break;
+                case "Broiled eels":
+                    GameManager.Instance.storeItemList[2].theNumber += many;
+                    //GameManager.Instance.HPPosionCount += many;
+                    break;
+                case "Clear Water":
+                    GameManager.Instance.storeItemList[3].theNumber += many;
+                    break;
+                case "Ice Bar":
+                    GameManager.Instance.storeItemList[4].theNumber += many;
+                    break;
+                case "Patbingsu":
+                    GameManager.Instance.storeItemList[5].theNumber += many;
+                    break;
+                case "Cheeze":
+                    GameManager.Instance.storeItemList[6].theNumber += many;
+                    break;
+                case "Warrior's Pill":
+                    GameManager.Instance.storeItemList[7].theNumber += many;
+                    break;
+                case "Bowman's Pill":
+                    GameManager.Instance.storeItemList[8].theNumber += many;
+                    break;
+                case "Return to village":
+                    GameManager.Instance.storeItemList[10].theNumber += many;
+                    break;
+            }
         }
+        else mesoInsufficientImage.SetActive(true);
 
         BuyInfoUI.SetActive(false);
     }
