@@ -7,10 +7,19 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+public enum ItemKind
+{
+    HPHeal,
+    MPHeal,
+    AttackUp,
+    AccUp,
+    Return
+}
 public class ItemManager : MonoBehaviour
 {
     [SerializeField] GameObject itemOptionUI;
     [SerializeField] GameObject canvas;
+    [SerializeField] GameObject player;
 
     public Item[] UserItemList = new Item[11];
     public GameObject[] UserHaveItem = new GameObject[20];
@@ -68,4 +77,80 @@ public class ItemManager : MonoBehaviour
         */
     }
     //단축키 등록
+    public void ItemRegister()
+    {
+
+    }
+    //사용하기
+    public void UseItem()
+    {
+        switch (GameManager.Instance.SelectedItemName)
+        {
+            case "White Possion":
+                if (GameManager.Instance.storeItemList[0].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[0].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealHP(300);
+                }
+                break;
+            case "Mana Elixer":
+                if (GameManager.Instance.storeItemList[1].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[1].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealMP(300);
+                }
+                break;
+            case "Broiled eels":
+                if (GameManager.Instance.storeItemList[2].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[2].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealHP(1000);
+                }
+                break;
+            case "Clear Water":
+                if (GameManager.Instance.storeItemList[3].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[3].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealMP(800);
+                }
+                break;
+            case "Ice Bar":
+                if (GameManager.Instance.storeItemList[4].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[4].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealHP(2000);
+                }
+                break;
+            case "Patbingsu":
+                if (GameManager.Instance.storeItemList[5].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[5].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealMP(2000);
+                }
+                break;
+            case "Cheeze":
+                if (GameManager.Instance.storeItemList[6].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[6].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().HealHP(4000);
+                }
+                break;
+            case "Warrior's Pill":
+                if (GameManager.Instance.storeItemList[7].theNumber > 0) GameManager.Instance.storeItemList[7].theNumber -= 1;
+                break;
+            case "Bowman's Pill":
+                if (GameManager.Instance.storeItemList[8].theNumber > 0) GameManager.Instance.storeItemList[8].theNumber -= 1;
+                break;
+            case "Drake's blood":
+                if (GameManager.Instance.storeItemList[9].theNumber > 0) GameManager.Instance.storeItemList[9].theNumber -= 1;
+                break;
+            case "Return to village":
+                if (GameManager.Instance.storeItemList[10].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[10].theNumber -= 1;
+                    player.GetComponent<PlayerHeal>().ReturnToVillege();
+                }
+                break;
+        }
+    }
 }
