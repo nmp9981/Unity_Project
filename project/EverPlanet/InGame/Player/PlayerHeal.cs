@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class PlayerHeal : MonoBehaviour
 {
-    // Start is called before the first frame update
+    int healhpAmount, healmpAmount;
+    int healhpIdx, healmpIdx;
     void Start()
     {
-        GameManager.Instance.HPPosionCount = 100;
-        GameManager.Instance.MPPosionCount = 100;
+        GameManager.Instance.HPPosionCount = 0;
+        GameManager.Instance.MPPosionCount = 0;
+        GameManager.Instance.ReturnVillegeCount = 0;
     }
 
     // Update is called once per frame
@@ -16,32 +18,36 @@ public class PlayerHeal : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
-            HealHP();
+            healhpAmount = GameManager.Instance.HPPosionHealAmount;
+            healhpIdx = GameManager.Instance.KeyHPIdx;
+            HealHP(healhpAmount, healhpIdx);
         }
         if (Input.GetKeyDown(KeyCode.D))
         {
-            HealMP();
+            healmpAmount = GameManager.Instance.MPPosionHealAmount;
+            healmpIdx = GameManager.Instance.KeyMPIdx;
+            HealMP(healmpAmount, healmpIdx);
         }
-        if (Input.GetKeyDown(KeyCode.L))
+        if (Input.GetKeyDown(KeyCode.P))
         {
             ReturnToVillege();
         }
     }
-    void HealHP()
+    public void HealHP(int healHPAmount, int idx)
     {
         if (GameManager.Instance.HPPosionCount <= 0) return;
-        int healHPAmount = 1000;
         GameManager.Instance.PlayerHP = Mathf.Min(GameManager.Instance.PlayerHP+ healHPAmount, GameManager.Instance.PlayerMaxHP);
         GameManager.Instance.HPPosionCount -= 1;
+        GameManager.Instance.storeItemList[idx].theNumber -= 1;
     }
-    void HealMP()
+    public void HealMP(int healMPAmount,int idx)
     {
         if (GameManager.Instance.MPPosionCount <= 0) return;
-        int healMPAmount = 300;
         GameManager.Instance.PlayerMP = Mathf.Min(GameManager.Instance.PlayerMP + healMPAmount, GameManager.Instance.PlayerMaxMP);
         GameManager.Instance.MPPosionCount -= 1;
+        GameManager.Instance.storeItemList[idx].theNumber -= 1;
     }
-    void ReturnToVillege()
+    public void ReturnToVillege()
     {
         if (GameManager.Instance.ReturnVillegeCount < 0) return;
         GameManager.Instance.ReturnVillegeCount -= 1;
