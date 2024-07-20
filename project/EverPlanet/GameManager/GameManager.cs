@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public struct Item
 {
-    public GameObject gm;
+    public Sprite itemSpriteImage;
+    public int itemIdx;
     public int theNumber;
 }
 public class GameManager : MonoBehaviour
@@ -62,14 +63,21 @@ public class GameManager : MonoBehaviour
     int _playerDex;
     int _playerLuk;
     int _playerAcc;
-    int _playerMeso = 0;
+    int _playerMeso = 190000;
     #endregion
     #region 아이템 관련
     int _hpPosionCount;
     int _mpPosionCount;
+    int _hpPosionHealAmount;
+    int _mpPosionHealAmount;
+    int _keyHPIdx;
+    int _keyMPIdx;
     int _attackUPCount;
     int _returnVillegeCount;
     public Item[] storeItemList = new Item[11];
+    ItemKind _itemKind;
+
+    string _selectItemName;
     #endregion
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
@@ -128,8 +136,14 @@ public class GameManager : MonoBehaviour
     #region 아이템 관련
     public int HPPosionCount { get { return _hpPosionCount; } set { _hpPosionCount = value; } }
     public int MPPosionCount { get { return _mpPosionCount; } set { _mpPosionCount = value; } }
+    public int HPPosionHealAmount { get { return _hpPosionHealAmount; } set { _hpPosionHealAmount = value; } }
+    public int MPPosionHealAmount { get { return _mpPosionHealAmount; } set { _mpPosionHealAmount = value; } }
+    public int KeyHPIdx { get { return _keyHPIdx; } set { _keyHPIdx = value; } }
+    public int KeyMPIdx { get { return _keyMPIdx; } set { _keyMPIdx = value; } }
     public int AttackUPCount { get { return _attackUPCount; } set { _attackUPCount = value; } }
     public int ReturnVillegeCount { get { return _returnVillegeCount; } set { _returnVillegeCount = value; } }
+    public string SelectedItemName { get { return _selectItemName; } set { _selectItemName = value; } }
+    public ItemKind ItemKinds { get { return _itemKind; } set { _itemKind = value; } }
 #endregion
     public int MaxMonsterCount { get { return _maxMonsterCount; } set { _maxMonsterCount = value; } }
 
