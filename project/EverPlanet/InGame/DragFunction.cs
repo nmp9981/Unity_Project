@@ -10,6 +10,7 @@ public class DragFunction : MonoBehaviour
     GameObject target;
     Transform monsterTarget;//가장 가까운 몬스터의 위치
     float moveDist;//표창 이동거리
+    float liveTime;//표창 생성 후 시간
     Vector3 moveVec;
 
     [SerializeField] TextMeshProUGUI DamegeText;
@@ -27,6 +28,7 @@ public class DragFunction : MonoBehaviour
     }
     private void OnEnable()
     {
+        liveTime = 0;
         monsterTarget = playerAttack.NearMonster();
 
         moveDist = 0f;
@@ -49,6 +51,12 @@ public class DragFunction : MonoBehaviour
     void Update()
     {
         DragMove();
+        TimeChecker();
+    }
+    void TimeChecker()
+    {
+        liveTime += Time.deltaTime;
+        if (liveTime >= 5.0f) gameObject.SetActive(false);
     }
     //표창 이동
     void DragMove()
