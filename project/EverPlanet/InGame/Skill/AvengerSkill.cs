@@ -9,7 +9,8 @@ public class AvengerSkill : MonoBehaviour
     MonsterSpawner monsterSpawner;
     GameObject player;
     GameObject target;
-   
+
+    float liveTime;//표창 생성 시간
     float moveDist;//표창 이동거리
     Vector3 moveVec;
    
@@ -27,6 +28,7 @@ public class AvengerSkill : MonoBehaviour
     }
     private void OnEnable()
     {
+        liveTime = 0;
         moveDist = 0f;
         hitCount = 0;
 
@@ -41,12 +43,17 @@ public class AvengerSkill : MonoBehaviour
     {
         SizeUp();
         DragMove();
+        TimeChecker();
     }
     void SizeUp()
     {
         gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, new Vector3(18,9,18), 3*Time.deltaTime);
     }
-   
+    void TimeChecker()
+    {
+        liveTime += Time.deltaTime;
+        if (liveTime >= 8.0f) gameObject.SetActive(false);
+    }
     //표창 이동
     void DragMove()
     {
@@ -67,7 +74,7 @@ public class AvengerSkill : MonoBehaviour
             hitCount++;
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
-            if (isShadow) attackDamage = (attackDamage * GameManager.Instance.ShadowAttack*100)/10000;
+            if (isShadow) attackDamage = (long)((float)attackDamage * GameManager.Instance.ShadowAttack/100f);
             collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
             if (hitCount >= 6) gameObject.SetActive(false);
@@ -75,7 +82,7 @@ public class AvengerSkill : MonoBehaviour
     }
     public long AttackDamage()
     {
-        long attackMaxDamage = (GameManager.Instance.PlayerAttack * GameManager.Instance.AvengerCoefficient*100) / 10000;
+        long attackMaxDamage = (long)((float)GameManager.Instance.PlayerAttack * GameManager.Instance.AvengerCoefficient/100f);
         int attackRate = Random.Range(GameManager.Instance.Proficiency,100);
         if (isCritical) attackMaxDamage = attackMaxDamage * GameManager.Instance.CriticalDamage / 100;//크리 데미지
         return attackMaxDamage * (long)attackRate / 100;
