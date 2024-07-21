@@ -10,6 +10,8 @@ public class PlayerBuff : MonoBehaviour
     [SerializeField] TextMeshProUGUI hasteTimeText;
     [SerializeField] GameObject attackBuffImage;
     [SerializeField] TextMeshProUGUI attackBuffTimeText;
+    [SerializeField] GameObject accBuffImage;
+    [SerializeField] TextMeshProUGUI accBuffTimeText;
     [SerializeField] GameObject boosterImage;
     [SerializeField] TextMeshProUGUI boosterTimeText;
     [SerializeField] GameObject mesoUpImage;
@@ -17,8 +19,12 @@ public class PlayerBuff : MonoBehaviour
 
     float hasteFullTime;
     float hasteTime;
+
     float attackbuffFullTime;
     float attackBuffTime;
+    float accbuffFullTime;
+    float accBuffTime;
+
     float boosterTime;
     float boosterFullTime;
     float mesoUpTime;
@@ -32,6 +38,9 @@ public class PlayerBuff : MonoBehaviour
         attackBuffTime = 0f;
         attackbuffFullTime = 300f;
         GameManager.Instance.AttackUPCount = 100;
+
+        accBuffTime = 0f;
+        accbuffFullTime = 300f;
 
         boosterImage.SetActive(false);
         boosterTime = 0f;
@@ -70,8 +79,8 @@ public class PlayerBuff : MonoBehaviour
         hasteImage.SetActive(true);
         SoundManager._sound.PlaySfx(6);
         hasteTime = hasteFullTime;
-        GameManager.Instance.PlayerMoveSpeed = 5*(float)(GameManager.Instance.AddMoveSpeed/100);
-        GameManager.Instance.PlayerJumpSpeed = 7 * (float)(GameManager.Instance.AddJumpSpeed / 100);
+        GameManager.Instance.PlayerMoveSpeed = 5*(float)(1+GameManager.Instance.AddMoveSpeed/100);
+        GameManager.Instance.PlayerJumpSpeed = 7 * (float)(1+GameManager.Instance.AddJumpSpeed / 100);
         yield break;
     }
     IEnumerator AttackBuff()
@@ -80,6 +89,15 @@ public class PlayerBuff : MonoBehaviour
         SoundManager._sound.PlaySfx(8);
         GameManager.Instance.AttackUPCount -= 1;
         attackBuffTime = attackbuffFullTime;
+        GameManager.Instance.IsAtaackBuffOn = true;
+        yield break;
+    }
+    IEnumerator ACCBuff()
+    {
+        accBuffImage.SetActive(true);
+        SoundManager._sound.PlaySfx(8);
+        GameManager.Instance.AttackUPCount -= 1;
+        accBuffTime = attackbuffFullTime;
         GameManager.Instance.IsAtaackBuffOn = true;
         yield break;
     }
