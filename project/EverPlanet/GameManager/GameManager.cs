@@ -63,6 +63,7 @@ public class GameManager : MonoBehaviour
     int _playerDex;
     int _playerLuk;
     int _playerAcc;
+    int _playerAvoid;
     int _playerMeso = 190000;
     #endregion
     #region 아이템 관련
@@ -73,6 +74,8 @@ public class GameManager : MonoBehaviour
     int _keyHPIdx;
     int _keyMPIdx;
     int _attackUPCount;
+    int _avoidUPCount;
+    int _accUPCount;
     int _returnVillegeCount;
     public Item[] storeItemList = new Item[11];
     ItemKind _itemKind;
@@ -131,6 +134,7 @@ public class GameManager : MonoBehaviour
     public int PlayerDEX { get { return _playerDex; } set { _playerDex = value; } }
     public int PlayerLUK { get { return _playerLuk; } set { _playerLuk = value; } }
     public int PlayerACC { get { return _playerAcc; } set { _playerAcc = value; } }
+    public int PlayerAvoid { get { return _playerAvoid; } set { _playerAvoid = value; } }
     public int PlayerMeso { get { return _playerMeso; } set { _playerMeso = value; } }
     #endregion
     #region 아이템 관련
@@ -141,6 +145,8 @@ public class GameManager : MonoBehaviour
     public int KeyHPIdx { get { return _keyHPIdx; } set { _keyHPIdx = value; } }
     public int KeyMPIdx { get { return _keyMPIdx; } set { _keyMPIdx = value; } }
     public int AttackUPCount { get { return _attackUPCount; } set { _attackUPCount = value; } }
+    public int AccUPCount { get { return _accUPCount; } set { _accUPCount = value; } }
+    public int AvoidUPCount { get { return _avoidUPCount; } set { _avoidUPCount = value; } }
     public int ReturnVillegeCount { get { return _returnVillegeCount; } set { _returnVillegeCount = value; } }
     public string SelectedItemName { get { return _selectItemName; } set { _selectItemName = value; } }
     public ItemKind ItemKinds { get { return _itemKind; } set { _itemKind = value; } }
