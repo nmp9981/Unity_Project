@@ -13,6 +13,7 @@ public enum ItemKind
     MPHeal,
     AttackUp,
     AccUp,
+    AvoidUp,
     Return
 }
 public class ItemManager : MonoBehaviour
@@ -110,7 +111,7 @@ public class ItemManager : MonoBehaviour
             GameManager.Instance.MPPosionCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
             GameManager.Instance.KeyMPIdx = imageIdx;
         }
-        else if (GameManager.Instance.ItemKinds == ItemKind.AttackUp)
+        else if (GameManager.Instance.ItemKinds == ItemKind.AvoidUp)
         {
             if (GameManager.Instance.SelectedItemName == "Nimble's Pill")
             {
@@ -119,14 +120,20 @@ public class ItemManager : MonoBehaviour
                 gmU.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
                 GameManager.Instance.AvoidUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
             }
-            else if (GameManager.Instance.SelectedItemName == "Bowman's Pill")
+        }
+        else if (GameManager.Instance.ItemKinds == ItemKind.AccUp)
+        {
+            if (GameManager.Instance.SelectedItemName == "Bowman's Pill")
             {
                 int imageIdx = 8;
                 GameObject gmY = GameObject.Find("Y");
                 gmY.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
                 GameManager.Instance.AccUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
             }
-            else if (GameManager.Instance.SelectedItemName == "Drake's Blood")
+        }
+        else if (GameManager.Instance.ItemKinds == ItemKind.AttackUp)
+        {
+            if (GameManager.Instance.SelectedItemName == "Drake's Blood")
             {
                 int imageIdx = 9;
                 GameObject gmW = GameObject.Find("W");
@@ -202,13 +209,15 @@ public class ItemManager : MonoBehaviour
                 if (GameManager.Instance.storeItemList[7].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[7].theNumber -= 1;
-                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                    GameManager.Instance.AvoidUPCount -= 1;
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AvoidBuff());
                 }
                 break;
             case "Bowman's Pill":
                 if (GameManager.Instance.storeItemList[8].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[8].theNumber -= 1;
+                    GameManager.Instance.AccUPCount -= 1;
                     StartCoroutine(player.GetComponent<PlayerBuff>().ACCBuff());
                 }
                 break;
@@ -216,13 +225,15 @@ public class ItemManager : MonoBehaviour
                 if (GameManager.Instance.storeItemList[9].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[9].theNumber -= 1;
-                    StartCoroutine(player.GetComponent<PlayerBuff>().AvoidBuff());
+                    GameManager.Instance.AttackUPCount -= 1;
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
                 }
                 break;
             case "Return to village":
                 if (GameManager.Instance.storeItemList[10].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[10].theNumber -= 1;
+                    GameManager.Instance.ReturnVillegeCount -= 1;
                     player.GetComponent<PlayerHeal>().ReturnToVillege();
                 }
                 break;
