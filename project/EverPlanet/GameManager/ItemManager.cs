@@ -32,7 +32,6 @@ public class ItemManager : MonoBehaviour
     void Update()
     {
         ShowItemIcon();
-        //ShowOption();
     }
     
     void EmptyItemShow()
@@ -54,29 +53,6 @@ public class ItemManager : MonoBehaviour
             UserHaveItem[item.itemIdx].GetComponent<Image>().sprite = item.itemSpriteImage;
             UserHaveItem[item.itemIdx].GetComponentInChildren<TextMeshProUGUI>().text = item.theNumber.ToString();
         }
-        
-        /*
-        foreach (var item in GameManager.Instance.storeItemList)
-        {
-            if (item.theNumber > 0)
-            {
-                Debug.Log(item.itemIdx + " " + item.theNumber);
-
-                for(int idx=0;idx<20;idx++)
-                {
-                    if (UserHaveItem[idx].activeSelf) continue;
-                    if (!UserHaveItem[idx].activeSelf)
-                    {
-                        UserHaveItem[idx].SetActive(true);
-                        UserHaveItem[idx].GetComponent<Image>().sprite = item.itemSpriteImage;
-                        UserHaveItem[idx].GetComponentInChildren<TextMeshProUGUI>().text = item.theNumber.ToString();
-                        return;
-                    }
-                    
-                }
-            }
-        }
-        */
     }
     //단축키 등록
     public void ItemRegister()
@@ -150,7 +126,7 @@ public class ItemManager : MonoBehaviour
                 gmY.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
                 GameManager.Instance.AccUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
             }
-            else if (GameManager.Instance.SelectedItemName == "Drake's blood")
+            else if (GameManager.Instance.SelectedItemName == "Drake's Blood")
             {
                 int imageIdx = 9;
                 GameObject gmW = GameObject.Find("W");
@@ -233,14 +209,14 @@ public class ItemManager : MonoBehaviour
                 if (GameManager.Instance.storeItemList[8].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[8].theNumber -= 1;
-                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                    StartCoroutine(player.GetComponent<PlayerBuff>().ACCBuff());
                 }
                 break;
-            case "Drake's blood":
+            case "Drake's Blood":
                 if (GameManager.Instance.storeItemList[9].theNumber > 0)
                 {
                     GameManager.Instance.storeItemList[9].theNumber -= 1;
-                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AvoidBuff());
                 }
                 break;
             case "Return to village":
