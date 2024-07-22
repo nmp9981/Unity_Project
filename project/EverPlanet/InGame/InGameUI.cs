@@ -18,6 +18,9 @@ public class InGameUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI curHPPosionCount;
     [SerializeField] TextMeshProUGUI curMPPosionCount;
     [SerializeField] TextMeshProUGUI curAttackUPCount;
+    [SerializeField] TextMeshProUGUI curAccUPCount;
+    [SerializeField] TextMeshProUGUI curAvoidUPCount;
+    [SerializeField] TextMeshProUGUI curReturnToVillegeCount;
 
     [Header("Message")]
     [SerializeField] List<TextMeshProUGUI> messageList;
@@ -38,8 +41,7 @@ public class InGameUI : MonoBehaviour
     [Header("Item")]
     [SerializeField] GameObject itemUI;
     [SerializeField] TextMeshProUGUI playerMesoText;
-
-   
+    
     void Update()
     {
         ShowPlayerUI();
@@ -65,6 +67,9 @@ public class InGameUI : MonoBehaviour
         curHPPosionCount.text = $"{GameManager.Instance.HPPosionCount}";
         curMPPosionCount.text = $"{GameManager.Instance.MPPosionCount}";
         curAttackUPCount.text = $"{GameManager.Instance.AttackUPCount}";
+        curAccUPCount.text = $"{GameManager.Instance.AccUPCount}";
+        curAvoidUPCount.text = $"{GameManager.Instance.AvoidUPCount}";
+        curReturnToVillegeCount.text = $"{GameManager.Instance.ReturnVillegeCount}";
     }
     void ShowStatUI()
     {
