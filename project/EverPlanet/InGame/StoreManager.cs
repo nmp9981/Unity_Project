@@ -34,7 +34,7 @@ public class StoreManager : MonoBehaviour
 
     [SerializeField] GameObject itemManager;
     [SerializeField] GameObject mesoInsufficientImage;
-    [SerializeField] Sprite[] itemImageSpriteList = new Sprite[11];
+    [SerializeField] public Sprite[] itemImageSpriteList = new Sprite[11];
 
     string itemText;
     string priceText;
@@ -103,15 +103,13 @@ public class StoreManager : MonoBehaviour
                     break;
                 case "Mana Elixer":
                     GameManager.Instance.storeItemList[1].theNumber += many;
-                    //GameManager.Instance.MPPosionCount += many;
                     break;
-                case "Drake's blood":
+                case "Drake's Blood":
                     GameManager.Instance.storeItemList[9].theNumber += many;
-                    //GameManager.Instance.AttackUPCount += many;
+                    GameManager.Instance.AttackUPCount += many;
                     break;
                 case "Broiled eels":
                     GameManager.Instance.storeItemList[2].theNumber += many;
-                    //GameManager.Instance.HPPosionCount += many;
                     break;
                 case "Clear Water":
                     GameManager.Instance.storeItemList[3].theNumber += many;
@@ -125,14 +123,17 @@ public class StoreManager : MonoBehaviour
                 case "Cheeze":
                     GameManager.Instance.storeItemList[6].theNumber += many;
                     break;
-                case "Warrior's Pill":
+                case "Nimble's Pill":
                     GameManager.Instance.storeItemList[7].theNumber += many;
+                    GameManager.Instance.AvoidUPCount += many;
                     break;
                 case "Bowman's Pill":
                     GameManager.Instance.storeItemList[8].theNumber += many;
+                    GameManager.Instance.AccUPCount += many;
                     break;
                 case "Return to village":
                     GameManager.Instance.storeItemList[10].theNumber += many;
+                    GameManager.Instance.ReturnVillegeCount += many;
                     break;
             }
         }
