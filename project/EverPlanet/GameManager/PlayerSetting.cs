@@ -7,7 +7,7 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 10;
+        GameManager.Instance.PlayerLV = 70;
         GameManager.Instance.ApPoint = 0;
         GameManager.Instance.PlayerJob = "Assassin";
         GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
@@ -36,7 +36,10 @@ public class PlayerSetting : MonoBehaviour
     }
     void SetStat()
     {
-        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10+GameManager.Instance.PlayerAddACC;
+        int addAvoid = GameManager.Instance.IsAvoidBuffOn ? 10 : 0;
+        GameManager.Instance.PlayerAvoid = 20+addAvoid;
+        int addAcc = GameManager.Instance.IsAccBuffOn ? 10 : 0;
+        GameManager.Instance.PlayerACC = (GameManager.Instance.PlayerDEX * 8 + GameManager.Instance.PlayerLUK * 5) / 10+GameManager.Instance.PlayerAddACC+addAcc;
         long addAttack = GameManager.Instance.IsAtaackBuffOn ? 8 : 0;
         GameManager.Instance.PlayerAttack = (5 * GameManager.Instance.PlayerLUK / 2 + GameManager.Instance.PlayerDEX)+addAttack;
     }
