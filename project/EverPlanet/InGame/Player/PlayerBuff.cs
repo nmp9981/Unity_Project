@@ -12,6 +12,8 @@ public class PlayerBuff : MonoBehaviour
     [SerializeField] TextMeshProUGUI attackBuffTimeText;
     [SerializeField] GameObject accBuffImage;
     [SerializeField] TextMeshProUGUI accBuffTimeText;
+    [SerializeField] GameObject avoidBuffImage;
+    [SerializeField] TextMeshProUGUI avoidBuffTimeText;
     [SerializeField] GameObject boosterImage;
     [SerializeField] TextMeshProUGUI boosterTimeText;
     [SerializeField] GameObject mesoUpImage;
@@ -24,6 +26,8 @@ public class PlayerBuff : MonoBehaviour
     float attackBuffTime;
     float accbuffFullTime;
     float accBuffTime;
+    float avoidbuffFullTime;
+    float avoidBuffTime;
 
     float boosterTime;
     float boosterFullTime;
@@ -69,10 +73,21 @@ public class PlayerBuff : MonoBehaviour
             mesoUpFullTime = GameManager.Instance.MesoUpTime;
             StartCoroutine(MesoUp());
         }
+        if (Input.GetKeyDown(KeyCode.Y) && GameManager.Instance.AccUPCount >= 1)
+        {
+            StartCoroutine(ACCBuff());
+        }
+        if (Input.GetKeyDown(KeyCode.U) && GameManager.Instance.AvoidUPCount >= 1)
+        {
+            StartCoroutine(AvoidBuff());
+        }
         ShowHasteBuffTime();
         ShowAttackBuffTime();
+        ShowAccBuffTime();
+        ShowAvoidBuffTime();
         ShowMesoUpBuffTime();
         ShowBoosterTime();
+
     }
     IEnumerator Haste()
     {
@@ -96,9 +111,18 @@ public class PlayerBuff : MonoBehaviour
     {
         accBuffImage.SetActive(true);
         SoundManager._sound.PlaySfx(8);
-        GameManager.Instance.AttackUPCount -= 1;
-        accBuffTime = attackbuffFullTime;
-        GameManager.Instance.IsAtaackBuffOn = true;
+        GameManager.Instance.AccUPCount -= 1;
+        accBuffTime = accbuffFullTime;
+        GameManager.Instance.IsAccBuffOn = true;
+        yield break;
+    }
+    IEnumerator AvoidBuff()
+    {
+        avoidBuffImage.SetActive(true);
+        SoundManager._sound.PlaySfx(8);
+        GameManager.Instance.AvoidUPCount -= 1;
+        avoidBuffTime = avoidbuffFullTime;
+        GameManager.Instance.IsAvoidBuffOn = true;
         yield break;
     }
     IEnumerator MesoUp()
@@ -140,6 +164,30 @@ public class PlayerBuff : MonoBehaviour
         }
         attackBuffTime -= Time.deltaTime;
         attackBuffTimeText.text = string.Format("{0:N0}", attackBuffTime);
+    }
+    void ShowAccBuffTime()
+    {
+        if (accBuffTime < 1)//원래대로
+        {
+            accBuffTimeText.text = "";
+            GameManager.Instance.IsAccBuffOn = false;
+            accBuffImage.SetActive(false);
+            return;
+        }
+        accBuffTime -= Time.deltaTime;
+        accBuffTimeText.text = string.Format("{0:N0}", accBuffTime);
+    }
+    void ShowAvoidBuffTime()
+    {
+        if (avoidBuffTime < 1)//원래대로
+        {
+            avoidBuffTimeText.text = "";
+            GameManager.Instance.IsAvoidBuffOn = false;
+            avoidBuffImage.SetActive(false);
+            return;
+        }
+        avoidBuffTime -= Time.deltaTime;
+        avoidBuffTimeText.text = string.Format("{0:N0}", avoidBuffTime);
     }
     void ShowMesoUpBuffTime()
     {
