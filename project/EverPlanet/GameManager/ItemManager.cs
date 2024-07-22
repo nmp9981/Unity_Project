@@ -54,6 +54,7 @@ public class ItemManager : MonoBehaviour
             UserHaveItem[item.itemIdx].GetComponent<Image>().sprite = item.itemSpriteImage;
             UserHaveItem[item.itemIdx].GetComponentInChildren<TextMeshProUGUI>().text = item.theNumber.ToString();
         }
+        
         /*
         foreach (var item in GameManager.Instance.storeItemList)
         {
@@ -135,15 +136,27 @@ public class ItemManager : MonoBehaviour
         }
         else if (GameManager.Instance.ItemKinds == ItemKind.AttackUp)
         {
-            GameObject gm = GameObject.Find("W");
-            int imageIdx = 0;
-            if (GameManager.Instance.SelectedItemName == "Warrior's Pill") imageIdx = 7;
-            else if (GameManager.Instance.SelectedItemName == "Bowman's Pill") imageIdx = 8;
-            else if (GameManager.Instance.SelectedItemName == "Drake's blood") imageIdx = 9;
-
-            gm.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
-            GameManager.Instance.AttackUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
-            //gm.GetComponentInChildren<TextMeshProUGUI>().text = $"{GameManager.Instance.storeItemList[imageIdx].theNumber}";
+            if (GameManager.Instance.SelectedItemName == "Nimble's Pill")
+            {
+                int imageIdx = 7;
+                GameObject gmU = GameObject.Find("U");
+                gmU.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
+                GameManager.Instance.AvoidUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
+            }
+            else if (GameManager.Instance.SelectedItemName == "Bowman's Pill")
+            {
+                int imageIdx = 8;
+                GameObject gmY = GameObject.Find("Y");
+                gmY.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
+                GameManager.Instance.AccUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
+            }
+            else if (GameManager.Instance.SelectedItemName == "Drake's blood")
+            {
+                int imageIdx = 9;
+                GameObject gmW = GameObject.Find("W");
+                gmW.GetComponent<Image>().sprite = storeManager.GetComponent<StoreManager>().itemImageSpriteList[imageIdx];
+                GameManager.Instance.AttackUPCount = GameManager.Instance.storeItemList[imageIdx].theNumber;
+            }
         }
         else if (GameManager.Instance.ItemKinds == ItemKind.Return)
         {
@@ -209,14 +222,26 @@ public class ItemManager : MonoBehaviour
                     player.GetComponent<PlayerHeal>().HealHP(4000,6);
                 }
                 break;
-            case "Warrior's Pill":
-                if (GameManager.Instance.storeItemList[7].theNumber > 0) GameManager.Instance.storeItemList[7].theNumber -= 1;
+            case "Nimble's Pill":
+                if (GameManager.Instance.storeItemList[7].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[7].theNumber -= 1;
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                }
                 break;
             case "Bowman's Pill":
-                if (GameManager.Instance.storeItemList[8].theNumber > 0) GameManager.Instance.storeItemList[8].theNumber -= 1;
+                if (GameManager.Instance.storeItemList[8].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[8].theNumber -= 1;
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                }
                 break;
             case "Drake's blood":
-                if (GameManager.Instance.storeItemList[9].theNumber > 0) GameManager.Instance.storeItemList[9].theNumber -= 1;
+                if (GameManager.Instance.storeItemList[9].theNumber > 0)
+                {
+                    GameManager.Instance.storeItemList[9].theNumber -= 1;
+                    StartCoroutine(player.GetComponent<PlayerBuff>().AttackBuff());
+                }
                 break;
             case "Return to village":
                 if (GameManager.Instance.storeItemList[10].theNumber > 0)
