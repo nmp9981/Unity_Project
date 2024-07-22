@@ -159,49 +159,42 @@ public class ItemManager : MonoBehaviour
             case "White Possion":
                 if (GameManager.Instance.storeItemList[0].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[0].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealHP(300,0);
                 }
                 break;
             case "Mana Elixer":
                 if (GameManager.Instance.storeItemList[1].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[1].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealMP(300,1);
                 }
                 break;
             case "Broiled eels":
                 if (GameManager.Instance.storeItemList[2].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[2].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealHP(1000,2);
                 }
                 break;
             case "Clear Water":
                 if (GameManager.Instance.storeItemList[3].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[3].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealMP(800,3);
                 }
                 break;
             case "Ice Bar":
                 if (GameManager.Instance.storeItemList[4].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[4].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealHP(2000,4);
                 }
                 break;
             case "Patbingsu":
                 if (GameManager.Instance.storeItemList[5].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[5].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealMP(2000,5);
                 }
                 break;
             case "Cheeze":
                 if (GameManager.Instance.storeItemList[6].theNumber > 0)
                 {
-                    GameManager.Instance.storeItemList[6].theNumber -= 1;
                     player.GetComponent<PlayerHeal>().HealHP(4000,6);
                 }
                 break;
