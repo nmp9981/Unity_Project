@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerHit : MonoBehaviour
@@ -8,8 +9,7 @@ public class PlayerHit : MonoBehaviour
     [SerializeField] TextMeshProUGUI hitDamageText;
     [SerializeField] GameObject tombStone;
     [SerializeField] GameObject tombStoneMessage;
-   
-    // Start is called before the first frame update
+
     void Awake()
     {
         hitDamageText.text = "";
@@ -17,17 +17,13 @@ public class PlayerHit : MonoBehaviour
         tombStoneMessage.SetActive(false);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     private void OnCollisionEnter(Collision collision)
     {
         if(collision.gameObject.tag == "Monster")
         {
+            int avoidRandom = Random.Range(0, 100);
             int hit = collision.gameObject.GetComponent<MonsterFunction>().monsterHitDamage;
-            int finalHit = Random.Range(hit * 90 / 100, hit * 110 / 100);
+            int finalHit = (avoidRandom<GameManager.Instance.PlayerAvoid)?0:Random.Range(hit * 90 / 100, hit * 110 / 100);
             GameManager.Instance.PlayerHP -= finalHit;
             StartCoroutine(ShowDamage(finalHit));
 
@@ -43,7 +39,7 @@ public class PlayerHit : MonoBehaviour
     IEnumerator ShowDamage(int finalHit)
     {
         hitDamageText.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 2f, 0));
-        hitDamageText.text = finalHit.ToString();
+        hitDamageText.text = (finalHit==0)?"MISS": finalHit.ToString();
         yield return new WaitForSeconds(0.3f);
         hitDamageText.text = "";
     }
@@ -52,6 +48,7 @@ public class PlayerHit : MonoBehaviour
     {
         GameManager.Instance.IsCharacterDie = false;
         GameManager.Instance.PlayerHP = GameManager.Instance.PlayerMaxHP / 2;
+        GameManager.Instance.PlayerEXP = Mathf.Max(0, (int)GameManager.Instance.PlayerEXP-(int)GameManager.Instance.PlayerReqExp /20);
         this.gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;//마을로 이동
         tombStone.SetActive(false);
         tombStoneMessage.SetActive(false);
