@@ -5,8 +5,8 @@ using UnityEngine;
 public class ObjectFulling : MonoBehaviour
 {
     //프리팹 준비
-    const int blockMaxCount = 70;
-    const int blockKinds = 4;
+    const int blockMaxCount = 80;
+    const int blockKinds = 27;
     public GameObject[] blockPrefabs;
 
     //오브젝트 배열
@@ -20,7 +20,30 @@ public class ObjectFulling : MonoBehaviour
              new GameObject[blockMaxCount],
              new GameObject[blockMaxCount],
              new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount]
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+              new GameObject[blockMaxCount],
+               new GameObject[blockMaxCount],
+               new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+              new GameObject[blockMaxCount],
+               new GameObject[blockMaxCount],
+               new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+             new GameObject[blockMaxCount],
+              new GameObject[blockMaxCount],
+               new GameObject[blockMaxCount]
         };
         Generate();
     }
@@ -50,6 +73,17 @@ public class ObjectFulling : MonoBehaviour
             }
         }
         return null;//없으면 빈 객체
+    }
+    //오브젝트 존재여부 확인
+    public bool IsActiveObj(int num)
+    {
+        targetPool = blocks[num];
+
+        for (int i = 0; i < targetPool.Length; i++)
+        {
+            if (targetPool[i].activeSelf) return true;//활성화된게 있으면
+        }
+        return false;//없으면 빈 객체
     }
     //오브젝트 배열 가져오기
     public GameObject[] GetPool(int num)//지정한 오브젝트 풀 가져오기
