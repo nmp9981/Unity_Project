@@ -90,11 +90,11 @@ public class MonsterSpawner : MonoBehaviour
         {
             return Random.Range(8, 10);
         }
-        else if (spawnPositionNumber == 10)
+        else if (spawnPositionNumber >= 10 && spawnPositionNumber <= 11)
         {
             return 10;
         }
-        else if (spawnPositionNumber >= 11 && spawnPositionNumber <= 12)
+        else if (spawnPositionNumber == 12)//곰
         {
             return 23;
         }
@@ -126,6 +126,10 @@ public class MonsterSpawner : MonoBehaviour
         {
             return Random.Range(18,20);
         }
+        else if (spawnPositionNumber == 31)//머슬스톤
+        {
+            return 24;
+        }
         else if (spawnPositionNumber >= 32 && spawnPositionNumber <= 33)
         {
             return Random.Range(19, 21);
@@ -138,7 +142,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             return 22;
         }
-        else if (spawnPositionNumber == 37)
+        else if (spawnPositionNumber == 37)//멧돼지
         {
             return 25;
         }
@@ -150,12 +154,13 @@ public class MonsterSpawner : MonoBehaviour
         for(int spawnIdx = 1; spawnIdx < 38; spawnIdx++)//모든 스폰 지점
         {
             int mapNum = MapNumber(spawnIdx);
-            int spawnCount = Random.Range(4, 8);//스폰 마릿수
+            //보스는 1마리 씩만
+            int spawnCount = (spawnIdx == 12 || spawnIdx == 31 || spawnIdx == 37)?1: Random.Range(4, 8);//스폰 마릿수
             for (int i = 0; i < spawnCount; i++)
             {
                 int monsterNumber = MonsterPosition(spawnIdx, mapNum);//스폰할 몬스터
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
-                gm.transform.position = spawnPositionList[spawnIdx].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+                gm.transform.position = spawnPositionList[spawnIdx].position + new Vector3(Random.Range(-7, 7), 0.5f, Random.Range(-7, 7));
                 spawnMonster.Add(gm);
             }
         }
