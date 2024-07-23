@@ -13,6 +13,13 @@ public class MonsterSpawner : MonoBehaviour
     float curTime = 6.5f;
     float coolTime = 7.0f;
 
+    float bearCurTime = 6.5f;
+    float bearCoolTime = 900f;
+    float bossCurTime = 6.5f;
+    float bossCoolTime = 900f;
+    float finalBossCurTime = 6.5f;
+    float finalBossCoolTime = 1800.0f;
+
     static public List<GameObject> spawnMonster = new List<GameObject>();
     void Awake()
     {
@@ -25,6 +32,9 @@ public class MonsterSpawner : MonoBehaviour
         0,0,0,0,0,0,0,0};
         mobMapMaxCount = new int[6] {30,31, 41,77,33,37};
         curTime = 7.0f;
+        bearCurTime = 1.0f;
+        bossCurTime = 1.0f;
+        finalBossCurTime = 1.0f;
         GameManager.Instance.MaxMonsterCount = 31;
         InitSpawn();
     }
@@ -35,17 +45,46 @@ public class MonsterSpawner : MonoBehaviour
             StartCoroutine(MonsterSpawn());
             curTime = 0;
         }
+        if(bearCurTime >= bearCoolTime)
+        {
+            if (!objectfulling.IsActiveObj(23))
+            {
+                StartCoroutine(BearMonsterSpawn());
+                bearCurTime = 0;
+            }
+        }
+        if(bossCurTime >= bossCoolTime)
+        {
+            if (!objectfulling.IsActiveObj(24))
+            {
+                StartCoroutine(MusllstoneMonsterSpawn());
+                bossCurTime = 0;
+            }
+        }
+        if (finalBossCurTime >= finalBossCoolTime)
+        {
+            if (!objectfulling.IsActiveObj(25))
+            {
+                StartCoroutine(FinalBossMonsterSpawn());
+                finalBossCurTime = 0;
+            }
+        }
         TimeFlow();
     }
     void TimeFlow()
     {
         curTime += Time.deltaTime;
+        bearCurTime += Time.deltaTime;
+        bossCurTime += Time.deltaTime;
+        finalBossCurTime += Time.deltaTime;
     }
     IEnumerator MonsterSpawn()
     {
+        int spawnCount = 0;
         int spawnPositionNumber = Random.Range(0, 38);
         int mapNum = MapNumber(spawnPositionNumber);
-        int spawnCount = Random.Range(4, 8);//스폰 마릿수
+        if (spawnPositionNumber == 12 || spawnPositionNumber == 31 || spawnPositionNumber == 37) spawnCount = 0;
+        else spawnCount = Random.Range(5, 8);//스폰 마릿수
         for (int i = 0; i < spawnCount; i++)
         {
             if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) yield break;//최대 스폰 몬스터 수 추가
@@ -54,6 +93,36 @@ public class MonsterSpawner : MonoBehaviour
             gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
             spawnMonster.Add(gm);
         }
+    }
+    IEnumerator BearMonsterSpawn()
+    {
+        int spawnPositionNumber = 12;
+        int mapNum = MapNumber(spawnPositionNumber);
+        int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
+        GameObject gm = objectfulling.MakeObj(monsterNumber);
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        spawnMonster.Add(gm);
+        yield break;
+    }
+    IEnumerator MusllstoneMonsterSpawn()
+    {
+        int spawnPositionNumber = 31;
+        int mapNum = MapNumber(spawnPositionNumber);
+        int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
+        GameObject gm = objectfulling.MakeObj(monsterNumber);
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        spawnMonster.Add(gm);
+        yield break;
+    }
+    IEnumerator FinalBossMonsterSpawn()
+    {
+        int spawnPositionNumber = 37;
+        int mapNum = MapNumber(spawnPositionNumber);
+        int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
+        GameObject gm = objectfulling.MakeObj(monsterNumber);
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        spawnMonster.Add(gm);
+        yield break;
     }
     int MapNumber(int spawnPositionNumber) {
         if (spawnPositionNumber <= 3) return 0;
