@@ -9,6 +9,7 @@ public class MonsterFunction : MonoBehaviour
     MonsterSpawner monsterSpawner;
     ObjectFulling objectfulling;
     InGameUI inGameUI;
+    GameObject player;
 
     public int mobID;
     public string name;
@@ -34,6 +35,7 @@ public class MonsterFunction : MonoBehaviour
         monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
+        player = GameObject.Find("Player");
     }
     private void OnEnable()
     {
@@ -51,6 +53,21 @@ public class MonsterFunction : MonoBehaviour
     }
     void MonsterUISetting()
     {
+        //플레이어와 일정 거리 이상이면 UI가 안보이게
+        float dist = (player.transform.position - this.gameObject.transform.position).sqrMagnitude;
+        if(dist > 1500)
+        {
+            monsterHPBarBack.gameObject.SetActive(false);
+            monsterHPBar.gameObject.SetActive(false);
+            monsterInfo.gameObject.SetActive(false);
+        }
+        else
+        {
+            monsterHPBarBack.gameObject.SetActive(true);
+            monsterHPBar.gameObject.SetActive(true);
+            monsterInfo.gameObject.SetActive(true);
+        }
+
         monsterHPBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
         monsterHPBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
         monsterInfo.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1.5f, 0));
