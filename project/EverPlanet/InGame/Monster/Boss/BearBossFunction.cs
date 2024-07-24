@@ -1,0 +1,204 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class BearBossFunction : MonoBehaviour
+{
+    MonsterSpawner monsterSpawner;
+    ObjectFulling objectfulling;
+    InGameUI inGameUI;
+    GameObject player;
+    GameObject circle;
+    GameObject stone;
+    GameObject arm;
+
+    public int mobID;
+    public string name;
+    public long monsterFullHP;
+    public long monsterHP;
+    public long monsterExp;
+    public int monsterGetMeso;
+    int monsterDieCount;
+
+    public int monsterHitDamage;//피격 데미지
+
+    float curMoveAmount;
+    float goalMoveAmount;
+    Vector3 moveAmount;
+
+    [SerializeField] Image monsterHPBarBack;
+    [SerializeField] Image monsterHPBar;
+    [SerializeField] TextMeshProUGUI monsterInfo;
+    [SerializeField] TextMeshProUGUI[] hitDamage;
+
+    void Awake()
+    {
+        monsterSpawner = GameObject.Find("MonsterSpawn").GetComponent<MonsterSpawner>();
+        objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+        inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
+        player = GameObject.Find("Player");
+    }
+    private void OnEnable()
+    {
+        monsterHP = monsterFullHP;
+        monsterDieCount = 0;
+        goalMoveAmount = -1;
+        MonsterMove();
+        foreach (var damage in hitDamage) damage.text = "";
+    }
+    void Update()
+    {
+        MonsterUISetting();
+        MonsterMove();
+        isDie();
+    }
+    void MonsterUISetting()
+    {
+        //플레이어와 일정 거리 이상이면 UI가 안보이게
+        float dist = (player.transform.position - this.gameObject.transform.position).sqrMagnitude;
+        if (dist > 1500)
+        {
+            monsterHPBarBack.gameObject.SetActive(false);
+            monsterHPBar.gameObject.SetActive(false);
+            monsterInfo.gameObject.SetActive(false);
+        }
+        else
+        {
+            monsterHPBarBack.gameObject.SetActive(true);
+            monsterHPBar.gameObject.SetActive(true);
+            monsterInfo.gameObject.SetActive(true);
+        }
+
+        monsterHPBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
+        monsterHPBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
+        monsterInfo.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1.5f, 0));
+
+        for (int idx = 0; idx < hitDamage.Length; idx++) hitDamage[idx].transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, idx + 2f, 0));
+
+        monsterHPBar.fillAmount = (float)monsterHP / (float)monsterFullHP;
+        monsterInfo.text = name;
+    }
+    void isDie()
+    {
+        if (monsterHP <= 0)
+        {
+            monsterDieCount += 1;
+            MonsterSpawner.spawnMonster.Remove(this.gameObject);
+            if (monsterDieCount == 1)//죽었을 때 한번만 발돌
+            {
+                int mapNumber = MonsterInMapNum();
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mapNumber] -= 1;
+                GameManager.Instance.PlayerEXP += monsterExp;
+
+                int mobDrop = Random.Range(0, 100);
+                if (mobDrop < 60)//메소 드랍
+                {
+                    SoundManager._sound.PlaySfx(1);
+                    GameObject mesoObj = objectfulling.MakeObj(26);
+                    mesoObj.transform.position = gameObject.transform.position;
+                    mesoObj.GetComponent<MonsterDrop>().monsterMeso = (int)((float)monsterGetMeso * GameManager.Instance.AddMeso / 100.0f);
+                }
+                inGameUI.ShowGetText("Exp", (int)monsterExp);
+            }
+            Invoke("DieMonster", 0.45f);
+        }
+    }
+    void DieMonster()
+    {
+        gameObject.SetActive(false);
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Weapon")
+        {
+            for (int idx = 0; idx < hitDamage.Length; idx++)
+            {
+                if (hitDamage[idx].text == "")
+                {
+                    bool isShadow = collision.gameObject.GetComponent<DragFunction>().isShadow;
+                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow, collision.gameObject));
+                    return;
+                }
+            }
+        }
+        if (collision.gameObject.tag == "Avenger")
+        {
+            for (int idx = 0; idx < hitDamage.Length; idx++)
+            {
+                if (hitDamage[idx].text == "")
+                {
+                    bool isShadow = collision.gameObject.GetComponent<AvengerSkill>().isShadow;
+                    StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow, collision.gameObject));
+                    return;
+                }
+            }
+        }
+    }
+    //데미지 보여주기
+    IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, GameObject gm)
+    {
+        long finalDamage = 0;
+        yield return new WaitForSeconds(0.05f);
+        if (gm.tag == "Weapon")
+        {
+            finalDamage = gm.GetComponent<DragFunction>().attackDamage;
+            if (gm.GetComponent<DragFunction>().isCritical) damage.color = Color.red;
+            else damage.color = new Color(219f / 255f, 132f / 255f, 0);
+        }
+        else if (gm.tag == "Avenger")
+        {
+            finalDamage = gm.GetComponent<AvengerSkill>().attackDamage;
+            if (gm.GetComponent<AvengerSkill>().isCritical) damage.color = Color.red;
+            else damage.color = new Color(219f / 255f, 132f / 255f, 0);
+        }
+
+        damage.text = finalDamage.ToString();
+        yield return new WaitForSeconds(0.5f);
+        damage.text = "";
+    }
+    //몬스터 이동
+    void MonsterMove()
+    {
+        if (curMoveAmount >= goalMoveAmount)
+        {
+            curMoveAmount = 0;
+            float moveX = Random.Range(-1, 2);
+            float moveZ = Random.Range(-1, 2);
+
+            if (moveX == 0 && moveZ == 0) moveX = 1;//예외 처리
+            goalMoveAmount = Random.Range(3, 18);
+            float speed = Random.Range(3, 7);
+            moveAmount = new Vector3(moveX, 0, moveZ) * speed;
+        }
+        this.transform.position += moveAmount * Time.deltaTime;
+        curMoveAmount += moveAmount.magnitude;
+    }
+    //몬스터 아이디에 따른 맵 번호
+    int MonsterInMapNum()
+    {
+        if (mobID <= 1) return 0;
+        return 1;
+    }
+    
+    //메테오 스톰
+    IEnumerator MeteoStorm()
+    {
+        //캐릭터 위치에 원을 띄운다
+        circle.SetActive(true);
+        Vector3 targetPos = circle.transform.position;//목표 위치
+        yield return new WaitForSeconds(3f);
+        //돌을 목표 타겟한테 던진다.
+        stone.SetActive(true);
+        stone.transform.position = Vector3.Lerp(gameObject.transform.position, circle.transform.position, 2 * Time.deltaTime);
+    }
+    //할퀴기
+    void Claw()
+    {
+        //휘두름, 애니로 해결
+
+    }
+
+}
