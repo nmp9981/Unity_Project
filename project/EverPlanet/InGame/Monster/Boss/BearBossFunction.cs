@@ -11,9 +11,6 @@ public class BearBossFunction : MonoBehaviour
     ObjectFulling objectfulling;
     InGameUI inGameUI;
     GameObject player;
-    GameObject circle;
-    GameObject stone;
-    GameObject arm;
 
     public int mobID;
     public string name;
@@ -31,8 +28,16 @@ public class BearBossFunction : MonoBehaviour
 
     [SerializeField] Image monsterHPBarBack;
     [SerializeField] Image monsterHPBar;
-    [SerializeField] TextMeshProUGUI monsterInfo;
+    [SerializeField] Image monsterInfo;
+    [SerializeField] TextMeshProUGUI hpInfo;
     [SerializeField] TextMeshProUGUI[] hitDamage;
+
+    [SerializeField] GameObject circle;
+    [SerializeField] GameObject stoneObject;
+    [SerializeField] GameObject armObject;
+
+    float bearCurTime = 1f;
+    float bearCoolTime = 10f;
 
     void Awake()
     {
@@ -49,11 +54,16 @@ public class BearBossFunction : MonoBehaviour
         MonsterMove();
         foreach (var damage in hitDamage) damage.text = "";
     }
+    private void Start()
+    {
+        InvokeRepeating("SkillActive", 5f, 10f);
+    }
     void Update()
     {
         MonsterUISetting();
-        MonsterMove();
+        //MonsterMove();
         isDie();
+        TimeFlow();
     }
     void MonsterUISetting()
     {
@@ -64,22 +74,19 @@ public class BearBossFunction : MonoBehaviour
             monsterHPBarBack.gameObject.SetActive(false);
             monsterHPBar.gameObject.SetActive(false);
             monsterInfo.gameObject.SetActive(false);
+            hpInfo.text = string.Empty;
         }
         else
         {
             monsterHPBarBack.gameObject.SetActive(true);
             monsterHPBar.gameObject.SetActive(true);
             monsterInfo.gameObject.SetActive(true);
+            hpInfo.text = $"{monsterHP} / {monsterFullHP}";
         }
-
-        monsterHPBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
-        monsterHPBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1f, 0));
-        monsterInfo.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1.5f, 0));
 
         for (int idx = 0; idx < hitDamage.Length; idx++) hitDamage[idx].transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, idx + 2f, 0));
 
         monsterHPBar.fillAmount = (float)monsterHP / (float)monsterFullHP;
-        monsterInfo.text = name;
     }
     void isDie()
     {
@@ -89,8 +96,6 @@ public class BearBossFunction : MonoBehaviour
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
-                int mapNumber = MonsterInMapNum();
-                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mapNumber] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
 
                 int mobDrop = Random.Range(0, 100);
@@ -176,29 +181,34 @@ public class BearBossFunction : MonoBehaviour
         this.transform.position += moveAmount * Time.deltaTime;
         curMoveAmount += moveAmount.magnitude;
     }
-    //몬스터 아이디에 따른 맵 번호
-    int MonsterInMapNum()
+   void SkillActive()
     {
-        if (mobID <= 1) return 0;
-        return 1;
+        int ran = Random.Range(0, 10);
+        if (ran % 2 == 0) StartCoroutine(MeteoStorm());
+        else StartCoroutine(Claw());
     }
-    
+    void TimeFlow()
+    {
+        bearCurTime += Time.deltaTime; 
+    }
     //메테오 스톰
     IEnumerator MeteoStorm()
     {
         //캐릭터 위치에 원을 띄운다
         circle.SetActive(true);
-        Vector3 targetPos = circle.transform.position;//목표 위치
+        Vector3 targetPos = player.transform.position - new Vector3(0,0.5f,0);
+        circle.transform.position = targetPos;//목표 위치
         yield return new WaitForSeconds(3f);
         //돌을 목표 타겟한테 던진다.
-        stone.SetActive(true);
-        stone.transform.position = Vector3.Lerp(gameObject.transform.position, circle.transform.position, 2 * Time.deltaTime);
+        stoneObject.GetComponent<Stome>().Init();
     }
     //할퀴기
-    void Claw()
+    IEnumerator Claw()
     {
         //휘두름, 애니로 해결
-
+        armObject.transform.localScale = new Vector3(1, 11, 1);
+        yield return new WaitForSeconds(1f);
+        armObject.transform.localScale = new Vector3(1, 1, 1);
     }
 
 }
