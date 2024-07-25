@@ -19,10 +19,17 @@ public class PlayerHit : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.tag == "Monster")
+        if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")
         {
             int avoidRandom = Random.Range(0, 100);
-            int hit = collision.gameObject.GetComponent<MonsterFunction>().monsterHitDamage;
+            int hit = 0;
+            
+            if(collision.gameObject.tag == "Bear")
+            {
+                if (collision.gameObject.GetComponent<BearBossFunction>()) hit = collision.gameObject.GetComponent<BearBossFunction>().monsterHitDamage;
+                else hit = 2500;
+            }
+            else hit = collision.gameObject.GetComponent<MonsterFunction>().monsterHitDamage;
             int finalHit = (avoidRandom<GameManager.Instance.PlayerAvoid)?0:Random.Range(hit * 90 / 100, hit * 110 / 100);
             GameManager.Instance.PlayerHP -= finalHit;
             StartCoroutine(ShowDamage(finalHit));
