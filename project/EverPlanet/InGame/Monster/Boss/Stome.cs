@@ -4,25 +4,29 @@ using UnityEngine;
 
 public class Stome : MonoBehaviour
 {
-    Vector3 target;
+    Vector3 dir;
     bool isAttack;
-    public void Init()
+    public void Init(Vector3 targetPos, GameObject circle, Vector3 bossPos)
     {
-        GameObject circle = GameObject.Find("Circle");
-        target = circle.transform.position;
         circle.SetActive(false);
-        gameObject.transform.position = new Vector3(0,1,0);
+        gameObject.transform.position = bossPos;
         isAttack = true;
+        dir = (targetPos-bossPos).normalized;
+        InvokeRepeating("StoneMove", 0.05f, 0.1f);
     }
-    void Update()
+    void StoneMove()
     {
         if (isAttack)
         {
-            gameObject.transform.position = Vector3.Lerp(gameObject.transform.position, target, Time.deltaTime);
+            gameObject.transform.position += dir;
+            //gameObject.transform.position = Vector3.MoveTowards(gameObject.transform.position, target, 1f);
         }
     }
     private void OnCollisionEnter(Collision collision)
     {
-        isAttack = false;
+        if(collision.gameObject.tag == "Ground" || collision.gameObject.tag == "Player")
+        {
+            isAttack = false;
+        }
     }
 }
