@@ -9,11 +9,18 @@ public enum DropItems
 }
 public class MonsterDrop : MonoBehaviour
 {
+    InGameUI inGameUI;
+
     [SerializeField] DropItems dropType;
     [SerializeField] TextMeshProUGUI getMesoText;
 
     int getMeso;
     public int monsterMeso;
+
+    private void Awake()
+    {
+        inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
+    }
     private void OnEnable()
     {
        
@@ -35,7 +42,9 @@ public class MonsterDrop : MonoBehaviour
             if(dropType == DropItems.Meso)
             {
                 MesoSetting();
+                SoundManager._sound.PlaySfx(2);
                 GameManager.Instance.PlayerMeso += getMeso;
+                inGameUI.ShowGetText("Meso", getMeso);
             }
             gameObject.SetActive(false);
         }
