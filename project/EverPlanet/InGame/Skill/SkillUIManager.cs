@@ -94,7 +94,7 @@ public class SkillUIManager : MonoBehaviour
         GameManager.Instance.HasteTime = 0;
         GameManager.Instance.AddMoveSpeed = 0;
         GameManager.Instance.AddJumpSpeed = 0;
-        GameManager.Instance.AddMeso = 0;
+        GameManager.Instance.AddMeso = 100;
         GameManager.Instance.AvengerCoefficient = 0;
         GameManager.Instance.ShadowAttack = 0;
         GameManager.Instance.ShadowTime = 0;
@@ -164,6 +164,7 @@ public class SkillUIManager : MonoBehaviour
             hasteLv += 1;
             GameManager.Instance.AddMoveSpeed = 2 * hasteLv;
             GameManager.Instance.AddJumpSpeed = hasteLv;
+            GameManager.Instance.HasteTime = 90+hasteLv * 5;
         }
     }
     public void MesoUpUp()
