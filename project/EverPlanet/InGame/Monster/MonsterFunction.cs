@@ -86,7 +86,7 @@ public class MonsterFunction : MonoBehaviour
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
                 int mapNumber = MonsterInMapNum();
-                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mapNumber] -= 1;
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mobID-1] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
                 
                 int mobDrop = Random.Range(0, 100);
