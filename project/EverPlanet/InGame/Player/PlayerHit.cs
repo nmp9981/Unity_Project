@@ -16,7 +16,10 @@ public class PlayerHit : MonoBehaviour
         tombStone.SetActive(false);
         tombStoneMessage.SetActive(false);
     }
-
+    private void Update()
+    {
+        PlayerDie();
+    }
     private void OnCollisionEnter(Collision collision)
     {
         if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")
@@ -33,17 +36,20 @@ public class PlayerHit : MonoBehaviour
             int finalHit = (avoidRandom<GameManager.Instance.PlayerAvoid)?0:Random.Range(hit * 90 / 100, hit * 110 / 100);
             GameManager.Instance.PlayerHP -= finalHit;
             StartCoroutine(ShowDamage(finalHit));
-
-            if(GameManager.Instance.PlayerHP <= 0)//캐릭터 사망
-            {
-                GameManager.Instance.IsCharacterDie = true;
-                tombStone.SetActive(true);
-                tombStoneMessage.SetActive(true);
-            }
+        }
+    }
+    //사망
+    void PlayerDie()
+    {
+        if (GameManager.Instance.PlayerHP <= 0)//캐릭터 사망
+        {
+            GameManager.Instance.IsCharacterDie = true;
+            tombStone.SetActive(true);
+            tombStoneMessage.SetActive(true);
         }
     }
     //데미지 보여주기
-    IEnumerator ShowDamage(int finalHit)
+    public IEnumerator ShowDamage(int finalHit)
     {
         hitDamageText.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 2f, 0));
         hitDamageText.text = (finalHit==0)?"MISS": finalHit.ToString();
