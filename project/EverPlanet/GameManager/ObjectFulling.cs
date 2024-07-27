@@ -52,10 +52,21 @@ public class ObjectFulling : MonoBehaviour
         //블록
         for (int i = 0; i < blockKinds; i++)
         {
-            for (int j = 0; j < blockMaxCount; j++)
+            if(i>=23 && i <= 25)
             {
-                blocks[i][j] = Instantiate(blockPrefabs[i]);
-                blocks[i][j].SetActive(false);
+                for (int j = 0; j < 1; j++)
+                {
+                    blocks[i][j] = Instantiate(blockPrefabs[i]);
+                    blocks[i][j].SetActive(false);
+                }
+            }
+            else
+            {
+                for (int j = 0; j < blockMaxCount; j++)
+                {
+                    blocks[i][j] = Instantiate(blockPrefabs[i]);
+                    blocks[i][j].SetActive(false);
+                }
             }
         }
     }
