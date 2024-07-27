@@ -56,7 +56,7 @@ public class DragFunction : MonoBehaviour
     void TimeChecker()
     {
         liveTime += Time.deltaTime;
-        if (liveTime >= 5.0f) gameObject.SetActive(false);
+        if (liveTime >= 8.0f) gameObject.SetActive(false);
     }
     //표창 이동
     void DragMove()
@@ -98,12 +98,15 @@ public class DragFunction : MonoBehaviour
     //피격
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.tag == "Monster")//몬스터 공격
+        if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")//몬스터 공격
         {
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
             if (isShadow) attackDamage = (long)((float)attackDamage*GameManager.Instance.ShadowAttack/100f);
-            collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
+            if (collision.gameObject.tag == "Bear" && collision.gameObject.name.Contains("Bear"))
+            {
+                collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
+            }else collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
         }
     }
     //공격 데미지
