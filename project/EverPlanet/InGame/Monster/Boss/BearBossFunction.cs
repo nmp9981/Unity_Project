@@ -17,7 +17,7 @@ public class BearBossFunction : MonoBehaviour
     public long monsterFullHP;
     public long monsterHP;
     public long monsterExp;
-    public int monsterGetMeso;
+    public int monsterGetMeso = 18500;
     int monsterDieCount;
 
     public int monsterHitDamage;//피격 데미지
@@ -32,12 +32,13 @@ public class BearBossFunction : MonoBehaviour
     [SerializeField] TextMeshProUGUI hpInfo;
     [SerializeField] TextMeshProUGUI[] hitDamage;
 
-    [SerializeField] GameObject circle;
-    [SerializeField] GameObject stoneObject;
+    GameObject circle;
+    GameObject stoneObject;
     [SerializeField] GameObject armObject;
 
     float bearCurTime = 1f;
-    float bearCoolTime = 10f;
+    float bearCoolTime = 9f;
+    float betweenDist;
 
     void Awake()
     {
@@ -45,9 +46,14 @@ public class BearBossFunction : MonoBehaviour
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
         player = GameObject.Find("Player");
+        circle = GameObject.Find("Circle");
+        stoneObject = GameObject.Find("Rock_3");
+        circle.SetActive(false);
     }
     private void OnEnable()
     {
+        circle.SetActive(false);
+        
         monsterHP = monsterFullHP;
         monsterDieCount = 0;
         goalMoveAmount = -1;
@@ -56,20 +62,20 @@ public class BearBossFunction : MonoBehaviour
     }
     private void Start()
     {
-        InvokeRepeating("SkillActive", 5f, 10f);
+        InvokeRepeating("SkillActive", 5f, bearCoolTime);
     }
     void Update()
     {
         MonsterUISetting();
-        //MonsterMove();
+        MonsterMove();
         isDie();
         TimeFlow();
     }
     void MonsterUISetting()
     {
         //플레이어와 일정 거리 이상이면 UI가 안보이게
-        float dist = (player.transform.position - this.gameObject.transform.position).sqrMagnitude;
-        if (dist > 1500)
+        betweenDist = (player.transform.position - this.gameObject.transform.position).sqrMagnitude;
+        if (betweenDist > 1500)
         {
             monsterHPBarBack.gameObject.SetActive(false);
             monsterHPBar.gameObject.SetActive(false);
@@ -94,6 +100,7 @@ public class BearBossFunction : MonoBehaviour
         {
             monsterDieCount += 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
+            circle.SetActive(false);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
                 GameManager.Instance.PlayerEXP += monsterExp;
@@ -183,9 +190,12 @@ public class BearBossFunction : MonoBehaviour
     }
    void SkillActive()
     {
-        int ran = Random.Range(0, 10);
-        if (ran % 2 == 0) StartCoroutine(MeteoStorm());
-        else StartCoroutine(Claw());
+        if(betweenDist < 1500 && gameObject.activeSelf)
+        {
+            int ran = Random.Range(0, 10);
+            if (ran % 2 == 0) StartCoroutine(MeteoStorm());
+            else StartCoroutine(Claw());
+        }
     }
     void TimeFlow()
     {
@@ -200,7 +210,7 @@ public class BearBossFunction : MonoBehaviour
         circle.transform.position = targetPos;//목표 위치
         yield return new WaitForSeconds(3f);
         //돌을 목표 타겟한테 던진다.
-        stoneObject.GetComponent<Stome>().Init();
+        stoneObject.GetComponent<Stome>().Init(targetPos, circle);
     }
     //할퀴기
     IEnumerator Claw()
@@ -210,5 +220,4 @@ public class BearBossFunction : MonoBehaviour
         yield return new WaitForSeconds(1f);
         armObject.transform.localScale = new Vector3(1, 1, 1);
     }
-
 }
