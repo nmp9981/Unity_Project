@@ -19,23 +19,27 @@ public class PlayerHit : MonoBehaviour
     private void Update()
     {
         PlayerDie();
+        Debug.Log(GameManager.Instance.IsInvincibility+"무적");
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")
+        if (!GameManager.Instance.IsInvincibility)
         {
-            int avoidRandom = Random.Range(0, 100);
-            int hit = 0;
-            
-            if(collision.gameObject.tag == "Bear")
+            if (collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")
             {
-                if (collision.gameObject.GetComponent<BearBossFunction>()) hit = collision.gameObject.GetComponent<BearBossFunction>().monsterHitDamage;
-                else hit = 2500;
+                int avoidRandom = Random.Range(0, 100);
+                int hit = 0;
+
+                if (collision.gameObject.tag == "Bear")
+                {
+                    if (collision.gameObject.GetComponent<BearBossFunction>()) hit = collision.gameObject.GetComponent<BearBossFunction>().monsterHitDamage;
+                    else hit = 2500;
+                }
+                else hit = collision.gameObject.GetComponent<MonsterFunction>().monsterHitDamage;
+                int finalHit = (avoidRandom < GameManager.Instance.PlayerAvoid) ? 0 : Random.Range(hit * 90 / 100, hit * 110 / 100);
+                GameManager.Instance.PlayerHP -= finalHit;
+                StartCoroutine(ShowDamage(finalHit));
             }
-            else hit = collision.gameObject.GetComponent<MonsterFunction>().monsterHitDamage;
-            int finalHit = (avoidRandom<GameManager.Instance.PlayerAvoid)?0:Random.Range(hit * 90 / 100, hit * 110 / 100);
-            GameManager.Instance.PlayerHP -= finalHit;
-            StartCoroutine(ShowDamage(finalHit));
         }
     }
     //사망
@@ -48,13 +52,16 @@ public class PlayerHit : MonoBehaviour
             tombStoneMessage.SetActive(true);
         }
     }
-    //데미지 보여주기
+    //데미지 보여주기 및 무적효과 처리
     public IEnumerator ShowDamage(int finalHit)
     {
         hitDamageText.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 2f, 0));
         hitDamageText.text = (finalHit==0)?"MISS": finalHit.ToString();
-        yield return new WaitForSeconds(0.3f);
+        GameManager.Instance.IsInvincibility = true;//무적 효과 발동
+        yield return new WaitForSecondsRealtime(0.3f);
         hitDamageText.text = "";
+        yield return new WaitForSecondsRealtime(1.0f);
+        GameManager.Instance.IsInvincibility = false;
     }
     //부활
     public void Resurrection()
