@@ -103,10 +103,15 @@ public class DragFunction : MonoBehaviour
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
             if (isShadow) attackDamage = (long)((float)attackDamage*GameManager.Instance.ShadowAttack/100f);
-            if (collision.gameObject.tag == "Bear" && collision.gameObject.name.Contains("Bear"))
+
+            if (collision.gameObject.tag == "Bear" && (collision.gameObject.name.Contains("Bear") || collision.gameObject.name.Contains("Human_Mutant")))
             {
                 collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
-            }else collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
+            }
+            else
+            {
+                collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
+            }
         }
     }
     //공격 데미지
