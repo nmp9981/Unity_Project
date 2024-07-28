@@ -62,7 +62,7 @@ public class BearBossFunction : MonoBehaviour
     }
     private void Start()
     {
-        InvokeRepeating("SkillActive", 5f, bearCoolTime);
+        if(gameObject.name.Contains("Bear")) InvokeRepeating("SkillActive", 5f, bearCoolTime);//곰일 경우에만 발동
     }
     void Update()
     {
