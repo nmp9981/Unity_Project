@@ -96,6 +96,17 @@ public class ObjectFulling : MonoBehaviour
         }
         return false;//없으면 빈 객체
     }
+    //오브젝트 존재하면 가져오기
+    public GameObject GetObj(int num)
+    {
+        targetPool = blocks[num];
+
+        for (int i = 0; i < targetPool.Length; i++)
+        {
+            if (targetPool[i].activeSelf) return targetPool[i];//활성화된게 있으면
+        }
+        return null;//없으면 빈 객체
+    }
     //오브젝트 배열 가져오기
     public GameObject[] GetPool(int num)//지정한 오브젝트 풀 가져오기
     {
