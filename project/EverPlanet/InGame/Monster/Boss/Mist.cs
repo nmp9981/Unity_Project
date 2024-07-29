@@ -32,7 +32,7 @@ public class Mist : MonoBehaviour
     }
     private void OnCollisionStay(Collision collision)
     {
-        if(curTime > doteTime)
+        if(curTime > doteTime && !GameManager.Instance.IsInvincibility)
         {
             GameManager.Instance.PlayerHP -= doteDamage;
             if (GameManager.Instance.PlayerHP <= 0) GameManager.Instance.PlayerHP = 0;
