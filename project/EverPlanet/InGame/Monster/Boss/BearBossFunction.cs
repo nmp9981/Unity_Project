@@ -48,15 +48,14 @@ public class BearBossFunction : MonoBehaviour
         player = GameObject.Find("Player");
         circle = GameObject.Find("Circle");
         stoneObject = GameObject.Find("Rock_3");
-        circle.SetActive(false);
     }
     private void OnEnable()
-    {
-        circle.SetActive(false);
-        
+    {   
         monsterHP = monsterFullHP;
         monsterDieCount = 0;
         goalMoveAmount = -1;
+
+        if (gameObject.name.Contains("Bear")) circle.SetActive(false);
         MonsterMove();
         foreach (var damage in hitDamage) damage.text = "";
     }
@@ -100,7 +99,7 @@ public class BearBossFunction : MonoBehaviour
         {
             monsterDieCount += 1;
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
-            circle.SetActive(false);
+            if (gameObject.name.Contains("Bear")) circle.SetActive(false);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
                 GameManager.Instance.PlayerEXP += monsterExp;
