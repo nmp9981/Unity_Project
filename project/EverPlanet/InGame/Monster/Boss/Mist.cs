@@ -7,33 +7,58 @@ public class Mist : MonoBehaviour
     float doteTime;
     float curTime;
     int doteDamage;
+    float curMistRange;
+    float maxMistRange = 21f;
     [SerializeField] GameObject player;
-    GameObject bossObj;
+    ObjectFulling objectfulling;
+
     private void Awake()
     {
-        bossObj = GameObject.Find("Human_Mutant");
+        objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
+        GetComponent<Mist>().enabled = true;
     }
     private void OnEnable()
     {
-        curTime = 1.4f;
+        curTime = 1f;
         doteTime = 1.5f;
         doteDamage = 800;
-        gameObject.transform.position = bossObj.transform.position; //보스 위치로 위치 지정
         gameObject.transform.localScale = Vector3.one;
+        curMistRange = 0;
         InvokeRepeating("CloudSizeUp", 0.1f, 0.2f);
     }
     private void Update()
     {
         curTime += Time.deltaTime;
+        InCloud();
     }
     void CloudSizeUp()
     {
-        if(gameObject.transform.localScale.x<11f) gameObject.transform.localScale += 2*Vector3.one;
-    }
-    private void OnCollisionStay(Collision collision)
-    {
-        if(curTime > doteTime && !GameManager.Instance.IsInvincibility)
+        if (gameObject.transform.localScale.x < maxMistRange)
         {
+            gameObject.transform.localScale += 2 * Vector3.one;
+            curMistRange += 2;
+        }
+    }
+    void InCloud()
+    {
+        float dist = (player.transform.position - gameObject.transform.position).sqrMagnitude;
+        if (dist < curMistRange * curMistRange)
+        {
+            if (curTime > doteTime && !GameManager.Instance.IsInvincibility)
+            {
+                GameManager.Instance.PlayerHP -= doteDamage;
+                if (GameManager.Instance.PlayerHP <= 0) GameManager.Instance.PlayerHP = 0;
+                curTime = 0;
+                StartCoroutine(player.GetComponent<PlayerHit>().ShowDamage(doteDamage));
+            }
+        }
+        else GameManager.Instance.IsInvincibility = false;
+    }
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (curTime > doteTime && !GameManager.Instance.IsInvincibility)
+        {
+            Debug.Log("Tlqkf");
             GameManager.Instance.PlayerHP -= doteDamage;
             if (GameManager.Instance.PlayerHP <= 0) GameManager.Instance.PlayerHP = 0;
             curTime = 0;
