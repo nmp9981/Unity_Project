@@ -54,15 +54,4 @@ public class Mist : MonoBehaviour
         }
         else GameManager.Instance.IsInvincibility = false;
     }
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        if (curTime > doteTime && !GameManager.Instance.IsInvincibility)
-        {
-            Debug.Log("Tlqkf");
-            GameManager.Instance.PlayerHP -= doteDamage;
-            if (GameManager.Instance.PlayerHP <= 0) GameManager.Instance.PlayerHP = 0;
-            curTime = 0;
-            StartCoroutine(player.GetComponent<PlayerHit>().ShowDamage(doteDamage));
-        }
-    }
 }
