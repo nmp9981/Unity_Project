@@ -29,7 +29,7 @@ public class MutantSkill : MonoBehaviour
     void MutantAttack()
     {
         float dist = (player.transform.position - gameObject.transform.position).sqrMagnitude;
-        if (dist < 1500)
+        if (dist < 1500 && gameObject.activeSelf)
         {
             int ran = Random.Range(0, 9);
             switch (ran % 3)
@@ -57,7 +57,7 @@ public class MutantSkill : MonoBehaviour
     {
         prickle.SetActive(true);
         prickle.transform.position = player.transform.position + new Vector3(0, -5, 0);
-        yield return new WaitForSeconds(0.8f);
+        yield return new WaitForSeconds(3f);
         prickle.SetActive(false);
     }
     IEnumerator Whip()
