@@ -16,11 +16,12 @@ public class MutantSkill : MonoBehaviour
         GetComponent<BearBossFunction>().enabled = true;
         mistObject = GameObject.Find("Mist");
         player = GameObject.Find("Player");
+        prickle = GameObject.Find("Needle");
     }
     void OnEnable()
     {
         mistObject.SetActive(false);
-        //prickle.SetActive(false);   
+        prickle.SetActive(false);   
         whipLeft.SetActive(false);
         whipRight.SetActive(false);
         InvokeRepeating("MutantAttack", 4f, 7f);
@@ -48,12 +49,14 @@ public class MutantSkill : MonoBehaviour
     IEnumerator Mist()
     {
         mistObject.SetActive(true);
+        mistObject.transform.position = gameObject.transform.position;
         yield return new WaitForSeconds(10.0f);
         mistObject.SetActive(false);
     }
     IEnumerator Prickle()
     {
         prickle.SetActive(true);
+        prickle.transform.position = player.transform.position + new Vector3(0, -5, 0);
         yield return new WaitForSeconds(0.8f);
         prickle.SetActive(false);
     }
