@@ -104,7 +104,8 @@ public class DragFunction : MonoBehaviour
             attackDamage = AttackDamage();
             if (isShadow) attackDamage = (long)((float)attackDamage*GameManager.Instance.ShadowAttack/100f);
 
-            if (collision.gameObject.tag == "Bear" && (collision.gameObject.name.Contains("Bear") || collision.gameObject.name.Contains("Human_Mutant")))
+            if (collision.gameObject.tag == "Bear" && (collision.gameObject.name.Contains("Bear") 
+                || collision.gameObject.name.Contains("Human_Mutant") || collision.gameObject.name.Contains("Rhino_PBR")))
             {
                 collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
             }
