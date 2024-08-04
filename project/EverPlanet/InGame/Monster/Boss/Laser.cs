@@ -7,10 +7,6 @@ public class Laser : MonoBehaviour
     GameObject player;
     int laserTimer;
 
-    private void Awake()
-    {
-        //player = GameObject.Find("Player");
-    }
     private void OnEnable()
     {
         laserTimer = 0;
