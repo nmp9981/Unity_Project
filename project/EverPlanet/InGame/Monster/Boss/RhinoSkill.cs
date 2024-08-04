@@ -9,7 +9,7 @@ public class RhinoSkill : MonoBehaviour
     GameObject laserObj;
     GameObject fireBress;
     ObjectFulling objectFulling;
-    [SerializeField] GameObject eyes;
+    public GameObject eyes;
 
 
     int[] SpawnDirXpos = {-1,-1,1,1};
@@ -21,6 +21,7 @@ public class RhinoSkill : MonoBehaviour
         laserObj = GameObject.Find("Laser");
         fireBress = GameObject.Find("FireBress");
         laserObj.SetActive(false);
+        fireBress.SetActive(false);
         objectFulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         eyes.GetComponent<MeshRenderer>().material.color = Color.black;
     }
@@ -34,6 +35,7 @@ public class RhinoSkill : MonoBehaviour
         if (dist < 1600 && gameObject.activeSelf)
         {
             int ran = Random.Range(0, 8);
+            ran = 2;
             switch (ran % 4)
             {
                 case 0://잡몹 소환
@@ -65,13 +67,14 @@ public class RhinoSkill : MonoBehaviour
     void Laser()
     {
         eyes.GetComponent<MeshRenderer>().material.color = Color.red;
-        laserObj.SetActive(true);
         laserObj.transform.position = eyes.transform.position;
+        laserObj.SetActive(true);
         laserObj.transform.localScale = new Vector3(1, 0.5f, 1);
     }
     //범위 공격
     void FireBressOn()
     {
+        fireBress.transform.position = gameObject.transform.position;
         fireBress.SetActive(true);
         Invoke("FireBressOff",5f);
     }
@@ -83,6 +86,6 @@ public class RhinoSkill : MonoBehaviour
     //점프 공격
     void JumpAttack()
     {
-        gameObject.GetComponent<Rigidbody>().AddForce(0, 8000, 0);
+        gameObject.transform.position += Vector3.up * 40f;
     }
 }
