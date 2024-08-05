@@ -5,14 +5,25 @@ using UnityEngine;
 public class Laser : MonoBehaviour
 {
     GameObject player;
+    Vector3 eyePos;
+    Vector3 dir;
+    Vector3 dirNomal;
     int laserTimer;
 
     private void OnEnable()
     {
         laserTimer = 0;
         player = GameObject.Find("Player");
-        transform.rotation = Quaternion.Lerp(gameObject.transform.rotation, Quaternion.LookRotation(player.transform.position), Time.deltaTime * 30f);//플레이어를 향하게
-        InvokeRepeating("LaserShot", 2f,0.1f);
+        gameObject.transform.localScale = Vector3.one;
+        dir = player.transform.position - eyePos;
+        dir.y *=10;
+        dirNomal = dir.normalized;
+
+        Debug.Log(dirNomal.x + " " + dirNomal.y + " " + dirNomal.z);
+        Quaternion rot = Quaternion.LookRotation(dirNomal, Vector3.up);
+        Debug.Log(rot.x + " " + rot.y + " " + rot.z);
+        gameObject.transform.rotation = rot;
+        InvokeRepeating("LaserShot", 2f,0.15f);
     }
     void LaserShot()
     {
@@ -20,10 +31,14 @@ public class Laser : MonoBehaviour
         if (laserTimer < 30)
         {
             gameObject.transform.localScale = new Vector3(1, laserTimer, 1);
+            gameObject.transform.position += dirNomal;
         }
         else gameObject.SetActive(false);
     }
-
+    public void LaserPos(Vector3 pos)
+    {
+        eyePos = pos;
+    }
     private void OnCollisionEnter(Collision collision)
     {
         if(collision.gameObject.tag == "Player" && !GameManager.Instance.IsInvincibility)
