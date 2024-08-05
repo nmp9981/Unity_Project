@@ -35,7 +35,7 @@ public class RhinoSkill : MonoBehaviour
         if (dist < 1600 && gameObject.activeSelf)
         {
             int ran = Random.Range(0, 8);
-            ran = 2;
+            ran = 1;
             switch (ran % 4)
             {
                 case 0://잡몹 소환
@@ -68,6 +68,7 @@ public class RhinoSkill : MonoBehaviour
     {
         eyes.GetComponent<MeshRenderer>().material.color = Color.red;
         laserObj.transform.position = eyes.transform.position;
+        laserObj.GetComponent<Laser>().LaserPos(eyes.transform.position);
         laserObj.SetActive(true);
         laserObj.transform.localScale = new Vector3(1, 0.5f, 1);
     }
