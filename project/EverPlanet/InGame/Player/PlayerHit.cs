@@ -19,7 +19,6 @@ public class PlayerHit : MonoBehaviour
     private void Update()
     {
         PlayerDie();
-        Debug.Log(GameManager.Instance.IsInvincibility+"무적");
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -50,6 +49,10 @@ public class PlayerHit : MonoBehaviour
             GameManager.Instance.IsCharacterDie = true;
             tombStone.SetActive(true);
             tombStoneMessage.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.KeypadEnter))//사망 확인 버튼
+        {
+            if (tombStoneMessage.activeSelf) Resurrection();
         }
     }
     //데미지 보여주기 및 무적효과 처리
