@@ -88,6 +88,8 @@ public class GameManager : MonoBehaviour
     int _skillPoint = 180;
 
     bool _isAttackBuffOn;
+    bool _isAccBuffOn;
+    bool _isAvoidBuffOn;
 
     #region 스킬 관련
     float _throwDist = 550;
@@ -97,7 +99,7 @@ public class GameManager : MonoBehaviour
     float _addMoveSpeed = 0;
     float _addJumpSpeed = 0;
     float _hasteTime = 0;//지속시간
-    int _addMeso = 0;
+    int _addMeso = 100;
     float _mesoUpTime = 0;//지속시간
     long _avengerCoefficient = 0;
     long _tripleThrowCoefficient = 0;
@@ -108,6 +110,7 @@ public class GameManager : MonoBehaviour
     float _sfxVolume = 1.0f;
 
     bool _isCharacterDie = false;
+    bool _isInvincibility = false;
 
     public float PlayerMoveSpeed { get { return _playerMoveSpeed; } set { _playerMoveSpeed = value; } }
     public float PlayerJumpSpeed { get { return _playerJumpSpeed; } set { _playerJumpSpeed = value; } }
@@ -157,6 +160,8 @@ public class GameManager : MonoBehaviour
     public int SkillPoint { get { return _skillPoint; } set { _skillPoint = value; } }
 
     public bool IsAtaackBuffOn { get { return _isAttackBuffOn; } set { _isAttackBuffOn = value; } }
+    public bool IsAccBuffOn { get { return _isAccBuffOn; } set { _isAccBuffOn = value; } }
+    public bool IsAvoidBuffOn { get { return _isAvoidBuffOn; } set { _isAvoidBuffOn = value; } }
 
     #region 스킬 관련
     public float ThrowDist { get { return _throwDist; } set { _throwDist = value; } }
@@ -177,5 +182,6 @@ public class GameManager : MonoBehaviour
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
 
     public bool IsCharacterDie { get { return _isCharacterDie; }set { _isCharacterDie = value; } }
+    public bool IsInvincibility { get { return _isInvincibility; } set { _isInvincibility = value; } }
     #endregion
 }
