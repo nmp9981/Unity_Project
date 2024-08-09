@@ -16,6 +16,7 @@ namespace Jenkins
             var toDate = DateTime.Now.ToString("yyyy_MM_dd");
             var buildDirectoryPath = $"C:/unity build/{toDate}";
             var naverCloudDirectoryPath = "C:/NAVER WORKS Drive/. Public_Root/프로젝트@21000000089073/삼성/Build";
+            //var naverCloudDirectoryPathname = $"C:/NAVER WORKS Drive/. Public_Root/프로젝트@21000000089073/삼성/Build/{toDate}_Metacle_MARProject_Dev_{PlayerSettings.bundleVersion}.exe";
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = new[] { "Assets/Scenes/Main.unity" },
@@ -36,11 +37,19 @@ namespace Jenkins
                     string nowDirectoryPath = $"{buildDirectoryPath}";
                     if (Directory.Exists(nowDirectoryPath))
                     {
+                        
                         string naverCloudDirectoryPathname = $"{naverCloudDirectoryPath}/{toDate}_Metacle_MARProject_Dev_{PlayerSettings.bundleVersion}.exe";
+                        if (File.Exists($"{naverCloudDirectoryPathname}.zip"))
+                        {
+                            PlayerSettings.bundleVersion += 0.1;
+                            naverCloudDirectoryPathname = $"{naverCloudDirectoryPath}/{toDate}_Metacle_MARProject_Dev_{PlayerSettings.bundleVersion}.exe";
+                        }
+                        /*
                         if (!Directory.Exists(naverCloudDirectoryPathname))
                         {
                             Directory.CreateDirectory(naverCloudDirectoryPathname);
                         }
+                        */
                         ZipFiles(nowDirectoryPath, $"{naverCloudDirectoryPathname}.zip");
                     }
                     EditorApplication.Exit(0);
