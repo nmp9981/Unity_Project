@@ -44,11 +44,12 @@ public class InGameUI : MonoBehaviour
 
     [Header("MiniMap")]
     [SerializeField] GameObject minimapObj;
+    [SerializeField] Camera minimapCamera;
     
     void Update()
     {
         ShowPlayerUI();
-        ShowStatUI();
+        ShowUI();
         StatUIInfo();
         ItemUIUInfo();
     }
@@ -74,7 +75,7 @@ public class InGameUI : MonoBehaviour
         curAvoidUPCount.text = $"{GameManager.Instance.AvoidUPCount}";
         curReturnToVillegeCount.text = $"{GameManager.Instance.ReturnVillegeCount}";
     }
-    void ShowStatUI()
+    void ShowUI()
     {
         if (Input.GetKeyDown(KeyCode.S))
         {
@@ -87,8 +88,16 @@ public class InGameUI : MonoBehaviour
             else itemUI.SetActive(true);
         }
         if (Input.GetKeyDown(KeyCode.M)){
-            if (minimapObj.activeSelf) minimapObj.SetActive(false);
-            else minimapObj.SetActive(true);
+            if (minimapObj.activeSelf)
+            {
+                minimapObj.SetActive(false);
+                minimapCamera.gameObject.SetActive(false);
+            }
+            else
+            {
+                minimapObj.SetActive(true);
+                minimapCamera.gameObject.SetActive(true);
+            }
         }
     }
     void StatUIInfo()
