@@ -49,8 +49,11 @@ public class GameManager : MonoBehaviour
     long _shadowAttack = 0;//그림자 공격력
     int _criticalRate = 0;//크리티컬 확률
     int _criticalDamage = 100;//크리티컬 데미지
+    int _workmanship = 50;//숙현도
 
-    int _workmanship = 50;
+    int _playerCurrentMap;//캐릭터가 현재 있는 맵
+    int _playBGMNumber;//BGM번호
+
     #region 캐릭터 스탯 관련
     string _playerJob;
     int _playerLV;
@@ -85,7 +88,7 @@ public class GameManager : MonoBehaviour
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
     int _apPoint;
-    int _skillPoint = 180;
+    int _skillPoint = 0;
 
     bool _isAttackBuffOn;
     bool _isAccBuffOn;
@@ -123,8 +126,11 @@ public class GameManager : MonoBehaviour
     public long ShadowAttack { get { return _shadowAttack; } set { _shadowAttack = value; } }
     public int CriticalRate { get { return _criticalRate; } set { _criticalRate = value; } }
     public int CriticalDamage { get { return _criticalDamage; } set { _criticalDamage = value; } }
-
     public int Workmanship { get { return _workmanship; } set { _workmanship = value; } }
+
+    public int PlayerCurrentMap { get { return _playerCurrentMap; } set { _playerCurrentMap = value; } }
+    public int PlayerBGMNumber { get { return _playBGMNumber; } set { _playBGMNumber = value; } }
+
     #region 캐릭터 스탯 관련
     public string PlayerJob { get { return _playerJob; } set { _playerJob = value; } }
     public int PlayerLV { get { return _playerLV; } set { _playerLV = value; } }
