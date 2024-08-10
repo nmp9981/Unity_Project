@@ -7,13 +7,6 @@ public class Portal : MonoBehaviour
     [SerializeField] int nextPortalNum;
     [SerializeField] GameObject player;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow) && PortalManager.PortalInstance.Curtime>= PortalManager.PortalInstance.Cooltime)
@@ -21,9 +14,41 @@ public class Portal : MonoBehaviour
             float dist = Vector3.Magnitude(player.transform.position - gameObject.transform.position);
             if (dist < 2)
             {
+                SoundManager._sound.PlaySfx(0);
                 PortalManager.PortalInstance.Curtime = 0;
+                ChangeMap(nextPortalNum);
                 player.transform.position = PortalManager.PortalInstance.portalist[nextPortalNum].transform.position;
             }
+        }
+    }
+    void ChangeMap(int nextPortalNum)
+    {
+        switch (nextPortalNum)
+        {
+            case int n when(n<=2):
+                GameManager.Instance.PlayerCurrentMap = 0;
+                break;
+            case int n when (n>=3 && n <= 4):
+                GameManager.Instance.PlayerCurrentMap = 1;
+                break;
+            case int n when (n >= 5 && n <= 7):
+                GameManager.Instance.PlayerCurrentMap = 2;
+                break;
+            case int n when (n >= 8 && n <= 9):
+                GameManager.Instance.PlayerCurrentMap = 3;
+                break;
+            case int n when (n >= 10 && n <= 11):
+                GameManager.Instance.PlayerCurrentMap = 4;
+                break;
+            case int n when (n >= 12 && n <= 13):
+                GameManager.Instance.PlayerCurrentMap = 5;
+                break;
+            case int n when (n >= 14 && n <= 15):
+                GameManager.Instance.PlayerCurrentMap = 6;
+                break;
+            case 16:
+                GameManager.Instance.PlayerCurrentMap = 7;
+                break;
         }
     }
 }
