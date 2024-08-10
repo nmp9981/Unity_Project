@@ -15,6 +15,8 @@ public class Laser : MonoBehaviour
         laserTimer = 0;
         player = GameObject.Find("Player");
         gameObject.transform.localScale = Vector3.one;
+
+        /*
         dir = player.transform.position - eyePos;
         dir.y *=10;
         dirNomal = dir.normalized;
@@ -23,6 +25,11 @@ public class Laser : MonoBehaviour
         Quaternion rot = Quaternion.LookRotation(dirNomal, Vector3.up);
         Debug.Log(rot.x + " " + rot.y + " " + rot.z);
         gameObject.transform.rotation = rot;
+        */
+
+        dir = player.transform.position - eyePos;
+        Vector3 rotateAngle = new Vector3(RotateX(dir), RotateY(dir), RotateZ(dir));
+        gameObject.transform.Rotate(rotateAngle);
         InvokeRepeating("LaserShot", 2f,0.15f);
     }
     void LaserShot()
@@ -48,5 +55,24 @@ public class Laser : MonoBehaviour
             if (GameManager.Instance.PlayerHP <= 0) GameManager.Instance.PlayerHP = 0;
             StartCoroutine(collision.gameObject.GetComponent<PlayerHit>().ShowDamage(damage));
         }
+    }
+    //각 축별로 회전 각도
+    float RotateX(Vector3 dir)
+    {
+        float cosTheta = dir.x / dir.magnitude;
+        float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+        return theta;
+    }
+    float RotateY(Vector3 dir)
+    {
+        float cosTheta = dir.y / dir.magnitude;
+        float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+        return theta;
+    }
+    float RotateZ(Vector3 dir)
+    {
+        float cosTheta = dir.z / dir.magnitude;
+        float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
+        return theta;
     }
 }
