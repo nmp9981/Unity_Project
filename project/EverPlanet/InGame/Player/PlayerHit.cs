@@ -72,7 +72,11 @@ public class PlayerHit : MonoBehaviour
         GameManager.Instance.IsCharacterDie = false;
         GameManager.Instance.PlayerHP = GameManager.Instance.PlayerMaxHP / 2;
         GameManager.Instance.PlayerEXP = Mathf.Max(0, (int)GameManager.Instance.PlayerEXP-(int)GameManager.Instance.PlayerReqExp /20);
+
         this.gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;//마을로 이동
+        GameManager.Instance.PlayerCurrentMap = 0;
+        SoundManager._sound.PlayBGM(0);
+
         tombStone.SetActive(false);
         tombStoneMessage.SetActive(false);
     }
