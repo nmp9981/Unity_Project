@@ -41,6 +41,9 @@ public class InGameUI : MonoBehaviour
     [Header("Item")]
     [SerializeField] GameObject itemUI;
     [SerializeField] TextMeshProUGUI playerMesoText;
+
+    [Header("MiniMap")]
+    [SerializeField] GameObject minimapObj;
     
     void Update()
     {
@@ -82,6 +85,10 @@ public class InGameUI : MonoBehaviour
         {
             if (itemUI.activeSelf) itemUI.SetActive(false);
             else itemUI.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.M)){
+            if (minimapObj.activeSelf) minimapObj.SetActive(false);
+            else minimapObj.SetActive(true);
         }
     }
     void StatUIInfo()
