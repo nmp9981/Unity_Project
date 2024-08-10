@@ -7,9 +7,10 @@ public class MapManagement : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI mapName;
     [SerializeField] string[] mapNameList = new string[9];
-    void Awake()
+    void Start()
     {
-        SoundManager._sound.PlayBGM(0);//맨처음에는 마을에서 시작 -> 마을 bgm
+        GameManager.Instance.PlayerBGMNumber = 0;
+        SoundManager._sound.PlayBGM(GameManager.Instance.PlayerBGMNumber);//맨처음에는 마을에서 시작 -> 마을 bgm
         mapName.text = $"{mapNameList[0]}";
     }
 
