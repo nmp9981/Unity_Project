@@ -48,12 +48,16 @@ public class SoundManager : MonoBehaviour
     {
         _audioBgmSource.clip = _bgmClip[musicNum];
         _audioBgmSource.volume = GameManager.Instance.BGMVolume;//상시 조절되게 바깥으로 뺌
+        _audioBgmSource.loop = true;
+        _audioBgmSource.Play();
+       
+        /*
         if (!_audioBgmSource.isPlaying)
         {
             _audioBgmSource.playOnAwake = true;
-            _audioBgmSource.loop = false;
             _audioBgmSource.PlayOneShot(_bgmClip[musicNum]);//한개만 적용
         }
+        */
     }
     public void StopBGM(int musicNum)
     {
