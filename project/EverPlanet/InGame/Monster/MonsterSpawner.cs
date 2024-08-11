@@ -11,7 +11,7 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] List<Transform> spawnPositionList;
 
     float curTime = 6.5f;
-    float coolTime = 7.0f;
+    float coolTime = 7.5f;
 
     float bearCurTime = 6.5f;
     float bearCoolTime = 900f;
@@ -81,17 +81,20 @@ public class MonsterSpawner : MonoBehaviour
     IEnumerator MonsterSpawn()
     {
         int spawnCount = 0;
-        int spawnPositionNumber = Random.Range(0, 38);
-        int mapNum = MapNumber(spawnPositionNumber);
-        if (spawnPositionNumber == 12 || spawnPositionNumber == 31 || spawnPositionNumber == 37) spawnCount = 0;
-        else spawnCount = Random.Range(5, 8);//스폰 마릿수
-        for (int i = 0; i < spawnCount; i++)
+        for(int spawnPositionNumber = 0; spawnPositionNumber < 38; spawnPositionNumber++)
         {
-            if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) yield break;//최대 스폰 몬스터 수 추가
-            int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
-            GameObject gm = objectfulling.MakeObj(monsterNumber);
-            gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
-            spawnMonster.Add(gm);
+            int mapNum = MapNumber(spawnPositionNumber);
+            if (spawnPositionNumber == 12 || spawnPositionNumber == 31 || spawnPositionNumber == 37) spawnCount = 0;
+            else spawnCount = Random.Range(5, 8);//스폰 마릿수
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) yield break;//최대 스폰 몬스터 수 추가
+                int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
+                GameObject gm = objectfulling.MakeObj(monsterNumber);
+                gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+                spawnMonster.Add(gm);
+            }
         }
     }
     IEnumerator BearMonsterSpawn()
