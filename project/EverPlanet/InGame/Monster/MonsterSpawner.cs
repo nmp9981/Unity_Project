@@ -30,7 +30,7 @@ public class MonsterSpawner : MonoBehaviour
         0,0,0,0,0,0,
         0,0,0,0,0,0,
         0,0,0,0,0,0,0,0};
-        mobMapMaxCount = new int[6] {30,31, 41,77,33,37};
+        mobMapMaxCount = new int[7] {30,31,58,78,77,44,48};
         curTime = 7.0f;
         bearCurTime = 1.0f;
         bossCurTime = 1.0f;
@@ -78,24 +78,27 @@ public class MonsterSpawner : MonoBehaviour
         bossCurTime += Time.deltaTime;
         finalBossCurTime += Time.deltaTime;
     }
+    //일반 몬스터 스폰
     IEnumerator MonsterSpawn()
     {
         int spawnCount = 0;
         for(int spawnPositionNumber = 0; spawnPositionNumber < 38; spawnPositionNumber++)
         {
-            int mapNum = MapNumber(spawnPositionNumber);
+            int mapNum = MapNumber(spawnPositionNumber);//맵 번호
             if (spawnPositionNumber == 12 || spawnPositionNumber == 31 || spawnPositionNumber == 37) spawnCount = 0;
-            else spawnCount = Random.Range(5, 8);//스폰 마릿수
-
+            else spawnCount = Random.Range(5, 10);//스폰 마릿수
+            Debug.Log(spawnCount + "맵 번호 " + mapNum+" 스폰 지점 "+spawnPositionNumber);
             for (int i = 0; i < spawnCount; i++)
             {
-                if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) yield break;//최대 스폰 몬스터 수 추가
+                if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) continue;//최대 스폰 몬스터 수 추가
                 int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
+                Debug.Log(monsterNumber + "몬스터 번호");
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
-                gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+                gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 0.5f, Random.Range(-7, 7));
                 spawnMonster.Add(gm);
             }
         }
+        yield break;
     }
     IEnumerator BearMonsterSpawn()
     {
@@ -131,9 +134,10 @@ public class MonsterSpawner : MonoBehaviour
         if (spawnPositionNumber <= 3) return 0;
         else if (spawnPositionNumber >= 4 && spawnPositionNumber <= 6) return 1;
         else if (spawnPositionNumber >= 7 && spawnPositionNumber <= 13) return 2;
-        else if (spawnPositionNumber >= 14 && spawnPositionNumber <= 27) return 3;
-        else if (spawnPositionNumber >= 28 && spawnPositionNumber <= 31) return 4;
-        return 5;
+        else if (spawnPositionNumber >= 14 && spawnPositionNumber <= 20) return 3;
+        else if (spawnPositionNumber >= 21 && spawnPositionNumber <= 27) return 4;
+        else if (spawnPositionNumber >= 28 && spawnPositionNumber <= 31) return 5;
+        return 6;
     }
 
     int MonsterPosition(int spawnPositionNumber, int mapNum)
@@ -223,11 +227,11 @@ public class MonsterSpawner : MonoBehaviour
     //초기 스폰
     void InitSpawn()
     {
-        for(int spawnIdx = 1; spawnIdx < 38; spawnIdx++)//모든 스폰 지점
+        for(int spawnIdx = 0; spawnIdx < 38; spawnIdx++)//모든 스폰 지점
         {
             int mapNum = MapNumber(spawnIdx);
             //보스는 1마리 씩만
-            int spawnCount = (spawnIdx == 12 || spawnIdx == 31 || spawnIdx == 37)?1: Random.Range(4, 8);//스폰 마릿수
+            int spawnCount = (spawnIdx == 12 || spawnIdx == 31 || spawnIdx == 37)?1: Random.Range(5, 9);//스폰 마릿수
             for (int i = 0; i < spawnCount; i++)
             {
                 int monsterNumber = MonsterPosition(spawnIdx, mapNum);//스폰할 몬스터
