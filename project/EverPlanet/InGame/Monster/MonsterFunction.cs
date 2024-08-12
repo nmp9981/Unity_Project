@@ -21,8 +21,8 @@ public class MonsterFunction : MonoBehaviour
 
     public int monsterHitDamage;//피격 데미지
 
-    float curMoveAmount;
-    float goalMoveAmount;
+    float curMoveTime;
+    float goalMoveTime;
     Vector3 moveAmount;
 
     [SerializeField] Image monsterHPBarBack;
@@ -41,13 +41,13 @@ public class MonsterFunction : MonoBehaviour
     {
         monsterHP = monsterFullHP;
         monsterDieCount = 0;
-        goalMoveAmount = -1;
-        MonsterMove();
+        goalMoveTime = 5;
         foreach (var damage in hitDamage) damage.text = "";
     }
     void Update()
     {
         MonsterUISetting();
+        TimeFlow();
         MonsterMove();
         isDie();
     }
@@ -85,8 +85,7 @@ public class MonsterFunction : MonoBehaviour
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
-                int mapNumber = MonsterInMapNum();
-                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mobID-1] -= 1;
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mobID] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
                 
                 int mobDrop = Random.Range(0, 100);
@@ -132,6 +131,7 @@ public class MonsterFunction : MonoBehaviour
                 }
             }
         }
+        //벽과 부딪히면 방향을 바꾼다.
     }
     //데미지 보여주기
     IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, GameObject gm)
@@ -158,24 +158,22 @@ public class MonsterFunction : MonoBehaviour
     //몬스터 이동
     void MonsterMove()
     {
-        if(curMoveAmount >= goalMoveAmount)
+        if(curMoveTime >= goalMoveTime)//시간 초로 변경
         {
-            curMoveAmount = 0;
-            float moveX = Random.Range(-1, 2);
-            float moveZ = Random.Range(-1, 2);
+            curMoveTime = 0;
+            float moveX = (float)(Random.Range(0, 3)-1);
+            float moveZ = (float)(Random.Range(0, 3)-1);
 
             if (moveX == 0 && moveZ == 0) moveX = 1;//예외 처리
-            goalMoveAmount = Random.Range(3, 18);
+            goalMoveTime = Random.Range(2, 8);
             float speed = Random.Range(3, 7);
             moveAmount = new Vector3(moveX, 0, moveZ) * speed;
         }
         this.transform.position += moveAmount * Time.deltaTime;
-        curMoveAmount += moveAmount.magnitude;
     }
-    //몬스터 아이디에 따른 맵 번호
-    int MonsterInMapNum()
+    //시간 흐름
+    void TimeFlow()
     {
-        if (mobID <= 1) return 0;
-        return 1;
+        curMoveTime += Time.deltaTime;
     }
 }
