@@ -6,6 +6,7 @@ public class MonsterSpawner : MonoBehaviour
 {
     public int[] mobCount;
     public int[] mobMapMaxCount;
+    public int[] mobMapCount;
     ObjectFulling objectfulling;
 
     [SerializeField] List<Transform> spawnPositionList;
@@ -30,7 +31,8 @@ public class MonsterSpawner : MonoBehaviour
         0,0,0,0,0,0,
         0,0,0,0,0,0,
         0,0,0,0,0,0,0,0};
-        mobMapMaxCount = new int[7] {30,31,58,78,77,44,48};
+        mobMapMaxCount = new int[7] {50,51,58,78,77,64,68};
+        mobMapCount = new int[7] { 0, 0, 0, 0, 0, 0, 0 }; 
         curTime = 7.0f;
         bearCurTime = 1.0f;
         bossCurTime = 1.0f;
@@ -70,6 +72,7 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
         TimeFlow();
+        MonsterNumbers();
     }
     void TimeFlow()
     {
@@ -78,6 +81,18 @@ public class MonsterSpawner : MonoBehaviour
         bossCurTime += Time.deltaTime;
         finalBossCurTime += Time.deltaTime;
     }
+    //몬스터 마릿수
+    void MonsterNumbers()
+    {
+        mobMapCount[0] = mobCount[0] + mobCount[1] + mobCount[2] + mobCount[3];
+        mobMapCount[1] = mobCount[4] + mobCount[5] + mobCount[6];
+        mobMapCount[2] = mobCount[7] + mobCount[8] + mobCount[9] + mobCount[10]+mobCount[11]+mobCount[13];
+        mobMapCount[3] = mobCount[14] + mobCount[15] + mobCount[16] + mobCount[17] + mobCount[18] + mobCount[19]+mobCount[20];
+        mobMapCount[4] = mobCount[21] + mobCount[22] + mobCount[23] + mobCount[24] + mobCount[25] + mobCount[26]+mobCount[27];
+        mobMapCount[5] = mobCount[28] + mobCount[29] + mobCount[30];
+        mobMapCount[6] = mobCount[32] + mobCount[33] + mobCount[34] + mobCount[35] + mobCount[36];
+    }
+
     //일반 몬스터 스폰
     IEnumerator MonsterSpawn()
     {
@@ -90,10 +105,12 @@ public class MonsterSpawner : MonoBehaviour
             Debug.Log(spawnCount + "맵 번호 " + mapNum+" 스폰 지점 "+spawnPositionNumber);
             for (int i = 0; i < spawnCount; i++)
             {
-                if (mobCount[mapNum] >= mobMapMaxCount[mapNum]) continue;//최대 스폰 몬스터 수 추가
+                if (mobMapCount[mapNum] >= mobMapMaxCount[mapNum]) continue;//최대 스폰 몬스터 수 추가
                 int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
                 Debug.Log(monsterNumber + "몬스터 번호");
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
+                gm.GetComponent<MonsterFunction>().spawnPosNumber = spawnPositionNumber;//스폰 번호
+                mobCount[spawnPositionNumber] += 1;
                 gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 0.5f, Random.Range(-7, 7));
                 spawnMonster.Add(gm);
             }
@@ -141,8 +158,7 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     int MonsterPosition(int spawnPositionNumber, int mapNum)
-    {
-        mobCount[mapNum] += 1;
+    { 
         if (spawnPositionNumber <= 1)
         {
             return 4;
@@ -236,6 +252,7 @@ public class MonsterSpawner : MonoBehaviour
             {
                 int monsterNumber = MonsterPosition(spawnIdx, mapNum);//스폰할 몬스터
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
+                mobCount[spawnIdx] += 1;
                 gm.transform.position = spawnPositionList[spawnIdx].position + new Vector3(Random.Range(-7, 7), 0.5f, Random.Range(-7, 7));
                 spawnMonster.Add(gm);
             }
