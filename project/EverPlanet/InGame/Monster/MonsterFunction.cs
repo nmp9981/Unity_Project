@@ -11,7 +11,7 @@ public class MonsterFunction : MonoBehaviour
     InGameUI inGameUI;
     GameObject player;
 
-    public int mobID;
+    public int spawnPosNumber;
     public string name;
     public long monsterFullHP;
     public long monsterHP;
@@ -85,7 +85,7 @@ public class MonsterFunction : MonoBehaviour
             MonsterSpawner.spawnMonster.Remove(this.gameObject);
             if (monsterDieCount == 1)//죽었을 때 한번만 발돌
             {
-                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[mobID] -= 1;
+                monsterSpawner.GetComponent<MonsterSpawner>().mobCount[spawnPosNumber] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
                 
                 int mobDrop = Random.Range(0, 100);
