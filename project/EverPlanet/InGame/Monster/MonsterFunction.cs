@@ -43,6 +43,10 @@ public class MonsterFunction : MonoBehaviour
         monsterDieCount = 0;
         goalMoveTime = 5;
         foreach (var damage in hitDamage) damage.text = "";
+
+        //애니 끄기
+        Animator anim = gameObject.GetComponent<Animator>();
+        if (anim != null) anim.enabled = false;
     }
     void Update()
     {
