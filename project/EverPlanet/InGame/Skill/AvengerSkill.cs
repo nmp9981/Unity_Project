@@ -13,7 +13,8 @@ public class AvengerSkill : MonoBehaviour
     float liveTime;//표창 생성 시간
     float moveDist;//표창 이동거리
     Vector3 moveVec;
-   
+    Vector3 initPos;//초기 위치
+
     public bool isShadow;
     public int hitCount;
     public long attackDamage;
@@ -34,6 +35,7 @@ public class AvengerSkill : MonoBehaviour
 
         moveVec = (target.transform.position - player.transform.position).normalized;
         moveVec.y = 0f;
+        initPos = gameObject.transform.position;
 
         criticalNum = Random.Range(0, 100);
         if (criticalNum >= GameManager.Instance.CriticalRate) isCritical = true;
@@ -58,7 +60,7 @@ public class AvengerSkill : MonoBehaviour
     void DragMove()
     {
         gameObject.transform.position += moveVec * GameManager.Instance.PlayerDragSpeed * Time.deltaTime;
-        moveDist += moveVec.sqrMagnitude;
+        moveDist  = (gameObject.transform.position - initPos).magnitude;
 
         //사정 거리 초과
         if (moveDist > GameManager.Instance.ThrowDist)
@@ -69,13 +71,14 @@ public class AvengerSkill : MonoBehaviour
     //피격
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "Monster")//몬스터 공격
+        if (collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")//몬스터 공격
         {
             hitCount++;
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
             if (isShadow) attackDamage = (long)((float)attackDamage * GameManager.Instance.ShadowAttack/100f);
-            collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
+            if(collision.gameObject.tag == "Bear") collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
+            else collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
             if (hitCount >= 6) gameObject.SetActive(false);
         }
