@@ -12,6 +12,7 @@ public class DragFunction : MonoBehaviour
     float moveDist;//표창 이동거리
     float liveTime;//표창 생성 후 시간
     Vector3 moveVec;
+    Vector3 initPos;//초기 위치
 
     [SerializeField] TextMeshProUGUI DamegeText;
     public bool isShadow;
@@ -42,7 +43,8 @@ public class DragFunction : MonoBehaviour
         {
             moveVec = (monsterTarget.transform.position - player.transform.position).normalized;
         }
-        
+
+        initPos = gameObject.transform.position;
         gameObject.transform.rotation = Quaternion.Euler(0, DotAngle(), DotZAngle());
         criticalNum = Random.Range(0, 100);
         if (criticalNum < GameManager.Instance.CriticalRate) isCritical = true;
@@ -56,7 +58,7 @@ public class DragFunction : MonoBehaviour
     void TimeChecker()
     {
         liveTime += Time.deltaTime;
-        if (liveTime >= 8.0f) gameObject.SetActive(false);
+        if (liveTime >= 7.0f) gameObject.SetActive(false);
     }
     //표창 이동
     void DragMove()
@@ -64,12 +66,12 @@ public class DragFunction : MonoBehaviour
         if (monsterTarget == null)
         {
             gameObject.transform.position += moveVec * GameManager.Instance.PlayerDragSpeed * Time.deltaTime;
-            moveDist += moveVec.sqrMagnitude;
+            moveDist = (gameObject.transform.position - initPos).magnitude;
         }
         else
         { 
             gameObject.transform.position = Vector3.MoveTowards(this.transform.position, monsterTarget.position, GameManager.Instance.PlayerDragSpeed * Time.deltaTime);
-            moveDist += moveVec.sqrMagnitude;
+            moveDist = (gameObject.transform.position - initPos).magnitude;
         }
         
         //사정 거리 초과
