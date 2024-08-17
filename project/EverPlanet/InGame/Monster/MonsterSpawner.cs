@@ -102,12 +102,10 @@ public class MonsterSpawner : MonoBehaviour
             int mapNum = MapNumber(spawnPositionNumber);//맵 번호
             if (spawnPositionNumber == 12 || spawnPositionNumber == 31 || spawnPositionNumber == 37) spawnCount = 0;
             else spawnCount = Random.Range(5, 10);//스폰 마릿수
-            Debug.Log(spawnCount + "맵 번호 " + mapNum+" 스폰 지점 "+spawnPositionNumber);
             for (int i = 0; i < spawnCount; i++)
             {
                 if (mobMapCount[mapNum] >= mobMapMaxCount[mapNum]) continue;//최대 스폰 몬스터 수 추가
                 int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
-                Debug.Log(monsterNumber + "몬스터 번호");
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
                 gm.GetComponent<MonsterFunction>().spawnPosNumber = spawnPositionNumber;//스폰 번호
                 mobCount[spawnPositionNumber] += 1;
@@ -123,7 +121,7 @@ public class MonsterSpawner : MonoBehaviour
         int mapNum = MapNumber(spawnPositionNumber);
         int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
         GameObject gm = objectfulling.MakeObj(monsterNumber);
-        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-5, 5), 1f, Random.Range(-5, 5));
         spawnMonster.Add(gm);
         yield break;
     }
@@ -133,7 +131,7 @@ public class MonsterSpawner : MonoBehaviour
         int mapNum = MapNumber(spawnPositionNumber);
         int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
         GameObject gm = objectfulling.MakeObj(monsterNumber);
-        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-5, 5), 1f, Random.Range(-5, 5));
         spawnMonster.Add(gm);
         yield break;
     }
@@ -143,7 +141,7 @@ public class MonsterSpawner : MonoBehaviour
         int mapNum = MapNumber(spawnPositionNumber);
         int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
         GameObject gm = objectfulling.MakeObj(monsterNumber);
-        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 1f, Random.Range(-7, 7));
+        gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-3, 3), 1f, Random.Range(-3, 3));
         spawnMonster.Add(gm);
         yield break;
     }
