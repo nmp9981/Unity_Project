@@ -88,13 +88,12 @@ public class PlayerAttack : MonoBehaviour
     public Transform NearMonster()
     {
         Transform monsterTarget = null;
-        const float distMax = 900;
-        float betweenDist = distMax;//캐릭터와 몬스터 간 거리
+        float betweenDist = GameManager.Instance.ThrowDist;//캐릭터와 몬스터 간 거리
         Vector3 seeVector = (target.transform.position - gameObject.transform.position).normalized;//시야 벡터
 
         foreach (var gm in MonsterSpawner.spawnMonster)
         {
-            float newDist = (gm.transform.position - this.gameObject.transform.position).sqrMagnitude;
+            float newDist = (gm.transform.position - this.gameObject.transform.position).magnitude;
             Vector3 monsterVector = (gm.transform.position - gameObject.transform.position).normalized;//캐릭터와 몬스터간 방향
 
             if (!MonsterInPlayerSee(seeVector, monsterVector)) continue;//캐릭터 시야내에 없음
