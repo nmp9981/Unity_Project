@@ -107,9 +107,14 @@ public class MonsterSpawner : MonoBehaviour
                 if (mobMapCount[mapNum] >= mobMapMaxCount[mapNum]) continue;//최대 스폰 몬스터 수 추가
                 int monsterNumber = MonsterPosition(spawnPositionNumber, mapNum);//스폰할 몬스터
                 GameObject gm = objectfulling.MakeObj(monsterNumber);
+
+                //스폰 번호
+                if (gm.GetComponent<MonsterFunction>() == null) gm.AddComponent<MonsterFunction>();
                 gm.GetComponent<MonsterFunction>().spawnPosNumber = spawnPositionNumber;//스폰 번호
                 mobCount[spawnPositionNumber] += 1;
-                gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-7, 7), 0.5f, Random.Range(-7, 7));
+                
+                //스폰 위치
+                gm.transform.position = spawnPositionList[spawnPositionNumber].position + new Vector3(Random.Range(-5, 5), 0.5f, Random.Range(-5, 5));
                 spawnMonster.Add(gm);
             }
         }
