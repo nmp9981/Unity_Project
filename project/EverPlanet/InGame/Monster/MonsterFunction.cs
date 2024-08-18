@@ -53,6 +53,7 @@ public class MonsterFunction : MonoBehaviour
         MonsterUISetting();
         TimeFlow();
         MonsterMove();
+        MonsterFall();
         isDie();
     }
     void MonsterUISetting()
@@ -169,8 +170,8 @@ public class MonsterFunction : MonoBehaviour
             float moveZ = (float)(Random.Range(0, 3)-1);
 
             if (moveX == 0 && moveZ == 0) moveX = 1;//예외 처리
-            goalMoveTime = Random.Range(2, 8);
-            float speed = Random.Range(3, 7);
+            goalMoveTime = Random.Range(1, 6);
+            float speed = Random.Range(2, 6);
             moveAmount = new Vector3(moveX, 0, moveZ) * speed;
         }
         this.transform.position += moveAmount * Time.deltaTime;
@@ -179,5 +180,10 @@ public class MonsterFunction : MonoBehaviour
     void TimeFlow()
     {
         curMoveTime += Time.deltaTime;
+    }
+    //떨어진 몬스터 비활성화
+    void MonsterFall()
+    {
+        if (gameObject.transform.position.y < -400) gameObject.SetActive(false);
     }
 }
