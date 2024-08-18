@@ -7,11 +7,12 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 70;
+        GameManager.Instance.PlayerLV = 10;
         GameManager.Instance.ApPoint = 0;
         GameManager.Instance.PlayerJob = "Assassin";
         GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
         GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
+        GameManager.Instance.IsInvincibility = false;
         PlayerInfoInit(GameManager.Instance.PlayerLV);
 
     }
@@ -32,7 +33,13 @@ public class PlayerSetting : MonoBehaviour
 
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
-        GameManager.Instance.PlayerReqExp = (lv<100)? lv*lv/5+15*lv:2147483647;
+
+        //경험치
+        if (lv <= 20) GameManager.Instance.PlayerReqExp = lv * lv + 35 * lv;
+        else if (lv > 20 && lv < 30) GameManager.Instance.PlayerReqExp = lv * lv * (lv / 4);
+        else if (lv >= 30 && lv <= 80) GameManager.Instance.PlayerReqExp = 7300 * (long)Mathf.Pow(1.11f, lv - 30);
+        else if (lv >= 81 && lv < 100) GameManager.Instance.PlayerReqExp = 1347323 * (long)Mathf.Pow(1.13f, lv - 80);
+        else GameManager.Instance.PlayerReqExp = 2147483647;
     }
     void SetStat()
     {
