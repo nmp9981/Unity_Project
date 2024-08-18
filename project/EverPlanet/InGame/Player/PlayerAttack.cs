@@ -28,6 +28,11 @@ public class PlayerAttack : MonoBehaviour
     void Attack()
     {
         if (GameManager.Instance.IsCharacterDie) return;
+        if (Input.GetKeyDown(KeyCode.LeftControl) && curTime >= coolTime)//일반 공격
+        {
+            StartCoroutine(ShotDrag(1));
+            curTime = 0;
+        }
         if (Input.GetKeyDown(KeyCode.Z) && curTime >= coolTime && GameManager.Instance.PlayerMP >= mpCost[2])
         {
             StartCoroutine(ShotDrag(2));
