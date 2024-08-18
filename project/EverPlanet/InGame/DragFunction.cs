@@ -73,7 +73,6 @@ public class DragFunction : MonoBehaviour
             gameObject.transform.position = Vector3.MoveTowards(this.transform.position, monsterTarget.position, GameManager.Instance.PlayerDragSpeed * Time.deltaTime);
             moveDist = (gameObject.transform.position - initPos).magnitude;
         }
-        
         //사정 거리 초과
         if (moveDist > GameManager.Instance.ThrowDist)
         {
@@ -120,6 +119,11 @@ public class DragFunction : MonoBehaviour
     //공격 데미지
     public long AttackDamage()
     {
+        if (skillDigit == 1)//일반 공격
+        {
+            return GameManager.Instance.PlayerAttack * (long)Random.Range(GameManager.Instance.Proficiency, 100)/100;
+        }
+
         long attackMaxDamage = skillDigit==2?((long)(GameManager.Instance.PlayerAttack * GameManager.Instance.LuckySevenCoefficient/100f))
             : (long)((float)(GameManager.Instance.PlayerAttack * GameManager.Instance.TripleThrowCoefficient/100f));
         int attackRate = Random.Range(GameManager.Instance.Proficiency, 100);
