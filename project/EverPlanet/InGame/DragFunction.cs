@@ -8,7 +8,7 @@ public class DragFunction : MonoBehaviour
     PlayerAttack playerAttack;
     GameObject player;
     GameObject target;
-    Transform monsterTarget;//가장 가까운 몬스터의 위치
+    public Transform monsterTarget;//가장 가까운 몬스터의 위치
     float moveDist;//표창 이동거리
     float liveTime;//표창 생성 후 시간
     Vector3 moveVec;
@@ -27,11 +27,9 @@ public class DragFunction : MonoBehaviour
         player = GameObject.Find("Body05");
         target = GameObject.Find("DragTarget");
     }
-    private void OnEnable()
+    public void OnEnableDrag()
     {
         liveTime = 0;
-        monsterTarget = playerAttack.NearMonster();
-
         moveDist = 0f;
 
         if (monsterTarget == null)
