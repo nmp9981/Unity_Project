@@ -12,7 +12,8 @@ public class PlayerAttack : MonoBehaviour
 
     float curTime = 0;
     float coolTime;
-    int[] mpCost = new int[4]{0,0,16,22}; 
+    int[] mpCost = new int[4]{0,0,16,22};
+    int attackCount = 0;
     void Awake()
     {
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
@@ -58,16 +59,19 @@ public class PlayerAttack : MonoBehaviour
         anim.SetBool("BasicAttack", true);
         GameManager.Instance.PlayerMP -= mpCost[throwCount];
         SoundManager._sound.PlaySfx(4);
+        attackCount = (attackCount+1)%10;
         for (int i = 0; i < throwCount; i++)
         {
-            GameObject gm = objectfulling.MakeObj(2);
+            GameObject gm = objectfulling.MakeDragObj(2, 7*attackCount);//여기가 문제
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
-            gm.GetComponent<DragFunction>().skillDigit = throwCount;//럭키세븐인지 트리플스로우인지 구분
+            DragFunction dragFunction = gm.GetComponent<DragFunction>();
+            dragFunction.skillDigit = throwCount;//럭키세븐인지 트리플스로우인지 일반 공격인지 구분
+            dragFunction.monsterTarget = NearMonster();//가장 가까운 몬스터
+            dragFunction.OnEnableDrag();
 
             if(gameObject.name == "Player") gm.GetComponent<DragFunction>().isShadow = false;//쉐파 여부에 따른 공격력
             else gm.GetComponent<DragFunction>().isShadow = true;//쉐파 여부에 따른 공격력
-
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
         }
         anim.SetBool("BasicAttack", false);
     }
