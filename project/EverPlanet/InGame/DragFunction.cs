@@ -97,7 +97,7 @@ public class DragFunction : MonoBehaviour
     //피격
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")//몬스터 공격
+        if(collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear"|| collision.gameObject.tag == "SandBag")//몬스터 공격
         {
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
@@ -107,7 +107,7 @@ public class DragFunction : MonoBehaviour
                 || collision.gameObject.name.Contains("Human_Mutant") || collision.gameObject.name.Contains("Rhino_PBR")))
             {
                 collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
-            }
+            }else if(collision.gameObject.tag == "SandBag") collision.gameObject.GetComponent<SandBag>().csumDamage+=attackDamage;
             else
             {
                 collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
