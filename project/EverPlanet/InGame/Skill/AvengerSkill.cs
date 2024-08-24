@@ -71,13 +71,14 @@ public class AvengerSkill : MonoBehaviour
     //피격
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear")//몬스터 공격
+        if (collision.gameObject.tag == "Monster" || collision.gameObject.tag == "Bear" || collision.gameObject.tag == "SandBag")//몬스터 공격
         {
             hitCount++;
             SoundManager._sound.PlaySfx(5);
             attackDamage = AttackDamage();
             if (isShadow) attackDamage = (long)((float)attackDamage * GameManager.Instance.ShadowAttack/100f);
             if(collision.gameObject.tag == "Bear") collision.gameObject.GetComponent<BearBossFunction>().monsterHP -= attackDamage;
+            else if (collision.gameObject.tag == "SandBag") collision.gameObject.GetComponent<SandBag>().csumDamage += attackDamage;
             else collision.gameObject.GetComponent<MonsterFunction>().monsterHP -= attackDamage;
 
             if (hitCount >= 6) gameObject.SetActive(false);
