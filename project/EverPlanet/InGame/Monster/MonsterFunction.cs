@@ -24,6 +24,7 @@ public class MonsterFunction : MonoBehaviour
     float curMoveTime;
     float goalMoveTime;
     Vector3 moveAmount;
+    public Vector3 monsterSize;
 
     [SerializeField] Image monsterHPBarBack;
     [SerializeField] Image monsterHPBar;
@@ -47,6 +48,7 @@ public class MonsterFunction : MonoBehaviour
         //애니 끄기
         Animator anim = gameObject.GetComponent<Animator>();
         if (anim != null) anim.enabled = false;
+        MonsterSize();//몬스터 실제 크기
     }
     void Update()
     {
@@ -55,6 +57,16 @@ public class MonsterFunction : MonoBehaviour
         MonsterMove();
         MonsterFall();
         isDie();
+    }
+    void MonsterSize()
+    {
+        Bounds monsterBound = default;
+        foreach(MeshRenderer mesh in this.gameObject.GetComponentsInChildren<MeshRenderer>())
+        {
+            if (monsterBound == default) monsterBound = mesh.bounds;
+            else monsterBound.Encapsulate(mesh.bounds);
+        }
+        monsterSize = monsterBound.size;
     }
     void MonsterUISetting()
     {
@@ -103,7 +115,7 @@ public class MonsterFunction : MonoBehaviour
                 }
                 inGameUI.ShowGetText("Exp", (int)monsterExp);
             }
-            Invoke("DieMonster", 0.45f);
+            Invoke("DieMonster", 0.3f);
         }
     }
     void DieMonster()
@@ -142,7 +154,7 @@ public class MonsterFunction : MonoBehaviour
     IEnumerator ShowDamage(TextMeshProUGUI damage, int idx, bool isShadow, GameObject gm)
     {
         long finalDamage = 0;
-        yield return new WaitForSeconds(0.05f);
+        yield return new WaitForSeconds(0.03f);
         if (gm.tag == "Weapon")
         {
             finalDamage = gm.GetComponent<DragFunction>().attackDamage;
@@ -157,7 +169,7 @@ public class MonsterFunction : MonoBehaviour
         }
         
         damage.text = finalDamage.ToString();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.4f);
         damage.text = "";
     }
     //몬스터 이동
@@ -184,6 +196,10 @@ public class MonsterFunction : MonoBehaviour
     //떨어진 몬스터 비활성화
     void MonsterFall()
     {
-        if (gameObject.transform.position.y < -400) gameObject.SetActive(false);
+        if (gameObject.transform.position.y < -400)
+        {
+            monsterSpawner.GetComponent<MonsterSpawner>().mobCount[spawnPosNumber] -= 1;
+            gameObject.SetActive(false);
+        }
     }
 }
