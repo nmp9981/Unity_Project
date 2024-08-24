@@ -85,8 +85,10 @@ public class PlayerAttack : MonoBehaviour
             GameObject gm = objectfulling.MakeObj(1);
             gm.transform.position = startDragPosition.transform.position;//캐릭터 위치에서 날리기 시작
             gm.transform.rotation = Quaternion.Euler(90, 0, 0);
+            AvengerSkill avengerSkill = gm.GetComponent<AvengerSkill>();
+            avengerSkill.OnEnableThrow();
 
-            if (gameObject.name == "Player") gm.GetComponent<AvengerSkill>().isShadow = false;//쉐파 여부에 따른 공격력
+            if (gameObject.name == "Player") avengerSkill.isShadow = false;//쉐파 여부에 따른 공격력
             else gm.GetComponent<AvengerSkill>().isShadow = true;//쉐파 여부에 따른 공격력
 
             yield return new WaitForSeconds(0.05f);
@@ -97,16 +99,17 @@ public class PlayerAttack : MonoBehaviour
     public Transform NearMonster()
     {
         Transform monsterTarget = null;
-        float betweenDist = GameManager.Instance.ThrowDist;//캐릭터와 몬스터 간 거리
+        float betweenDist = GameManager.Instance.ThrowDist;//표창 최대 인식 거리
         Vector3 seeVector = (target.transform.position - gameObject.transform.position).normalized;//시야 벡터
 
-        foreach (var gm in MonsterSpawner.spawnMonster)
+        foreach (var gm in MonsterSpawner.spawnMonster)//스폰된 몬스터 중에서
         {
-            float newDist = (gm.transform.position - this.gameObject.transform.position).magnitude;
+           // float size = Mathf.Max(gm.GetComponent<MonsterFunction>().monsterSize.x, gm.GetComponent<MonsterFunction>().monsterSize.z) *0.5f;//몬스터 실제 크기
+            float newDist = (gm.transform.position - this.gameObject.transform.position).magnitude;//캐릭터와 몬스터간 거리
             Vector3 monsterVector = (gm.transform.position - gameObject.transform.position).normalized;//캐릭터와 몬스터간 방향
 
             if (!MonsterInPlayerSee(seeVector, monsterVector)) continue;//캐릭터 시야내에 없음
-            if (betweenDist > newDist)
+            if (betweenDist > newDist)//사정 거리내 몬스터 존재
             {
                 betweenDist = newDist;
                 monsterTarget = gm.transform;
@@ -124,7 +127,7 @@ public class PlayerAttack : MonoBehaviour
         float cosTheta = dot / (seeVector.magnitude * monsterVector.magnitude);
         float theta = Mathf.Acos(cosTheta) * 180 / Mathf.PI;
 
-        if (Mathf.Abs(theta) <= 60f) return true;
+        if (Mathf.Abs(theta) <= 85f) return true;
         return false;
     }
 }
