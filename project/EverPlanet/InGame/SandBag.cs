@@ -40,7 +40,7 @@ public class SandBag : MonoBehaviour
         else monsterInfo.gameObject.SetActive(true);
 
         for (int idx = 0; idx < hitDamage.Length; idx++) hitDamage[idx].transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, idx + 2f, 0));
-        monsterInfo.text = $"Total : {csumDamage}";
+        monsterInfo.text = string.Format("Total : {0:#,0}",csumDamage);
     }
     
     private void OnCollisionEnter(Collision collision)
@@ -65,7 +65,7 @@ public class SandBag : MonoBehaviour
                 if (hitDamage[idx].text == "")
                 {
                     bool isShadow = collision.gameObject.GetComponent<AvengerSkill>().isShadow;
-                    csumDamage += collision.gameObject.GetComponent<DragFunction>().attackDamage;
+                    csumDamage += collision.gameObject.GetComponent<AvengerSkill>().attackDamage;
                     StartCoroutine(ShowDamage(hitDamage[idx], idx, isShadow, collision.gameObject));
                     return;
                 }
