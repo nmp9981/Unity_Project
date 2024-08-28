@@ -7,8 +7,9 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 10;
+        GameManager.Instance.PlayerLV = 88;
         GameManager.Instance.ApPoint = 0;
+        GameManager.Instance.SkillPoint = (GameManager.Instance.PlayerLV-10) * 3;
         GameManager.Instance.PlayerJob = "Assassin";
         GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
         GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
