@@ -17,7 +17,6 @@ public class PlayerMove : MonoBehaviour
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
-        //gameObject.transform.position = PortalManager.PortalInstance.portalist[0].transform.position;
     }
     void Update()
     {
@@ -26,6 +25,7 @@ public class PlayerMove : MonoBehaviour
             Move();
             TryJump();
             CheckGround();
+            PlayerYPosCheck();
         }
     }
     private void Move()
@@ -98,6 +98,14 @@ public class PlayerMove : MonoBehaviour
                     curJumpCount = 0;
                 }
             }
+        }
+    }
+    //낙하 처리
+    void PlayerYPosCheck()
+    {
+        if (gameObject.transform.position.y < -200)
+        {
+            gameObject.GetComponent<PlayerHit>().Resurrection();
         }
     }
 }
