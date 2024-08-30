@@ -45,7 +45,11 @@ public class InGameUI : MonoBehaviour
     [Header("MiniMap")]
     [SerializeField] GameObject minimapObj;
     [SerializeField] Camera minimapCamera;
-    
+
+    [Header("Sound")]
+    [SerializeField] GameObject SoundImageObj;
+    [SerializeField] Sprite SoundOnImage;
+    [SerializeField] Sprite SoundOffImage;
     void Update()
     {
         ShowPlayerUI();
@@ -136,5 +140,13 @@ public class InGameUI : MonoBehaviour
         messageList[idx].text = $"Get {type} +{amount}";
         yield return new WaitForSeconds(0.75f);
         messageList[idx].text = "";
+    }
+    public void SoundOnOff()
+    {
+        GameManager.Instance.BGMVolume = 1f- GameManager.Instance.BGMVolume;
+        GameManager.Instance.SFXVolume = 1f - GameManager.Instance.SFXVolume;
+
+        if (GameManager.Instance.BGMVolume == 1) SoundImageObj.GetComponent<Image>().sprite = SoundOnImage;
+        else SoundImageObj.GetComponent<Image>().sprite = SoundOffImage;
     }
 }
