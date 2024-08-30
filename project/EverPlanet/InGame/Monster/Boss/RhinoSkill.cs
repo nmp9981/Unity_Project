@@ -35,7 +35,6 @@ public class RhinoSkill : MonoBehaviour
         if (dist < 1600 && gameObject.activeSelf)
         {
             int ran = Random.Range(0, 8);
-            ran = 1;
             switch (ran % 4)
             {
                 case 0://잡몹 소환
@@ -48,7 +47,7 @@ public class RhinoSkill : MonoBehaviour
                     FireBressOn();
                     break;
                 case 3://점프 공격
-                    JumpAttack();
+                    StartCoroutine(JumpAttack());
                     break;
             }
         }
@@ -85,8 +84,18 @@ public class RhinoSkill : MonoBehaviour
     }
 
     //점프 공격
-    void JumpAttack()
+    IEnumerator JumpAttack()
     {
-        gameObject.transform.position += Vector3.up * 40f;
+        for(int timer = 0; timer < 10; timer++)
+        {
+            gameObject.transform.position += (Vector3.up*(2-timer/10));
+            yield return new WaitForSeconds(0.1f);
+        }
+        yield return new WaitForSeconds(1f);
+        for (int timer = 0; timer < 10; timer++)
+        {
+            gameObject.transform.position += (Vector3.down * (2 - timer / 10));
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
