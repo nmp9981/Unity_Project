@@ -58,8 +58,8 @@ public class RhinoSkill : MonoBehaviour
         for(int i = 0; i < 4; i++)
         {
             GameObject gm = objectFulling.MakeObj(22);
-            gm.transform.position = gameObject.transform.position + new Vector3(SpawnDirXpos[i]*11, 0f, SpawnDirZpos[i]*11);
-            gm.transform.localScale = 2 * Vector2.one;
+            gm.transform.position = gameObject.transform.position + new Vector3(SpawnDirXpos[i]*11, -1f, SpawnDirZpos[i]*11);
+            gm.transform.localScale = 2 * Vector3.one;
         }
     }
     //레이저
