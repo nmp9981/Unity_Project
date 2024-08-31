@@ -7,7 +7,8 @@ public class PlayerSetting : MonoBehaviour
 {
     void Awake()
     {
-        GameManager.Instance.PlayerLV = 88;
+        //GameManager.Instance.PlayerLV = 10;
+        DataGet();
         GameManager.Instance.ApPoint = 0;
         GameManager.Instance.SkillPoint = (GameManager.Instance.PlayerLV-10) * 3;
         GameManager.Instance.PlayerJob = "Assassin";
@@ -35,12 +36,19 @@ public class PlayerSetting : MonoBehaviour
         long restExp = GameManager.Instance.PlayerEXP - GameManager.Instance.PlayerReqExp;
         GameManager.Instance.PlayerEXP = restExp>0?restExp:0;
 
-        //경험치
-        if (lv <= 20) GameManager.Instance.PlayerReqExp = lv * lv + 35 * lv;
+        ///<summary>
+        ///경험치
+        ///Lv20 : 1040
+        ///Lv30 : 7000
+        ///Lv80 : 520502
+        ///</summary>
+        if (lv <= 20) GameManager.Instance.PlayerReqExp = lv * lv + 32 * lv;
         else if (lv > 20 && lv < 30) GameManager.Instance.PlayerReqExp = lv * lv * (lv / 4);
-        else if (lv >= 30 && lv <= 80) GameManager.Instance.PlayerReqExp = 7300 * (long)Mathf.Pow(1.11f, lv - 30);
-        else if (lv >= 81 && lv < 100) GameManager.Instance.PlayerReqExp = 1347323 * (long)Mathf.Pow(1.13f, lv - 80);
+        else if (lv >= 30 && lv <= 80) GameManager.Instance.PlayerReqExp = 7000 * (long)Mathf.Pow(1.09f, lv - 30);
+        else if (lv >= 81 && lv < 100) GameManager.Instance.PlayerReqExp = 520502 * (long)Mathf.Pow(1.13f, lv - 80);
         else GameManager.Instance.PlayerReqExp = 2147483647;
+
+        //GameManager.Instance.PlayerReqExp = GameManager.Instance.PlayerReqExp / 150;
     }
     void SetStat()
     {
@@ -60,6 +68,7 @@ public class PlayerSetting : MonoBehaviour
             PlayerInfoInit(GameManager.Instance.PlayerLV);
             GameManager.Instance.ApPoint += 5;
             GameManager.Instance.SkillPoint += 3;
+            PlayerPrefs.SetInt("Lv", GameManager.Instance.PlayerLV);
         }
     }
     void HPMPManager()
@@ -91,5 +100,12 @@ public class PlayerSetting : MonoBehaviour
             GameManager.Instance.PlayerLUK += 1;
             GameManager.Instance.ApPoint -= 1;
         }
+    }
+    void DataGet()
+    {
+        if (PlayerPrefs.HasKey("Lv")) GameManager.Instance.PlayerLV = PlayerPrefs.GetInt("Lv");
+        else GameManager.Instance.PlayerLV = 10;
+        if (PlayerPrefs.HasKey("Meso")) GameManager.Instance.PlayerMeso = PlayerPrefs.GetInt("Meso");
+        else GameManager.Instance.PlayerMeso = 10000;
     }
 }
