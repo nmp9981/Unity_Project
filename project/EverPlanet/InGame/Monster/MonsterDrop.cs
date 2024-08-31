@@ -32,8 +32,6 @@ public class MonsterDrop : MonoBehaviour
     void MesoSetting()
     {
         getMeso = monsterMeso * Random.Range(80, 120) / 100;
-        //getMesoText.transform.position = this.gameObject.transform.position + new Vector3(0, 1f, 0);
-        //getMesoText.text = $"{getMeso}";
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -44,6 +42,7 @@ public class MonsterDrop : MonoBehaviour
                 MesoSetting();
                 SoundManager._sound.PlaySfx(2);
                 GameManager.Instance.PlayerMeso += getMeso;
+                PlayerPrefs.SetInt("Meso", GameManager.Instance.PlayerMeso);
                 inGameUI.ShowGetText("Meso", getMeso);
             }
             gameObject.SetActive(false);
