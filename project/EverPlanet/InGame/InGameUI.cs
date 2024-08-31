@@ -50,6 +50,10 @@ public class InGameUI : MonoBehaviour
     [SerializeField] GameObject SoundImageObj;
     [SerializeField] Sprite SoundOnImage;
     [SerializeField] Sprite SoundOffImage;
+
+    [Header("Exit")]
+    [SerializeField] GameObject ExitObj;
+
     void Update()
     {
         ShowPlayerUI();
@@ -103,6 +107,10 @@ public class InGameUI : MonoBehaviour
                 minimapCamera.gameObject.SetActive(true);
             }
         }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            GameExitCheck();
+        }
     }
     void StatUIInfo()
     {
@@ -148,5 +156,23 @@ public class InGameUI : MonoBehaviour
 
         if (GameManager.Instance.BGMVolume == 1) SoundImageObj.GetComponent<Image>().sprite = SoundOnImage;
         else SoundImageObj.GetComponent<Image>().sprite = SoundOffImage;
+    }
+    public void GameExitCheck()
+    {
+        if (!ExitObj.activeSelf) ExitObj.SetActive(true);
+        else ExitObj.SetActive(false);
+    }
+    public void GameExit()
+    {
+#if UNITY_EDITOR //에디터에서
+        UnityEditor.EditorApplication.isPlaying = false;
+#else //나머지
+        Application.Quit(); // 어플리케이션 종료
+#endif
+
+    }
+    public void CloseGameExitCheck()
+    {
+        ExitObj.SetActive(false);
     }
 }
