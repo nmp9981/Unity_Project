@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
     int _playerLuk;
     int _playerAcc;
     int _playerAvoid;
-    int _playerMeso = 190000;
+    int _playerMeso = 10000;//초기 재화량
     #endregion
     #region 아이템 관련
     int _hpPosionCount;
@@ -88,14 +88,14 @@ public class GameManager : MonoBehaviour
     int _maxMonsterCount;//최대 스폰 몬스터 수
 
     int _apPoint;
-    int _skillPoint = 0;
+    int _skillPoint;//스킬 포인트
 
     bool _isAttackBuffOn;
     bool _isAccBuffOn;
     bool _isAvoidBuffOn;
 
     #region 스킬 관련
-    float _throwDist = 550;
+    float _throwDist = 8;
     long _luckySevenCoefficient = 58;
     int _proficiency = 10;
     int _playerAddAcc = 0;
