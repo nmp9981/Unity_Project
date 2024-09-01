@@ -40,14 +40,14 @@ public class PlayerSetting : MonoBehaviour
         ///경험치
         ///Lv20 : 1000
         ///Lv29 : 4205
-        ///Lv30 : 5500
-        ///Lv80 : 408966
-        ///Lv99 : 4170440
+        ///Lv30 : 5000
+        ///Lv81 : 405248
+        ///Lv99 : 3657066
         ///</summary>
         if (lv <= 20) GameManager.Instance.PlayerReqExp = lv * lv + 30 * lv;
         else if (lv > 20 && lv < 30) GameManager.Instance.PlayerReqExp = lv * lv * (lv / 5);
-        else if (lv >= 30 && lv <= 80) GameManager.Instance.PlayerReqExp = 5500 * (long)Mathf.Pow(1.09f, lv - 30);
-        else if (lv >= 81 && lv < 100) GameManager.Instance.PlayerReqExp = 408970 * (long)Mathf.Pow(1.13f, lv - 80);
+        else if (lv >= 30 && lv <= 81) GameManager.Instance.PlayerReqExp = 5000 * (long)Mathf.Pow(1.09f, lv - 30);
+        else if (lv >= 82 && lv < 100) GameManager.Instance.PlayerReqExp = 405248 * (long)Mathf.Pow(1.13f, lv - 81);
         else GameManager.Instance.PlayerReqExp = 2147483647;
 
         //GameManager.Instance.PlayerReqExp = GameManager.Instance.PlayerReqExp / 150;
