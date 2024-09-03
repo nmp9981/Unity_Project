@@ -37,6 +37,7 @@ public class MonsterFunction : MonoBehaviour
         objectfulling = GameObject.Find("ObjectManager").GetComponent<ObjectFulling>();
         inGameUI = GameObject.Find("UIManager").GetComponent<InGameUI>();
         player = GameObject.Find("Player");
+        MonsterSize();//몬스터 실제 크기
     }
     private void OnEnable()
     {
@@ -48,7 +49,6 @@ public class MonsterFunction : MonoBehaviour
         //애니 끄기
         Animator anim = gameObject.GetComponent<Animator>();
         if (anim != null) anim.enabled = false;
-        MonsterSize();//몬스터 실제 크기
     }
     void Update()
     {
@@ -104,7 +104,8 @@ public class MonsterFunction : MonoBehaviour
             {
                 monsterSpawner.GetComponent<MonsterSpawner>().mobCount[spawnPosNumber] -= 1;
                 GameManager.Instance.PlayerEXP += monsterExp;
-                
+                PlayerPrefs.SetString("Exp", GameManager.Instance.PlayerEXP.ToString());
+
                 int mobDrop = Random.Range(0, 100);
                 if (mobDrop < 60)//메소 드랍
                 {
