@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -110,7 +111,11 @@ public class PlayerSetting : MonoBehaviour
         else GameManager.Instance.PlayerLV = 10;
         if (PlayerPrefs.HasKey("Meso")) GameManager.Instance.PlayerMeso = PlayerPrefs.GetInt("Meso");
         else GameManager.Instance.PlayerMeso = 10000;
-        if (PlayerPrefs.HasKey("Exp")) GameManager.Instance.PlayerEXP = PlayerPrefs.GetInt("Exp");
+        if (PlayerPrefs.HasKey("Exp"))
+        {
+            string expString = PlayerPrefs.GetString("Exp");
+            GameManager.Instance.PlayerEXP = Convert.ToInt64(expString);
+        }
         else GameManager.Instance.PlayerEXP = 0;
     }
 }
