@@ -103,11 +103,14 @@ public class PlayerSetting : MonoBehaviour
             GameManager.Instance.ApPoint -= 1;
         }
     }
+    //데이터 불러오기
     void DataGet()
     {
         if (PlayerPrefs.HasKey("Lv")) GameManager.Instance.PlayerLV = PlayerPrefs.GetInt("Lv");
         else GameManager.Instance.PlayerLV = 10;
         if (PlayerPrefs.HasKey("Meso")) GameManager.Instance.PlayerMeso = PlayerPrefs.GetInt("Meso");
         else GameManager.Instance.PlayerMeso = 10000;
+        if (PlayerPrefs.HasKey("Exp")) GameManager.Instance.PlayerEXP = PlayerPrefs.GetInt("Exp");
+        else GameManager.Instance.PlayerEXP = 0;
     }
 }
