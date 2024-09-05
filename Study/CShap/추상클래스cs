@@ -1,0 +1,43 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+abstract class Monster
+{
+    public abstract void SetHP();
+    public abstract void SetExp();
+} 
+
+class FireDog : Monster
+{
+    public override void SetHP()
+    {
+        Debug.Log("45000");
+    }
+    public override void SetExp()
+    {
+        Debug.Log("1800");
+    }
+}
+class Shark : Monster
+{
+    public override void SetHP()
+    {
+        Debug.Log("56000");
+    }
+    public override void SetExp()
+    {
+        Debug.Log("3000");
+    }
+}
+public class Program : MonoBehaviour
+{
+    void Start()
+    {
+        Monster mob = new FireDog();
+        mob.SetHP();
+
+        mob = new Shark();
+        mob.SetExp();
+    }
+}
