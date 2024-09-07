@@ -13,8 +13,6 @@ public class PlayerSetting : MonoBehaviour
         GameManager.Instance.ApPoint = 0;
         GameManager.Instance.SkillPoint = (GameManager.Instance.PlayerLV-10) * 3;
         GameManager.Instance.PlayerJob = "Assassin";
-        GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
-        GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
         GameManager.Instance.IsInvincibility = false;
         PlayerInfoInit(GameManager.Instance.PlayerLV);
 
@@ -117,5 +115,10 @@ public class PlayerSetting : MonoBehaviour
             GameManager.Instance.PlayerEXP = Convert.ToInt64(expString);
         }
         else GameManager.Instance.PlayerEXP = 0;
+
+        if (PlayerPrefs.HasKey("DEX")) GameManager.Instance.PlayerDEX = PlayerPrefs.GetInt("DEX");
+        else GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
+        if (PlayerPrefs.HasKey("LUK")) GameManager.Instance.PlayerLUK = PlayerPrefs.GetInt("LUK");
+        else GameManager.Instance.PlayerLUK = GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
     }
 }
