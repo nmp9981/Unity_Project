@@ -92,6 +92,7 @@ public class PlayerSetting : MonoBehaviour
         {
             GameManager.Instance.PlayerDEX += 1;
             GameManager.Instance.ApPoint -= 1;
+            PlayerPrefs.SetInt("DEX", GameManager.Instance.PlayerDEX);
         }
     }
     public void UpLuk()
@@ -100,6 +101,7 @@ public class PlayerSetting : MonoBehaviour
         {
             GameManager.Instance.PlayerLUK += 1;
             GameManager.Instance.ApPoint -= 1;
+            PlayerPrefs.SetInt("LUK", GameManager.Instance.PlayerLUK);
         }
     }
     //데이터 불러오기
