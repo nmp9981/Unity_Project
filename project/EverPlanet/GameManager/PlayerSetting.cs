@@ -119,8 +119,16 @@ public class PlayerSetting : MonoBehaviour
         else GameManager.Instance.PlayerEXP = 0;
 
         if (PlayerPrefs.HasKey("DEX")) GameManager.Instance.PlayerDEX = PlayerPrefs.GetInt("DEX");
-        else GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
+        else
+        {
+            GameManager.Instance.PlayerDEX = 15 + GameManager.Instance.PlayerLV;
+            PlayerPrefs.SetInt("DEX", GameManager.Instance.PlayerDEX);
+        }
         if (PlayerPrefs.HasKey("LUK")) GameManager.Instance.PlayerLUK = PlayerPrefs.GetInt("LUK");
-        else GameManager.Instance.PlayerLUK = GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
+        else
+        {
+            GameManager.Instance.PlayerLUK = GameManager.Instance.PlayerLUK = 5 + GameManager.Instance.PlayerLV * 4;
+            PlayerPrefs.SetInt("LUK", GameManager.Instance.PlayerLUK);
+        }
     }
 }
