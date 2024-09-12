@@ -18,7 +18,7 @@ public class DragAndDrop : MonoBehaviour
     {
         if(collision.gameObject.tag == "Object")
         {
-            Debug.Log("출돌");
+            Debug.Log("충돌");
         }
     }
      public void OnMouseDrag()
