@@ -10,25 +10,33 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     GameObject uiCanvas;
 
-    Button resetButton;
+    [SerializeField]
+    Sprite resetButtonImage;
     void Awake()
     {
+        GameObject resetButton = new GameObject("resetButton");
+        resetButton.transform.parent = uiCanvas.transform;
+        resetButton.transform.position = new Vector2(800, 200);
         
-        if (resetButton == null)
-        {
-            Instantiate(resetButton,new Vector2(800,200),Quaternion.identity,uiCanvas.transform);
-            
-            resetButton.AddComponent<Button>();
+        resetButton.AddComponent<Button>();
+        resetButton.GetComponent<Button>().onClick.AddListener(check);
 
-            resetButton.enabled = true;
-            resetButton.GetComponentInChildren<TextMeshProUGUI>().text = "재시작";
-            
-        }
+        resetButton.AddComponent<Image>();
+        resetButton.GetComponent<Image>().sprite = resetButtonImage;
+
+        GameObject childResetButton = new GameObject("resetText");
+        childResetButton.AddComponent<TextMeshProUGUI>();
+        childResetButton.transform.parent = resetButton.transform;
+        resetButton.GetComponentInChildren<TextMeshProUGUI>().text = "재시작";
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+    void check()
+    {
+        Debug.Log("확인");
     }
 }
