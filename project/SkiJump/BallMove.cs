@@ -28,7 +28,6 @@ public class BallMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Move();
         BallVelocityText();
         BallDistText();
     }
@@ -51,18 +50,16 @@ public class BallMove : MonoBehaviour
     /// 기능 : 공 이동
     /// 1) 좌우 방향으로만 이동
     /// </summary>
-    private void Move()
+    public void Move()
     {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            Vector3 moveVec = new Vector3(1, 0, 0).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
-            rigid2D.AddForce(moveVec * speed);
-        }
+        Vector3 moveVec = new Vector3(1, 0, 0).normalized;//이동 방향, 정규화(대각선에서 더 빨라지는거 방지)
+        rigid2D.AddForce(moveVec * speed);
         //입력(-1~1 반환)
         float hAxis = Input.GetAxisRaw("Horizontal");
         float vAxis = Input.GetAxisRaw("Vertical");
 
     }
+    
     /// <summary>
     /// 기능 : 오브젝트 속도 표시
     /// 1) 자연수로 표시되게
@@ -74,6 +71,11 @@ public class BallMove : MonoBehaviour
         velocity = Mathf.Round(velocity);//자연수로
         ballVelocityText.text = velocity.ToString()+" Km/h";
     }
+    /// <summary>
+    /// 기능 : 이동 거리 표시
+    /// 1) 자연수로 표시되게
+    /// 2) 단위는 m
+    /// </summary>
     void BallDistText()
     {
         float dist = Mathf.Max(0,this.gameObject.transform.position.x - flagObj.transform.position.x);
