@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 
 public class CarController : MonoBehaviour
 {
+    Rigidbody carRigid;
     public WheelCollider[] wheels = new WheelCollider[4];
     public GameObject[] wheelMeshs = new GameObject[4];
     //질량 중심
@@ -15,8 +17,16 @@ public class CarController : MonoBehaviour
     
     //브레이크 여부
     public bool isBreaking = false;
-    public float breakPower = 1000f;
+    public float breakPower = 5000f;
 
+    private void Awake()
+    {
+        carRigid = gameObject.GetComponent<Rigidbody>();
+    }
+    private void Update()
+    {
+        ResponKart();
+    }
     //자동차 움직임
     private void FixedUpdate()
     {
@@ -30,8 +40,9 @@ public class CarController : MonoBehaviour
     /// </summary>
     void MoveCar()
     {
-        GameManager.Instance.CarSpeed = gameObject.GetComponent<Rigidbody>().velocity.magnitude*3.6f;
-        gameObject.GetComponent<Rigidbody>().centerOfMass = centerOfMass.transform.localPosition;
+        GameManager.Instance.CarSpeed = carRigid.velocity.magnitude*3.6f;
+        carRigid.centerOfMass = centerOfMass.transform.localPosition;
+        
         if (GameManager.Instance.CarSpeed <= GameManager.Instance.SpeedLimit)
         {
             for (int i = 0; i < 4; i++)
@@ -91,6 +102,13 @@ public class CarController : MonoBehaviour
             {
                 wheels[i].brakeTorque = 0;
             }
+        }
+    }
+    void ResponKart()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            gameObject.transform.position = GameObject.Find("StartPos").transform.position;
         }
     }
 }
