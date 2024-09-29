@@ -11,7 +11,7 @@ public class CarController : MonoBehaviour
 
     public float Touque = 1200f;
     //최대 차량 회전 각도
-    public float steeringMaxAxis = 30f;
+    public float steeringMaxAxis = 18f;
     
     //브레이크 여부
     public bool isBreaking = false;
