@@ -4,23 +4,25 @@ using UnityEngine;
 
 public class RacingDist : MonoBehaviour
 {
-    GameObject startPos;
-    // Start is called before the first frame update
-    void Awake()
+    private void Start()
     {
-        startPos = GameObject.Find("StartPos");
-    }
-
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        CalRacingDist();
+        StartCoroutine(MeasureRacingDist());
     }
     /// <summary>
-    /// 주행거리 계산
+    /// 기능 : 주행 거리 측정
+    /// 1) 이전 위치를 받기
+    /// 2) 0.1초후의 위치 받기
+    /// 3) 이전, 이후 위치를 통해 주행 거리 측정
     /// </summary>
-    void CalRacingDist()
+    IEnumerator MeasureRacingDist()
     {
-        GameManager.Instance.RacingDist = Vector3.Distance(gameObject.transform.position , startPos.transform.position);
+        while (true)
+        {
+            Vector3 beforePos = gameObject.transform.position;
+            yield return new WaitForSeconds(0.1f);
+            Vector3 afterPos = gameObject.transform.position;
+            //0.1초 간 이동한 거리 측정
+            GameManager.Instance.RacingDist += (afterPos - beforePos).magnitude;
+        }
     }
 }
