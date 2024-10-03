@@ -22,7 +22,7 @@ public class CarController : MonoBehaviour
 
     // 마찰계수
     float slipRate = 1.0f;
-    float handBreakSlipRate = 0.7f;
+    float handBreakSlipRate = 0.5f;
 
     private void Awake()
     {
@@ -86,10 +86,9 @@ public class CarController : MonoBehaviour
     /// </summary>
     void SteerCar()
     {
-        for(int i = 0; i < 4; i+=3)
-        {
-            wheels[i].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
-        }
+        float steeringAxis = Mathf.Lerp(0, steeringMaxAxis, 3f);
+        wheels[0].steerAngle = steeringAxis * Input.GetAxis("Horizontal");
+        wheels[3].steerAngle = steeringAxis * Input.GetAxis("Horizontal");
     }
     /// <summary>
     /// 기능 : 자동차 회전값 초기화
