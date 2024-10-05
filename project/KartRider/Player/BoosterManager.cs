@@ -31,17 +31,17 @@ public class BoosterManager : MonoBehaviour
     /// </summary>
     async UniTask BoosterOn()
     {
-        GameManager.Instance.SpeedLimit = 150;
-        GameManager.Instance.Touque = 1500;
+        GameManager.Instance.SpeedLimit = 175;
+        GameManager.Instance.Touque = 1700;
    
-        await UniTask.Delay(3000);
+        await UniTask.Delay(4000);
         
-        GameManager.Instance.SpeedLimit = 120;
+        GameManager.Instance.SpeedLimit = 140;
         GameManager.Instance.IsBooster = true;
         GameManager.Instance.BreakPower = 500000;
 
         await UniTask.Delay(1000);
-        GameManager.Instance.Touque = 900;
+        GameManager.Instance.Touque = 1000;
         GameManager.Instance.BreakPower = 20000;
         GameManager.Instance.IsBooster = false;
     }
