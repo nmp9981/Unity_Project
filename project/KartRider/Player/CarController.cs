@@ -24,9 +24,13 @@ public class CarController : MonoBehaviour
     float slipRate = 1.0f;
     float handBreakSlipRate = 0.5f;
 
+    //부스터 클래스
+    BoosterManager boosterManager;
+
     private void Awake()
     {
         carRigid = gameObject.GetComponent<Rigidbody>();
+        boosterManager = GetComponent<BoosterManager>();
         SteerCarInit();
         // 차량 무게 중심 맞추기
         carRigid.centerOfMass = centerOfMass.transform.localPosition;
@@ -86,9 +90,18 @@ public class CarController : MonoBehaviour
     /// </summary>
     void SteerCar()
     {
-        float steeringAxis = Mathf.Lerp(0, steeringMaxAxis, 3f);
-        wheels[0].steerAngle = steeringAxis * Input.GetAxis("Horizontal");
-        wheels[3].steerAngle = steeringAxis * Input.GetAxis("Horizontal");
+        //회전 중
+        if (Input.GetAxis("Horizontal") != 0)
+        {
+            wheels[0].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
+            wheels[3].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
+        }
+        else
+        {
+            wheels[0].steerAngle = 0;
+            wheels[3].steerAngle = 0;
+        }
+        
     }
     /// <summary>
     /// 기능 : 자동차 회전값 초기화
@@ -156,11 +169,12 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// 기능 : 드리프트
     /// 원리 : 후륜 타이어의 마찰계수 조절
+    /// 1) 왼쪽 shift 누르고 좌우 방향키를 누른 상태에서만 작동
     /// </summary>
     void KartDrift()
     {
         // 드리프트 상태
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Horizontal") != 0)
         {
             fFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
@@ -173,6 +187,8 @@ public class CarController : MonoBehaviour
 
             sFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[2].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
+
+            BoosterGageAmountUP();
         }
         else // 드리프트 상태 아님
         {
@@ -188,5 +204,15 @@ public class CarController : MonoBehaviour
             sFrictionBackLeft.stiffness = slipRate;
             wheels[2].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
         }
+    }
+    /// <summary>
+    /// 기능 : 부스터 게이지 증가
+    /// 1) 게이지가 1 이상인 경우 부스터 획득
+    /// 2) 속도에 따라 게이지 상승량이 다름 : TODO
+    /// </summary>
+    void BoosterGageAmountUP()
+    {
+        GameManager.Instance.CurrentBoosterGage += (0.5f * Time.deltaTime);
+        if (GameManager.Instance.CurrentBoosterGage >= 1) boosterManager.BoosterGet();
     }
 }
