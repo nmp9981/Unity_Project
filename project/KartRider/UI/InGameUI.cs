@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,16 +11,21 @@ public class InGameUI : MonoBehaviour
     TextMeshProUGUI velocityText;
     [SerializeField]
     TextMeshProUGUI distText;
-   
+    TextMeshProUGUI timerText;
+
     Image gageAmountUI;
+
     private void Awake()
     {
         gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
+        timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
+        GameManager.Instance.CurrentTime = 0f;
     }
     void Update()
     {
         ShowVelocityText();
         ShowDistText();
+        ShowTimeText();
         BoosterGageUI();
     }
     void ShowVelocityText()
@@ -40,5 +46,23 @@ public class InGameUI : MonoBehaviour
     void BoosterGageUI()
     {
         gageAmountUI.fillAmount = GameManager.Instance.CurrentBoosterGage;
+    }
+    /// <summary>
+    /// 기능 : 현재 경과시간을 보이기
+    /// 1) 10초 미만인 경우 앞에 0을 붙임
+    /// </summary>
+    void ShowTimeText()
+    {
+        GameManager.Instance.CurrentTime += Time.deltaTime;
+        int minutes = (int)GameManager.Instance.CurrentTime / 60;
+        float rest = GameManager.Instance.CurrentTime % 60;
+        float seconds = Mathf.Round(rest * 100f);//소수점 둘째 자리까지
+        int secondsDiv = (int)seconds / 100;
+        int secondsMod = (int)seconds % 100;
+
+        string secondDivText = (secondsDiv<10)? $"0{secondsDiv}" : $"{secondsDiv}";
+        string secondModText = (secondsMod<10) ? $"0{secondsMod}" : $"{secondsMod}";
+        
+        timerText.text = $"{minutes}:{secondDivText}.{secondModText}";
     }
 }
