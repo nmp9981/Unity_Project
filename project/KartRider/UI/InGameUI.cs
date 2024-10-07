@@ -19,7 +19,7 @@ public class InGameUI : MonoBehaviour
     {
         gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
         timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
-        GameManager.Instance.CurrentTime = 0f;
+        GameManager.Instance.CurrentTime = 148f;
     }
     void Update()
     {
@@ -53,7 +53,9 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     void ShowTimeText()
     {
-        GameManager.Instance.CurrentTime += Time.deltaTime;
+        GameManager.Instance.CurrentTime -= Time.deltaTime;
+        GameManager.Instance.CurrentTime = Mathf.Max(GameManager.Instance.CurrentTime, 0);
+
         int minutes = (int)GameManager.Instance.CurrentTime / 60;
         float rest = GameManager.Instance.CurrentTime % 60;
         float seconds = Mathf.Round(rest * 100f);//소수점 둘째 자리까지
@@ -64,5 +66,7 @@ public class InGameUI : MonoBehaviour
         string secondModText = (secondsMod<10) ? $"0{secondsMod}" : $"{secondsMod}";
         
         timerText.text = $"{minutes}:{secondDivText}.{secondModText}";
+        if (GameManager.Instance.CurrentTime < 10) timerText.color = Color.red;
+        else timerText.color = Color.white;
     }
 }
