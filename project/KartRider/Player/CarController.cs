@@ -208,11 +208,12 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// 기능 : 부스터 게이지 증가
     /// 1) 게이지가 1 이상인 경우 부스터 획득
-    /// 2) 속도에 따라 게이지 상승량이 다름 : TODO
+    /// 2) 속도에 따라 게이지 상승량이 다름
     /// </summary>
     void BoosterGageAmountUP()
     {
-        GameManager.Instance.CurrentBoosterGage += (0.5f * Time.deltaTime);
+        float gageChargeAmount = GameManager.Instance.CarSpeed / 200f;
+        GameManager.Instance.CurrentBoosterGage += (gageChargeAmount * Time.deltaTime);
         if (GameManager.Instance.CurrentBoosterGage >= 1) boosterManager.BoosterGet();
     }
 }
