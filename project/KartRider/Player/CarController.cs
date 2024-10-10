@@ -12,7 +12,8 @@ public class CarController : MonoBehaviour
     public GameObject centerOfMass;
 
     //최대 차량 회전 각도
-    public float steeringMaxAxis = 15f;
+    private float steeringMaxAxis = 5f;
+    private float prevSteerAngle;
 
     // 후륜 타이어 마찰력
     WheelFrictionCurve fFrictionBackLeft;
@@ -22,7 +23,7 @@ public class CarController : MonoBehaviour
 
     // 마찰계수
     float slipRate = 1.0f;
-    float handBreakSlipRate = 0.5f;
+    float handBreakSlipRate = 0.9f;
 
     //부스터 클래스
     BoosterManager boosterManager;
@@ -48,7 +49,8 @@ public class CarController : MonoBehaviour
     }
     private void Update()
     {
-        ResponKart(); 
+        ResponKart();
+        FrontTireMoveDirection();
     }
     //자동차 움직임
     private void FixedUpdate()
@@ -85,6 +87,15 @@ public class CarController : MonoBehaviour
         }
     }
     /// <summary>
+    /// 기능 : 앞바퀴 2개를 이동방향으로 향하기	
+    /// </summary>
+    void FrontTireMoveDirection()
+    {	
+        wheelMeshs[0].transform.Rotate(Vector3.up, wheels[0].steerAngle - prevSteerAngle, Space.World);
+        wheelMeshs[3].transform.Rotate(Vector3.up, wheels[3].steerAngle - prevSteerAngle, Space.World);
+        prevSteerAngle = wheels[3].steerAngle;
+    }
+    /// <summary>
     /// 기능 : 자동차 회전
     /// 1) 사용자가 직접 회전 제어한다.
     /// </summary>
@@ -95,6 +106,12 @@ public class CarController : MonoBehaviour
         {
             wheels[0].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
             wheels[3].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
+
+            //바퀴 회전 효과
+            for(int idx = 0; idx < 4; idx++)
+            {
+                wheelMeshs[idx].transform.Rotate(wheels[idx].rpm / 60 * 360 * Time.fixedDeltaTime, 0, 0);
+            }
         }
         else
         {
