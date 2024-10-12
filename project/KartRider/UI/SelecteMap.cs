@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 
 public class SelecteMap : MonoBehaviour, IPointerClickHandler
 {
@@ -17,6 +16,7 @@ public class SelecteMap : MonoBehaviour, IPointerClickHandler
             else mapName = gameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text;
             
             GameManager.Instance.CurrentMap = mapName;
+            MenuUIManager.selectMapText.text = GameManager.Instance.CurrentMap;
         }
     }
 }
