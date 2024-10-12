@@ -17,6 +17,7 @@ public class SelecteMap : MonoBehaviour, IPointerClickHandler
             
             GameManager.Instance.CurrentMap = mapName;
             MenuUIManager.selectMapText.text = GameManager.Instance.CurrentMap;
+            GameManager.Instance.CurrentMapIndex = GameManager.mapDictoinaty[MenuUIManager.selectMapText.text];
         }
     }
 }
