@@ -12,8 +12,12 @@ public class CarController : MonoBehaviour
     public GameObject centerOfMass;
 
     //최대 차량 회전 각도
-    private float steeringMaxAxis = 5f;
+    private float steeringMaxAxis = 10f;
     private float prevSteerAngle;
+
+    //방향키 이동량
+    float horizontalKey;
+    float verticalKey;
 
     // 후륜 타이어 마찰력
     WheelFrictionCurve fFrictionBackLeft;
@@ -36,9 +40,27 @@ public class CarController : MonoBehaviour
         // 차량 무게 중심 맞추기
         carRigid.centerOfMass = centerOfMass.transform.localPosition;
 
+        //타이어 마찰력 세팅
+        FrontFrictionSetting();
         BackFrictionSetting();
     }
+    // 전륜 타이어 마찰력 세팅
+    void FrontFrictionSetting()
+    {
+        WheelFrictionCurve fFrictionFrontLeft = wheels[0].GetComponent<WheelCollider>().forwardFriction;
+        WheelFrictionCurve sFrictionFrontLeft = wheels[0].GetComponent<WheelCollider>().sidewaysFriction;
+        WheelFrictionCurve fFrictionFrontRight = wheels[3].GetComponent<WheelCollider>().forwardFriction;
+        WheelFrictionCurve sFrictionFrontRight = wheels[3].GetComponent<WheelCollider>().sidewaysFriction;
 
+        fFrictionFrontLeft.stiffness = 1f;
+        wheels[0].GetComponent<WheelCollider>().forwardFriction = fFrictionFrontLeft;
+        sFrictionFrontLeft.stiffness = 1f;
+        wheels[0].GetComponent<WheelCollider>().sidewaysFriction = sFrictionFrontLeft;
+        fFrictionFrontRight.stiffness = 1f;
+        wheels[3].GetComponent<WheelCollider>().forwardFriction = fFrictionFrontRight;
+        sFrictionFrontRight.stiffness = 1f;
+        wheels[3].GetComponent<WheelCollider>().sidewaysFriction = sFrictionFrontRight;
+    }
     //후륜 타이어 마찰력 세팅
     void BackFrictionSetting()
     {
@@ -50,16 +72,25 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         ResponKart();
-        FrontTireMoveDirection();
+        //FrontTireMoveDirection();
     }
     //자동차 움직임
     private void FixedUpdate()
     {
+        InputDirectionKey();
         MoveCar();
         SteerCar();
         AnimateWheelMeshs();
         Breaking();
         KartDrift();
+    }
+    /// <summary>
+    /// 기능 : 방향키 입력
+    /// </summary>
+    void InputDirectionKey()
+    {
+        horizontalKey = Input.GetAxis("Horizontal");
+        verticalKey = Input.GetAxis("Vertical");
     }
     /// <summary>
     /// 기능 : 바퀴 모터 돌리면서 자동차 이동
@@ -69,7 +100,7 @@ public class CarController : MonoBehaviour
     {
         GameManager.Instance.CarSpeed = carRigid.velocity.magnitude*3.6f;
         
-        float verticalAmount = Input.GetAxis("Vertical");
+        float verticalAmount = verticalKey;
         if (GameManager.Instance.CarSpeed <= GameManager.Instance.SpeedLimit && verticalAmount!=0 && !GameManager.Instance.IsBreaking)
         {
             for (int i = 0; i < 4; i++)
@@ -85,9 +116,26 @@ public class CarController : MonoBehaviour
                 wheels[i].motorTorque = 0;
             }
         }
+
+        // 전후진 키를 누르지 않으면 제동이 걸리도록 한다	
+        float decSpeed = 300;
+        if (verticalAmount == 0) {
+            for (int i = 0; i < 4; i++)
+            {
+                wheels[i].brakeTorque = decSpeed;
+            }
+        } 
+        else {
+            for (int i = 0; i < 4; i++)
+            {
+                wheels[i].brakeTorque = 0;
+            }
+        }
+        
     }
     /// <summary>
     /// 기능 : 앞바퀴 2개를 이동방향으로 향하기	
+    /// 추가 로직
     /// </summary>
     void FrontTireMoveDirection()
     {	
@@ -102,16 +150,16 @@ public class CarController : MonoBehaviour
     void SteerCar()
     {
         //회전 중
-        if (Input.GetAxis("Horizontal") != 0)
+        if (horizontalKey != 0)
         {
-            wheels[0].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
-            wheels[3].steerAngle = steeringMaxAxis * Input.GetAxis("Horizontal");
+            wheels[0].steerAngle = steeringMaxAxis * horizontalKey;
+            wheels[3].steerAngle = steeringMaxAxis * horizontalKey;
 
-            //바퀴 회전 효과
-            for(int idx = 0; idx < 4; idx++)
-            {
-                wheelMeshs[idx].transform.Rotate(wheels[idx].rpm / 60 * 360 * Time.fixedDeltaTime, 0, 0);
-            }
+            ////바퀴 회전 효과(추가 로직)
+            //for(int idx = 0; idx < 4; idx++)
+            //{
+            //    wheelMeshs[idx].transform.Rotate(0,wheels[idx].rpm / 60 * 360 * Time.fixedDeltaTime, 0);
+            //}
         }
         else
         {
@@ -191,7 +239,7 @@ public class CarController : MonoBehaviour
     void KartDrift()
     {
         // 드리프트 상태
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetAxis("Horizontal") != 0)
+        if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
             fFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
