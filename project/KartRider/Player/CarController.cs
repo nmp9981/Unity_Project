@@ -26,8 +26,8 @@ public class CarController : MonoBehaviour
     WheelFrictionCurve sFrictionBackRight;
 
     // 마찰계수
-    float slipRate = 1.0f;
-    float handBreakSlipRate = 0.9f;
+    float slipRate = 2.0f;
+    float handBreakSlipRate = 0.4f;
 
     //부스터 클래스
     BoosterManager boosterManager;
