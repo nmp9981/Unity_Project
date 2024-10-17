@@ -12,7 +12,7 @@ public class CarController : MonoBehaviour
     public GameObject centerOfMass;
 
     //최대 차량 회전 각도
-    private float steeringMaxAxis = 10f;
+    private float steeringMaxAxis;
     private float prevSteerAngle;
 
     //방향키 이동량
@@ -26,8 +26,8 @@ public class CarController : MonoBehaviour
     WheelFrictionCurve sFrictionBackRight;
 
     // 마찰계수
-    float slipRate = 2.0f;
-    float handBreakSlipRate = 0.4f;
+    float slipRate = 1.7f;
+    float handBreakSlipRate = 1.1f;
 
     //부스터 클래스
     BoosterManager boosterManager;
@@ -52,13 +52,13 @@ public class CarController : MonoBehaviour
         WheelFrictionCurve fFrictionFrontRight = wheels[3].GetComponent<WheelCollider>().forwardFriction;
         WheelFrictionCurve sFrictionFrontRight = wheels[3].GetComponent<WheelCollider>().sidewaysFriction;
 
-        fFrictionFrontLeft.stiffness = 1f;
+        fFrictionFrontLeft.stiffness = 1.0f;
         wheels[0].GetComponent<WheelCollider>().forwardFriction = fFrictionFrontLeft;
-        sFrictionFrontLeft.stiffness = 1f;
+        sFrictionFrontLeft.stiffness = 1.0f;
         wheels[0].GetComponent<WheelCollider>().sidewaysFriction = sFrictionFrontLeft;
-        fFrictionFrontRight.stiffness = 1f;
+        fFrictionFrontRight.stiffness = 1.0f;
         wheels[3].GetComponent<WheelCollider>().forwardFriction = fFrictionFrontRight;
-        sFrictionFrontRight.stiffness = 1f;
+        sFrictionFrontRight.stiffness = 1.0f;
         wheels[3].GetComponent<WheelCollider>().sidewaysFriction = sFrictionFrontRight;
     }
     //후륜 타이어 마찰력 세팅
@@ -149,6 +149,7 @@ public class CarController : MonoBehaviour
     /// </summary>
     void SteerCar()
     {
+        Debug.Log(steeringMaxAxis);
         //회전 중
         if (horizontalKey != 0)
         {
@@ -238,16 +239,18 @@ public class CarController : MonoBehaviour
     /// </summary>
     void KartDrift()
     {
+        
         // 드리프트 상태
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
-            fFrictionBackLeft.stiffness = handBreakSlipRate;
+            steeringMaxAxis = 45;
+            fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
             sFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[1].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
 
-            fFrictionBackLeft.stiffness = handBreakSlipRate;
+            fFrictionBackLeft.stiffness = slipRate;
             wheels[2].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
             sFrictionBackLeft.stiffness = handBreakSlipRate;
@@ -257,6 +260,7 @@ public class CarController : MonoBehaviour
         }
         else // 드리프트 상태 아님
         {
+            steeringMaxAxis = 15;
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
