@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
+using Cysharp.Threading.Tasks;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +14,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get { Init(); return _instance; } }
 
     static public Dictionary<string,int> mapDictoinaty;
+    static public List<Vector3> startPosList = new List<Vector3>();
     static void Init()
     {
         if (_instance == null)
@@ -54,10 +57,31 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 기능 : 시작지점으로 이동
     /// </summary>
-    public static void MoveStartPosition(int idx)
+    public async static void MoveStartPosition(int idx)
     {
-        
+        if (startPosList.Count == 0)
+        {
+            await SettingStartPos();
+        }
+
+        GameObject player = GameObject.FindWithTag("Player");
+        player.transform.position = startPosList[idx];
     }
+    static async UniTask SettingStartPos()
+    {
+        GameObject mapListObj = GameObject.Find("Map");
+        Debug.Log(mapListObj.name);
+        foreach (var startPos in mapListObj.GetComponentsInChildren<Transform>())
+        {
+            if (startPos.gameObject.name.Contains("StartPos"))
+            {
+                Debug.Log(startPos.position.x);
+                startPosList.Add(startPos.position);
+            }
+        }
+
+    }
+
     #region 데이터
     float _carSpeed;//차량의 현재 속도
     float _speedLimit = 144f;//속도 제한
