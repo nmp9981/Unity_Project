@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
         Init();
         SettingMapList();
     }
+    
     /// <summary>
     /// 기능 : 맵 리스트 세팅
     /// 1) 맵 이름, 번호 세팅
@@ -59,18 +60,23 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public async static void MoveStartPosition(int idx)
     {
+        await UniTask.Delay(1000);
+        
         if (startPosList.Count == 0)
         {
             await SettingStartPos();
         }
-
         GameObject player = GameObject.FindWithTag("Player");
         player.transform.position = startPosList[idx];
+        await UniTask.Delay(800);
+        InitRacingData();
     }
+    /// <summary>
+    /// 맵 세팅
+    /// </summary>
     static async UniTask SettingStartPos()
     {
         GameObject mapListObj = GameObject.Find("Map");
-        Debug.Log(mapListObj.name);
         foreach (var startPos in mapListObj.GetComponentsInChildren<Transform>())
         {
             if (startPos.gameObject.name.Contains("StartPos"))
@@ -80,6 +86,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
+    }
+    /// <summary>
+    /// 기능 : 레이싱 데이터 초기화
+    /// </summary>
+    static void InitRacingData()
+    {
+        GameManager.Instance._racingDist = 0;
     }
 
     #region 데이터
