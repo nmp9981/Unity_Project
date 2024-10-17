@@ -17,6 +17,7 @@ public class GoalManager : MonoBehaviour
                 case "Start":
                     GameManager.Instance.IsDriving = true;
                     GameManager.Instance.CurrentLap += 1;
+                    if(GameManager.Instance.CurrentLap >= 3) GameManager.Instance.IsDriving = false;
                     break;
                 case "Arrive":
                     GameManager.Instance.IsDriving = false;
