@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
 
 public class MenuUIManager : MonoBehaviour
 {
@@ -28,14 +29,17 @@ public class MenuUIManager : MonoBehaviour
     /// 2) 인게임으로 씬 전환
     /// 3) 각 맵의 시작 지점으로 이동
     /// </summary>
-    void GoRacingStart(string mapName)
+    public void GoRacingStart(string mapName)
     {
         if (mapName != string.Empty)
         {
             //선택된 맵의 시작지점으로 씬 이동
             SceneManager.LoadScene("KartGameMain");
+            //로딩창 켜기
+            GameLoading.LoadingOn();
+            //시작지점으로 이동
             int mapNumber = GameManager.mapDictoinaty[mapName];
-            GameManager.MoveStartPosition(mapNumber);
+            GameManager.MoveStartPositionAndDataInit(mapNumber);
         }
     }
 }
