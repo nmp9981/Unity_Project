@@ -56,9 +56,13 @@ public class GameManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// 기능 : 시작지점으로 이동
+    /// 기능 : 시작지점으로 이동 및 레이싱 데이터 초기화
+    /// 1) 각 맵 시작지점 세팅
+    /// 2) 각 맵 시작지점으로 이동
+    /// 3) 레이싱 데이터 초기화
+    /// 4) 로딩 해제
     /// </summary>
-    public async static void MoveStartPosition(int idx)
+    public async static void MoveStartPositionAndDataInit(int idx)
     {
         await UniTask.Delay(1000);
         
@@ -70,6 +74,7 @@ public class GameManager : MonoBehaviour
         player.transform.position = startPosList[idx];
         await UniTask.Delay(800);
         InitRacingData();
+        GameLoading.LoadingOff();
     }
     /// <summary>
     /// 맵 세팅
@@ -90,19 +95,19 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 기능 : 레이싱 데이터 초기화
     /// </summary>
-    static void InitRacingData()
+    static public void InitRacingData()
     {
         GameManager.Instance._racingDist = 0;
     }
 
     #region 데이터
     float _carSpeed;//차량의 현재 속도
-    float _speedLimit = 144f;//속도 제한
+    float _speedLimit = 172f;//속도 제한
     float _racingDist = 0;//주행 거리
-    float _touque = 1100;//차량 가속도
+    float _touque = 1500;//차량 가속도
     
     bool _isBreaking = false;//브레이크 여부
-    float _breakPower = 20000;//브레이크 파워
+    float _breakPower = 30000;//브레이크 파워
 
     bool _isBooster = false;//부스터 여부
     int _boosterCount = 0;//부스터 개수
