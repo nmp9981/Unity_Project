@@ -99,6 +99,7 @@ public class GameManager : MonoBehaviour
     {
         GameManager.Instance._racingDist = 0;
         GameManager.Instance.CurrentLap = 0;
+        GameManager.Instance.CurrentBoosterGage = 0;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -111,12 +112,12 @@ public class GameManager : MonoBehaviour
         //선택된 맵의 시작지점으로 씬 이동
         if (SceneManager.GetActiveScene().name.Contains("KartGame"))
         {
-            //로딩창 켜기
+            //로딩 씬 킨다.
             GameLoading.LoadingOn();
             //메인 씬으로 이동
             SceneManager.LoadScene("MenuUI",LoadSceneMode.Single);
-            //로딩창 끄기
-            await UniTask.Delay(1000);
+            await UniTask.Delay(1500);
+            //로딩 씬 끈다.
             GameLoading.LoadingOff();
         }
     }
@@ -143,6 +144,9 @@ public class GameManager : MonoBehaviour
     string _currentMap = string.Empty;//현재 주행하는 맵 이름
     int _currentMapIndex;//현재 주행하는 맵 번호
 
+    float _bgmVolume = 0.5f;
+    float _sfxVolume = 0.5f;
+
     public float CarSpeed { get { return _carSpeed; } set { _carSpeed = value; } }
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
     public float RacingDist { get { return _racingDist; } set { _racingDist = value; } }
@@ -162,5 +166,8 @@ public class GameManager : MonoBehaviour
 
     public string CurrentMap { get { return _currentMap; } set { _currentMap = value; } }
     public int CurrentMapIndex { get { return _currentMapIndex; } set { _currentMapIndex = value; } }
+
+    public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
+    public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
     #endregion
 }
