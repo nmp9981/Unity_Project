@@ -95,9 +95,13 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// 기능 : 바퀴 모터 돌리면서 자동차 이동
     /// 가속 조건 : 제한 속도 이하, 위 키 누름, 브레이크 상태가 아님
+    /// 주행 가능상태일때만 이동
     /// </summary>
     void MoveCar()
     {
+        // 주행 가능 상태가 아님
+        if (GameManager.Instance.IsDriving == false) return;
+
         GameManager.Instance.CarSpeed = carRigid.velocity.magnitude*3.6f;
         
         float verticalAmount = verticalKey;
@@ -243,7 +247,7 @@ public class CarController : MonoBehaviour
         // 드리프트 상태
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
-            steeringMaxAxis = 45;
+            steeringMaxAxis = 50;
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
@@ -260,7 +264,7 @@ public class CarController : MonoBehaviour
         }
         else // 드리프트 상태 아님
         {
-            steeringMaxAxis = 15;
+            steeringMaxAxis = 20;
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
@@ -281,7 +285,7 @@ public class CarController : MonoBehaviour
     /// </summary>
     void BoosterGageAmountUP()
     {
-        float gageChargeAmount = GameManager.Instance.CarSpeed / 200f;
+        float gageChargeAmount = GameManager.Instance.CarSpeed / 300f;
         GameManager.Instance.CurrentBoosterGage += (gageChargeAmount * Time.deltaTime);
         if (GameManager.Instance.CurrentBoosterGage >= 1) boosterManager.BoosterGet();
     }
