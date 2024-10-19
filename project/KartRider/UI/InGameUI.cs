@@ -13,6 +13,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI distText;
     TextMeshProUGUI timerText;
+    TextMeshProUGUI readyText;
 
     TextMeshProUGUI lapUI;
     Image gageAmountUI;
@@ -21,8 +22,12 @@ public class InGameUI : MonoBehaviour
     {
         gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
         timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
+        readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
         lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
-        GameManager.Instance.CurrentTime = 148f;
+    }
+    private void OnEnable()
+    {
+        ShowReadyText();
     }
     void Update()
     {
@@ -40,13 +45,21 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     async UniTask ShowReadyText()
     {
-        TextMeshProUGUI readyText = null;
-        for(int i = 3; i >= 0; i--)
+        GameManager.Instance.CurrentTime = 22f;
+        GameManager.Instance.IsDriving = false;
+        await UniTask.Delay(2000);
+      
+        GameManager.Instance.MapLap = 1;
+        for (int i = 3; i >= -1; i--)
         {
             if (i == 0)
             {
                 readyText.text = "Start!!";
                 GameManager.Instance.IsDriving = true;
+            }
+            else if (i == -1)
+            {
+                readyText.text = string.Empty;
             }
             else
             {
@@ -54,7 +67,6 @@ public class InGameUI : MonoBehaviour
             }
             await UniTask.Delay(1000);
         }
-        readyText.text = string.Empty;
     }
     void ShowVelocityText()
     {
@@ -92,6 +104,12 @@ public class InGameUI : MonoBehaviour
         {
             GameManager.Instance.CurrentTime -= Time.deltaTime;
         }
+        //시간 다됨
+        if(GameManager.Instance.CurrentTime<=0)
+        {
+            ShowFinishText();
+            return;
+        }
         GameManager.Instance.CurrentTime = Mathf.Max(GameManager.Instance.CurrentTime, 0);
 
         int minutes = (int)GameManager.Instance.CurrentTime / 60;
@@ -106,5 +124,13 @@ public class InGameUI : MonoBehaviour
         timerText.text = $"{minutes}:{secondDivText}.{secondModText}";
         if (GameManager.Instance.CurrentTime < 10) timerText.color = Color.red;
         else timerText.color = Color.white;
+    }
+    /// <summary>
+    /// 기능 종료 문구 띄우기
+    /// </summary>
+    void ShowFinishText()
+    {
+        GameManager.Instance.IsDriving = false;
+        timerText.text = "Finish";
     }
 }
