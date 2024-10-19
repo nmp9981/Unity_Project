@@ -27,7 +27,7 @@ public class CarController : MonoBehaviour
 
     // 마찰계수
     float slipRate = 1.7f;
-    float handBreakSlipRate = 1.1f;
+    float handBreakSlipRate = 1.0f;
 
     //부스터 클래스
     BoosterManager boosterManager;
@@ -99,11 +99,12 @@ public class CarController : MonoBehaviour
     /// </summary>
     void MoveCar()
     {
+        // 현재 속도 체크
+        GameManager.Instance.CarSpeed = carRigid.velocity.magnitude*3.6f;
+
         // 주행 가능 상태가 아님
         if (GameManager.Instance.IsDriving == false) return;
 
-        GameManager.Instance.CarSpeed = carRigid.velocity.magnitude*3.6f;
-        
         float verticalAmount = verticalKey;
         if (GameManager.Instance.CarSpeed <= GameManager.Instance.SpeedLimit && verticalAmount!=0 && !GameManager.Instance.IsBreaking)
         {
@@ -251,7 +252,7 @@ public class CarController : MonoBehaviour
         // 드리프트 상태
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
-            steeringMaxAxis = 50;
+            steeringMaxAxis = 75;
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
