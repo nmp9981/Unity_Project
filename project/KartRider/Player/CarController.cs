@@ -201,11 +201,15 @@ public class CarController : MonoBehaviour
     }
     /// <summary>
     /// 기능 : 브레이크
-    /// 조건 : 부스터 직후 or 왼쪽 shift키를 누름
+    /// 조건1 : 부스터 직후 or 왼쪽 shift키를 누름
+    /// 조건2 : 주행 가능상태가 아님
     /// </summary>
     void Breaking()
     {
         if (Input.GetKey(KeyCode.RightShift) || GameManager.Instance.IsBooster)
+        {
+            GameManager.Instance.IsBreaking = true;
+        }else if(GameManager.Instance.IsDriving == false)
         {
             GameManager.Instance.IsBreaking = true;
         }
