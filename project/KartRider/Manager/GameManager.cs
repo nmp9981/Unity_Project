@@ -98,6 +98,27 @@ public class GameManager : MonoBehaviour
     static public void InitRacingData()
     {
         GameManager.Instance._racingDist = 0;
+        GameManager.Instance.CurrentLap = 0;
+    }
+    /// <summary>
+    /// 기능 : 메인씬으로 이동
+    /// </summary>
+    /// <returns></returns>
+    static public async UniTask MoveToMainScene()
+    {
+        //레이싱 데이터 초기화
+        GameManager.InitRacingData();
+        //선택된 맵의 시작지점으로 씬 이동
+        if (SceneManager.GetActiveScene().name.Contains("KartGame"))
+        {
+            //로딩창 켜기
+            GameLoading.LoadingOn();
+            //메인 씬으로 이동
+            SceneManager.LoadScene("MenuUI",LoadSceneMode.Single);
+            //로딩창 끄기
+            await UniTask.Delay(1000);
+            GameLoading.LoadingOff();
+        }
     }
 
     #region 데이터
