@@ -45,7 +45,7 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     async UniTask ShowReadyText()
     {
-        GameManager.Instance.CurrentTime = 22f;
+        GameManager.Instance.CurrentTime = 91f;
         GameManager.Instance.IsDriving = false;
         await UniTask.Delay(2000);
       
@@ -55,6 +55,7 @@ public class InGameUI : MonoBehaviour
             if (i == 0)
             {
                 readyText.text = "Start!!";
+                SoundManger._sound.PlaySfx(1);
                 GameManager.Instance.IsDriving = true;
             }
             else if (i == -1)
@@ -64,6 +65,7 @@ public class InGameUI : MonoBehaviour
             else
             {
                 readyText.text = $"{i}";
+                SoundManger._sound.PlaySfx(0);
             }
             await UniTask.Delay(1000);
         }
