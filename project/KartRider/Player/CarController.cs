@@ -123,7 +123,7 @@ public class CarController : MonoBehaviour
         }
 
         // 전후진 키를 누르지 않으면 제동이 걸리도록 한다	
-        float decSpeed = 300;
+        float decSpeed = 500;
         if (verticalAmount == 0) {
             for (int i = 0; i < 4; i++)
             {
@@ -136,7 +136,19 @@ public class CarController : MonoBehaviour
                 wheels[i].brakeTorque = 0;
             }
         }
-        
+        // sound 재생
+        if(verticalAmount!=0 && GameManager.Instance.IsDriving)
+        {
+            PlayKartSound(2);
+        }
+    }
+    /// <summary>
+    /// 기능 : 소리 재생
+    /// </summary>
+    /// <param name="number"></param>
+    void PlayKartSound(int number)
+    {
+        SoundManger._sound.PlaySfx(number);
     }
     /// <summary>
     /// 기능 : 앞바퀴 2개를 이동방향으로 향하기	
@@ -253,6 +265,7 @@ public class CarController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
             steeringMaxAxis = 75;
+            PlayKartSound(3);
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
