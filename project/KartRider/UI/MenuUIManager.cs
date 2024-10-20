@@ -14,7 +14,21 @@ public class MenuUIManager : MonoBehaviour
 
     //시작 버튼
     Button startButton;
+
     private void Awake()
+    {
+        SettingMainUI();
+    }
+    private void OnEnable()
+    {
+        SoundManger._sound.PlayBGM(0);
+    }
+    /// <summary>
+    /// 기능 : 메인 UI 세팅
+    /// 1) 맵 선택 칸
+    /// 2) 시작 버튼 바인딩
+    /// </summary>
+    void SettingMainUI()
     {
         selectMapText = GameObject.Find("MapTextBackGround").GetComponentInChildren<TextMeshProUGUI>();
         selectMapText.text = string.Empty;
@@ -22,7 +36,6 @@ public class MenuUIManager : MonoBehaviour
         startButton = GameObject.Find("RacingStart").GetComponentInChildren<Button>();
         startButton.onClick.AddListener(() => GoRacingStart(GameManager.Instance.CurrentMap));
     }
-
     /// <summary>
     /// 기능 : 고른 맵으로 이동
     /// 1) 선택된 맵이 존재해야함
@@ -40,6 +53,7 @@ public class MenuUIManager : MonoBehaviour
             //시작지점으로 이동
             int mapNumber = GameManager.mapDictoinaty[mapName];
             GameManager.MoveStartPositionAndDataInit(mapNumber);
+            SoundManger._sound.PlayBGM(mapNumber+1);
         }
     }
 }
