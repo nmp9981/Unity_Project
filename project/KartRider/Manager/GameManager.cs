@@ -119,6 +119,7 @@ public class GameManager : MonoBehaviour
             await UniTask.Delay(1500);
             //로딩 씬 끈다.
             GameLoading.LoadingOff();
+            SoundManger._sound.PlayBGM(0);
         }
     }
 
