@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,6 +32,11 @@ public class CarController : MonoBehaviour
 
     //부스터 클래스
     BoosterManager boosterManager;
+
+    //효과음 시간
+    float currentMotorSFXTime = 0.3f;
+    float currentDriftSFXTime = 0.3f;
+    float motorSFXTime = 0.4f;
 
     private void Awake()
     {
@@ -72,6 +78,7 @@ public class CarController : MonoBehaviour
     private void Update()
     {
         ResponKart();
+        FlowTime();
         //FrontTireMoveDirection();
     }
     //자동차 움직임
@@ -139,16 +146,44 @@ public class CarController : MonoBehaviour
         // sound 재생
         if(verticalAmount!=0 && GameManager.Instance.IsDriving)
         {
-            PlayKartSound(2);
+            PlayKartMotorSound();
+        }
+        else
+        {
+            currentMotorSFXTime = 0.3f;
         }
     }
     /// <summary>
-    /// 기능 : 소리 재생
+    /// 기능 : 시간 흐름
+    /// </summary>
+    void FlowTime()
+    {
+        currentMotorSFXTime += Time.deltaTime;
+        currentDriftSFXTime += Time.deltaTime;
+    }
+    /// <summary>
+    /// 기능 : 모터 소리 재생
     /// </summary>
     /// <param name="number"></param>
-    void PlayKartSound(int number)
+    void PlayKartMotorSound()
     {
-        SoundManger._sound.PlaySfx(number);
+        if(currentMotorSFXTime >= motorSFXTime)
+        {
+            currentMotorSFXTime = 0;
+            SoundManger._sound.PlaySfx(2);
+        }
+    }
+    /// <summary>
+    /// 기능 : 드리프트 소리 재생
+    /// </summary>
+    /// <param name="number"></param>
+    void PlayKartDriftSound()
+    {
+        if (currentDriftSFXTime >= motorSFXTime)
+        {
+            currentDriftSFXTime = 0;
+            SoundManger._sound.PlaySfx(3);
+        }
     }
     /// <summary>
     /// 기능 : 앞바퀴 2개를 이동방향으로 향하기	
@@ -166,7 +201,7 @@ public class CarController : MonoBehaviour
     /// </summary>
     void SteerCar()
     {
-        Debug.Log(steeringMaxAxis);
+        //Debug.Log(steeringMaxAxis);
         //회전 중
         if (horizontalKey != 0)
         {
@@ -265,7 +300,7 @@ public class CarController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
             steeringMaxAxis = 75;
-            PlayKartSound(3);
+            PlayKartDriftSound();
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
@@ -283,6 +318,7 @@ public class CarController : MonoBehaviour
         else // 드리프트 상태 아님
         {
             steeringMaxAxis = 20;
+            currentDriftSFXTime = 0.3f;
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
