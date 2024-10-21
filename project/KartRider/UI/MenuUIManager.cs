@@ -19,7 +19,7 @@ public class MenuUIManager : MonoBehaviour
     {
         SettingMainUI();
     }
-    private void OnEnable()
+    private void Start()
     {
         SoundManger._sound.PlayBGM(0);
     }
