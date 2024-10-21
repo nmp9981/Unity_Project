@@ -2,6 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum BGMSound
+{
+    Main,
+    Map1,
+    TraingMap,
+    Map2
+}
+public enum SFXSound
+{
+    Ready,
+    ReadyGo,
+    Motor,
+    Drift,
+    Booster
+}
 public class SoundManger : MonoBehaviour
 {
     [SerializeField] static GameObject _BGMManager;
