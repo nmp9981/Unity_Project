@@ -170,7 +170,7 @@ public class CarController : MonoBehaviour
         if(currentMotorSFXTime >= motorSFXTime)
         {
             currentMotorSFXTime = 0;
-            SoundManger._sound.PlaySfx(2);
+            SoundManger._sound.PlaySfx((int)SFXSound.Motor);
         }
     }
     /// <summary>
@@ -182,7 +182,7 @@ public class CarController : MonoBehaviour
         if (currentDriftSFXTime >= motorSFXTime)
         {
             currentDriftSFXTime = 0;
-            SoundManger._sound.PlaySfx(3);
+            SoundManger._sound.PlaySfx((int)SFXSound.Drift);
         }
     }
     /// <summary>
@@ -285,7 +285,7 @@ public class CarController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            gameObject.transform.position = GameObject.Find("StartPos").transform.position;
+            gameObject.transform.position = MapManager.SearchNearResponposition(gameObject.transform.position);
         }
     }
     /// <summary>
@@ -301,6 +301,9 @@ public class CarController : MonoBehaviour
         {
             steeringMaxAxis = 75;
             PlayKartDriftSound();
+            wheels[1].brakeTorque = GameManager.Instance.BreakPower;
+            wheels[2].brakeTorque = GameManager.Instance.BreakPower;
+
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
@@ -319,6 +322,10 @@ public class CarController : MonoBehaviour
         {
             steeringMaxAxis = 20;
             currentDriftSFXTime = 0.3f;
+            
+            wheels[1].brakeTorque = 0;
+            wheels[2].brakeTorque = 0;
+
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
