@@ -21,8 +21,8 @@ public class GameOver : MonoBehaviour
         {
             return false;
         }
-        if (GameManager.Instance.CurrentTime <= 0 || 
-            GameManager.Instance.CurrentLap >= GameManager.Instance.mapLapList[GameManager.Instance.CurrentMapIndex])
+        if (GameManager.Instance.CurrentRestTime <= 0 || 
+            GameManager.Instance.CurrentLap > GameManager.Instance.mapLapList[GameManager.Instance.CurrentMapIndex])
         {
             return true;
         }
