@@ -100,6 +100,7 @@ public class GameManager : MonoBehaviour
         GameManager.Instance.CurrentLap = 0;
         GameManager.Instance.CurrentBoosterGage = 0;
         GameManager.Instance.BestLapTime = 0;
+        GameManager.Instance.CurrentRestTime = 0;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -137,6 +138,7 @@ public class GameManager : MonoBehaviour
     float _currentBoosterGage;//현재 부스터 게이지
 
     float _currentTime;//현재 경과 시간
+    float _currentRestTime;//현재 남은 시간
     float _bestLapTime;//가장 빠른 Lap완주 시간
 
     bool _isDriving = false;//주행중인가?
@@ -163,6 +165,7 @@ public class GameManager : MonoBehaviour
     public int BoosterCount { get { return _boosterCount; } set { _boosterCount = value; } }
     public float CurrentBoosterGage { get { return _currentBoosterGage; } set { _currentBoosterGage = value; } }
     public float CurrentTime { get { return _currentTime; }set { _currentTime = value; } }
+    public float CurrentRestTime { get { return _currentRestTime; } set { _currentRestTime = value; } }
     public float BestLapTime { get { return _bestLapTime; } set { _bestLapTime = value; } }
 
     public bool IsDriving { get { return _isDriving; } set { _isDriving = value; } }
