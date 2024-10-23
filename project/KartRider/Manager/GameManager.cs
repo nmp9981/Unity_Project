@@ -86,7 +86,6 @@ public class GameManager : MonoBehaviour
         {
             if (startPos.gameObject.name.Contains("StartPos"))
             {
-                Debug.Log(startPos.position.x);
                 startPosList.Add(startPos.position);
             }
         }
@@ -100,6 +99,7 @@ public class GameManager : MonoBehaviour
         GameManager.Instance._racingDist = 0;
         GameManager.Instance.CurrentLap = 0;
         GameManager.Instance.CurrentBoosterGage = 0;
+        GameManager.Instance.BestLapTime = 0;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -119,7 +119,7 @@ public class GameManager : MonoBehaviour
             await UniTask.Delay(1500);
             //로딩 씬 끈다.
             GameLoading.LoadingOff();
-            SoundManger._sound.PlayBGM(0);
+            SoundManger._sound.PlayBGM((int)BGMSound.Main);
         }
     }
 
@@ -137,6 +137,7 @@ public class GameManager : MonoBehaviour
     float _currentBoosterGage;//현재 부스터 게이지
 
     float _currentTime;//현재 경과 시간
+    float _bestLapTime;//가장 빠른 Lap완주 시간
 
     bool _isDriving = false;//주행중인가?
     int _currentLap = 0;//현재 랩 수
@@ -147,6 +148,8 @@ public class GameManager : MonoBehaviour
 
     float _bgmVolume = 0.5f;
     float _sfxVolume = 0.5f;
+
+    public int[] mapLapList = { 1, 2, 1 };
 
     public float CarSpeed { get { return _carSpeed; } set { _carSpeed = value; } }
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
@@ -160,6 +163,7 @@ public class GameManager : MonoBehaviour
     public int BoosterCount { get { return _boosterCount; } set { _boosterCount = value; } }
     public float CurrentBoosterGage { get { return _currentBoosterGage; } set { _currentBoosterGage = value; } }
     public float CurrentTime { get { return _currentTime; }set { _currentTime = value; } }
+    public float BestLapTime { get { return _bestLapTime; } set { _bestLapTime = value; } }
 
     public bool IsDriving { get { return _isDriving; } set { _isDriving = value; } }
     public int CurrentLap { get { return _currentLap; } set { _currentLap = value; } }
