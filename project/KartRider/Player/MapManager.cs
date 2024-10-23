@@ -18,6 +18,7 @@ public class MapManager : MonoBehaviour
     /// </summary>
     void SettingResponPosition()
     {
+        responPos = new List<Vector3>();
         foreach(Transform pos in gameObject.GetComponentsInChildren<Transform>())
         {
             if (pos.gameObject.CompareTag("Respon"))
