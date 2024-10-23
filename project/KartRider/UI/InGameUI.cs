@@ -108,6 +108,7 @@ public class InGameUI : MonoBehaviour
         if (GameManager.Instance.IsDriving)
         {
             GameManager.Instance.CurrentRestTime -= Time.deltaTime;
+            GameManager.Instance.CurrentTime += Time.deltaTime;
         }
         //시간 다됨
         if(GameManager.Instance.CurrentRestTime<=0)
