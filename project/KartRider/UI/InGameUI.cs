@@ -13,6 +13,7 @@ public class InGameUI : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI distText;
     TextMeshProUGUI timerText;
+    TextMeshProUGUI bestTimerText;
     TextMeshProUGUI readyText;
 
     TextMeshProUGUI lapUI;
@@ -22,6 +23,7 @@ public class InGameUI : MonoBehaviour
     {
         gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
         timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
+        bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
         readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
         lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
     }
@@ -33,7 +35,8 @@ public class InGameUI : MonoBehaviour
     {
         ShowVelocityText();
         ShowDistText();
-        ShowTimeText();
+        ShowRestTimeText();
+        ShowBestTimeText();
         ShowLapText();
         BoosterGageUI();
     }
@@ -45,17 +48,17 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     async UniTask ShowReadyText()
     {
-        GameManager.Instance.CurrentTime = 91f;
+        GameManager.Instance.CurrentRestTime = 55f+18*GameManager.Instance.CurrentMapIndex;
         GameManager.Instance.IsDriving = false;
         await UniTask.Delay(2000);
       
-        GameManager.Instance.MapLap = 1;
+        GameManager.Instance.MapLap = GameManager.Instance.mapLapList[GameManager.Instance.CurrentMapIndex];//여기서 총 몇바퀴 맵인지 설정
         for (int i = 3; i >= -1; i--)
         {
             if (i == 0)
             {
                 readyText.text = "Start!!";
-                SoundManger._sound.PlaySfx(1);
+                SoundManger._sound.PlaySfx((int)SFXSound.ReadyGo);
                 GameManager.Instance.IsDriving = true;
             }
             else if (i == -1)
@@ -65,7 +68,7 @@ public class InGameUI : MonoBehaviour
             else
             {
                 readyText.text = $"{i}";
-                SoundManger._sound.PlaySfx(0);
+                SoundManger._sound.PlaySfx((int)SFXSound.Ready);
             }
             await UniTask.Delay(1000);
         }
@@ -99,23 +102,23 @@ public class InGameUI : MonoBehaviour
     /// 1) 10초 미만인 경우 앞에 0을 붙임
     /// 2) 주행상태일때만 시간이 흐름
     /// </summary>
-    void ShowTimeText()
+    void ShowRestTimeText()
     {
         //주행중일때만 시간 흐름
         if (GameManager.Instance.IsDriving)
         {
-            GameManager.Instance.CurrentTime -= Time.deltaTime;
+            GameManager.Instance.CurrentRestTime -= Time.deltaTime;
         }
         //시간 다됨
-        if(GameManager.Instance.CurrentTime<=0)
+        if(GameManager.Instance.CurrentRestTime<=0)
         {
             ShowFinishText();
             return;
         }
-        GameManager.Instance.CurrentTime = Mathf.Max(GameManager.Instance.CurrentTime, 0);
+        GameManager.Instance.CurrentRestTime = Mathf.Max(GameManager.Instance.CurrentRestTime, 0);
 
-        int minutes = (int)GameManager.Instance.CurrentTime / 60;
-        float rest = GameManager.Instance.CurrentTime % 60;
+        int minutes = (int)GameManager.Instance.CurrentRestTime / 60;
+        float rest = GameManager.Instance.CurrentRestTime % 60;
         float seconds = Mathf.Round(rest * 100f);//소수점 둘째 자리까지
         int secondsDiv = (int)seconds / 100;
         int secondsMod = (int)seconds % 100;
@@ -124,8 +127,26 @@ public class InGameUI : MonoBehaviour
         string secondModText = (secondsMod<10) ? $"0{secondsMod}" : $"{secondsMod}";
         
         timerText.text = $"{minutes}:{secondDivText}.{secondModText}";
-        if (GameManager.Instance.CurrentTime < 10) timerText.color = Color.red;
+        if (GameManager.Instance.CurrentRestTime < 10) timerText.color = Color.red;
         else timerText.color = Color.white;
+    }
+    /// <summary>
+    /// 기능 : 베스트 타임 보이기
+    /// 1) 10초 미만인 경우 앞에 0을 붙임
+    /// 2) 아직 기록 없으면 0으로 진행
+    /// </summary>
+    public void ShowBestTimeText()
+    {
+        int minutes = (int)GameManager.Instance.BestLapTime / 60;
+        float rest = GameManager.Instance.BestLapTime % 60;
+        float seconds = Mathf.Round(rest * 100f);//소수점 둘째 자리까지
+        int secondsDiv = (int)seconds / 100;
+        int secondsMod = (int)seconds % 100;
+
+        string secondDivText = (secondsDiv < 10) ? $"0{secondsDiv}" : $"{secondsDiv}";
+        string secondModText = (secondsMod < 10) ? $"0{secondsMod}" : $"{secondsMod}";
+
+        bestTimerText.text = $"{minutes}:{secondDivText}.{secondModText}";
     }
     /// <summary>
     /// 기능 종료 문구 띄우기
