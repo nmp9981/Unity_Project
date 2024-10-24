@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
         GameManager.Instance.CurrentLap = 0;
         GameManager.Instance.CurrentBoosterGage = 0;
         GameManager.Instance.BestLapTime = 0;
-        GameManager.Instance.CurrentRestTime = 0;
+        GameManager.Instance.CurrentTime = 0;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -129,11 +129,13 @@ public class GameManager : MonoBehaviour
     float _speedLimit = 172f;//속도 제한
     float _racingDist = 0;//주행 거리
     float _touque = 1500;//차량 가속도
+    float _defaultTouque = 1500;//기본 가속도
     
     bool _isBreaking = false;//브레이크 여부
     float _breakPower = 30000;//브레이크 파워
 
     bool _isBooster = false;//부스터 여부
+    bool _isBoostering = false;//부스터 사용중인가?
     int _boosterCount = 0;//부스터 개수
     float _currentBoosterGage;//현재 부스터 게이지
 
@@ -157,8 +159,10 @@ public class GameManager : MonoBehaviour
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
     public float RacingDist { get { return _racingDist; } set { _racingDist = value; } }
     public float Touque { get { return _touque; } set { _touque = value; } }
+    public float DefaultTouque { get { return _defaultTouque; }}
 
     public bool IsBooster { get { return _isBooster; } set { _isBooster = value; } }
+    public bool IsBoostering { get { return _isBoostering; } set { _isBoostering = value; } }
 
     public bool IsBreaking { get { return _isBreaking; } set { _isBreaking = value; } }
     public float BreakPower { get { return _breakPower; } set { _breakPower = value; } }
