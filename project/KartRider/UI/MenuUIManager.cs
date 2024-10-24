@@ -21,7 +21,7 @@ public class MenuUIManager : MonoBehaviour
     }
     private void Start()
     {
-        SoundManger._sound.PlayBGM(0);
+        SoundManger._sound.PlayBGM((int)BGMSound.Main);
     }
     /// <summary>
     /// 기능 : 메인 UI 세팅
@@ -53,7 +53,8 @@ public class MenuUIManager : MonoBehaviour
             //시작지점으로 이동
             int mapNumber = GameManager.mapDictoinaty[mapName];
             GameManager.MoveStartPositionAndDataInit(mapNumber);
-            SoundManger._sound.PlayBGM(mapNumber+1);
+            int musicNum = 2*mapNumber+(Random.Range(0, 10) % 2)+1;
+            SoundManger._sound.PlayBGM(musicNum);
         }
     }
 }
