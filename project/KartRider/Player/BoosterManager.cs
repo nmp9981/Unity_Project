@@ -105,4 +105,17 @@ public class BoosterManager : MonoBehaviour
         }
         GameManager.Instance.CurrentBoosterGage -= 50*Time.deltaTime;
     }
+    /// <summary>
+    /// 출발 부스터 효과
+    /// </summary>
+    public async UniTask StartBooster()
+    {
+        boosterEffect.Play();
+        GameManager.Instance.Touque = 13000;
+        SoundManger._sound.PlaySfx((int)SFXSound.Booster);
+
+        await UniTask.Delay(2000);
+        GameManager.Instance.Touque = GameManager.Instance.DefaultTouque;
+        boosterEffect.Stop();
+    }
 }
