@@ -39,12 +39,18 @@ public class BoosterManager : MonoBehaviour
     /// 1) 왼쪽 ctrl 키 누를 경우 작동
     /// 2) 현재 부스터 개수 1개 이상일 때만 작동
     /// 3) 주행중일 때만
+    /// 4) 부스터 쿨타임 지남
     /// </summary>
     async void GetKeyBooster()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && GameManager.Instance.BoosterCount>=1 && GameManager.Instance.IsDriving)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && GameManager.Instance.BoosterCount>=1 
+            && GameManager.Instance.IsDriving)
         {
-            await BoosterOn();
+            // 부스터 사용중이 아닐때만
+            if (!GameManager.Instance.IsBoostering)
+            {
+                await BoosterOn();
+            }
         }
     }
     /// <summary>
@@ -63,21 +69,22 @@ public class BoosterManager : MonoBehaviour
         GameManager.Instance.SpeedLimit = 214;
         GameManager.Instance.Touque = 2500;
         GameManager.Instance.BoosterCount -= 1;
+        GameManager.Instance.IsBoostering = true;
         boosterUIImage[GameManager.Instance.BoosterCount].enabled = false;
         boosterEffect.Play();
         SoundManger._sound.PlaySfx((int)SFXSound.Booster);
         //부스터 사운드 On
 
         await UniTask.Delay(4000);
-        
-        GameManager.Instance.SpeedLimit = 172;
         GameManager.Instance.IsBooster = true;
-        GameManager.Instance.BreakPower = 1100000;
+        GameManager.Instance.SpeedLimit = 172;
+        GameManager.Instance.BreakPower = 8000000;
         boosterEffect.Stop();
         //부스터 사운드 Off
 
-        await UniTask.Delay(2500);
-        GameManager.Instance.Touque = 1500;
+        await UniTask.Delay(1000);
+        GameManager.Instance.IsBoostering = false;
+        GameManager.Instance.Touque = GameManager.Instance.DefaultTouque;
         GameManager.Instance.BreakPower = 200000;
         GameManager.Instance.IsBooster = false;
     }
