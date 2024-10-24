@@ -18,6 +18,7 @@ public class InGameUI : MonoBehaviour
 
     TextMeshProUGUI lapUI;
     Image gageAmountUI;
+    BoosterManager boosterManager;
 
     private void Awake()
     {
@@ -26,6 +27,7 @@ public class InGameUI : MonoBehaviour
         bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
         readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
         lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
     }
     private void OnEnable()
     {
@@ -45,6 +47,7 @@ public class InGameUI : MonoBehaviour
     /// 1) 3,2,1,Start
     /// 2) Start를 하면 주행 진행 상태로 변경
     /// 3) Start까지 끝나면 텍스트는 사라지게
+    /// 4) 출발시 출발부스터 발동
     /// </summary>
     async UniTask ShowReadyText()
     {
@@ -60,10 +63,13 @@ public class InGameUI : MonoBehaviour
                 readyText.text = "Start!!";
                 SoundManger._sound.PlaySfx((int)SFXSound.ReadyGo);
                 GameManager.Instance.IsDriving = true;
+                //시작 직후 1초내로 출발부스터 발동
+                boosterManager.StartBooster();
             }
             else if (i == -1)
             {
                 readyText.text = string.Empty;
+                
             }
             else
             {
