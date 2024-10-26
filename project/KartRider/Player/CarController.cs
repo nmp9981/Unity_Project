@@ -28,7 +28,7 @@ public class CarController : MonoBehaviour
 
     // 마찰계수
     float slipRate = 1.7f;
-    float handBreakSlipRate = 1.0f;
+    float handBreakSlipRate = 0.5f;
 
     //부스터 클래스
     BoosterManager boosterManager;
@@ -130,7 +130,7 @@ public class CarController : MonoBehaviour
         }
 
         // 전후진 키를 누르지 않으면 제동이 걸리도록 한다	
-        float decSpeed = 500;
+        float decSpeed = 1800;
         if (verticalAmount == 0) {
             for (int i = 0; i < 4; i++)
             {
@@ -201,7 +201,6 @@ public class CarController : MonoBehaviour
     /// </summary>
     void SteerCar()
     {
-        //Debug.Log(steeringMaxAxis);
         //회전 중
         if (horizontalKey != 0)
         {
@@ -304,23 +303,23 @@ public class CarController : MonoBehaviour
             wheels[1].brakeTorque = GameManager.Instance.BreakPower;
             wheels[2].brakeTorque = GameManager.Instance.BreakPower;
 
-            fFrictionBackLeft.stiffness = slipRate;
+            fFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
-            sFrictionBackLeft.stiffness = handBreakSlipRate;
+            sFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
 
-            fFrictionBackLeft.stiffness = slipRate;
+            fFrictionBackLeft.stiffness = handBreakSlipRate;
             wheels[2].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
-            sFrictionBackLeft.stiffness = handBreakSlipRate;
+            sFrictionBackLeft.stiffness = slipRate;
             wheels[2].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
 
             BoosterGageAmountUP();
         }
         else // 드리프트 상태 아님
         {
-            steeringMaxAxis = 20;
+            steeringMaxAxis = 25;
             currentDriftSFXTime = 0.3f;
             
             wheels[1].brakeTorque = 0;
