@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviour
     float _speedLimit = 172f;//속도 제한
     float _racingDist = 0;//주행 거리
     float _touque = 1500;//차량 가속도
-    float _defaultTouque = 1500;//기본 가속도
+    const float _defaultTouque = 1500;//기본 가속도
     
     bool _isBreaking = false;//브레이크 여부
     float _breakPower = 30000;//브레이크 파워
@@ -153,7 +153,9 @@ public class GameManager : MonoBehaviour
     float _bgmVolume = 0.5f;
     float _sfxVolume = 0.5f;
 
-    public int[] mapLapList = { 1, 2, 1 };
+    public int[] mapLapList = { 1, 2, 1,1,1,1 };
+
+    int _currentMapPageIndex = 0;//현재 맵 페이지 번호
 
     public float CarSpeed { get { return _carSpeed; } set { _carSpeed = value; } }
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
@@ -181,5 +183,7 @@ public class GameManager : MonoBehaviour
 
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
+
+    public int CurrentMapPageIndex { get { return _currentMapPageIndex; } set { _currentMapPageIndex = value; } }
     #endregion
 }
