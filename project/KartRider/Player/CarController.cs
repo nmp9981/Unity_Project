@@ -207,11 +207,11 @@ public class CarController : MonoBehaviour
             wheels[0].steerAngle = steeringMaxAxis * horizontalKey;
             wheels[3].steerAngle = steeringMaxAxis * horizontalKey;
 
-            ////바퀴 회전 효과(추가 로직)
-            //for(int idx = 0; idx < 4; idx++)
-            //{
-            //    wheelMeshs[idx].transform.Rotate(0,wheels[idx].rpm / 60 * 360 * Time.fixedDeltaTime, 0);
-            //}
+            //바퀴 회전 효과(추가 로직)
+            for (int idx = 0; idx < 4; idx++)
+            {
+                wheelMeshs[idx].transform.Rotate(0, wheels[idx].rpm / 60 * 360 * Time.fixedDeltaTime, 0);
+            }
         }
         else
         {
@@ -300,16 +300,16 @@ public class CarController : MonoBehaviour
         {
             steeringMaxAxis = 30;
             PlayKartDriftSound();
-            wheels[1].brakeTorque = GameManager.Instance.BreakPower*2f;
-            wheels[2].brakeTorque = GameManager.Instance.BreakPower*2f;
+            wheels[1].brakeTorque = GameManager.Instance.BreakPower*5f;
+            wheels[2].brakeTorque = GameManager.Instance.BreakPower*5f;
 
-            fFrictionBackLeft.stiffness = handBreakSlipRate;
+            fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
             sFrictionBackLeft.stiffness = slipRate *0.01f;
             wheels[1].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
 
-            fFrictionBackRight.stiffness = handBreakSlipRate ;
+            fFrictionBackRight.stiffness = slipRate;
             wheels[2].GetComponent<WheelCollider>().forwardFriction = fFrictionBackRight;
 
             sFrictionBackRight.stiffness = slipRate *0.01f;
