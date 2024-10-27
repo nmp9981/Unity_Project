@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 
@@ -13,7 +12,14 @@ public class MenuUIManager : MonoBehaviour
     public static TextMeshProUGUI selectMapText;
     //맵 페이지 오브젝트 리스트
     [SerializeField]
-    List<GameObject> mapPageList = new List<GameObject>();
+    private List<GameObject> mapPageList = new List<GameObject>();
+
+    //게임 종료 UI
+    [SerializeField]
+    private GameObject exitUIObject;
+    //사운드 조절 UI
+    [SerializeField]
+    private GameObject settingSoundUIIbject;
 
     private void Awake()
     {
@@ -41,14 +47,39 @@ public class MenuUIManager : MonoBehaviour
     /// </summary>
     void MenuButtonBinding()
     {
-        var startButton = GameObject.Find("RacingStart").GetComponentInChildren<Button>();
-        startButton.onClick.AddListener(() => GoRacingStart(GameManager.Instance.CurrentMap));
-
-        var prevMapPageButton = GameObject.Find("PrevPage").GetComponent<Button>();
-        prevMapPageButton.onClick.AddListener(() => MovePrevMapPage());
-
-        var nextMapPageButton = GameObject.Find("NextPage").GetComponent<Button>();
-        nextMapPageButton.onClick.AddListener(() => MoveNextMapPage());
+        foreach(var gm in gameObject.GetComponentsInChildren<Button>(true))
+        {
+            string gmName = gm.gameObject.name;
+            switch (gmName)
+            {
+                case "StartButton":
+                    gm.onClick.AddListener(() => GoRacingStart(GameManager.Instance.CurrentMap));
+                    break;
+                case "PrevPage":
+                    gm.onClick.AddListener(() => MovePrevMapPage());
+                    break;
+                case "NextPage":
+                    gm.onClick.AddListener(() => MoveNextMapPage());
+                    break;
+                case "SettingButton":
+                    gm.onClick.AddListener(() => OepnSettingSoundWindow());
+                    break;
+                case "ExitButton":
+                    gm.onClick.AddListener(() => OpenExitWindow());
+                    break;
+                case "YesExit":
+                    gm.onClick.AddListener(() => ExitYesButton());
+                    break;
+                case "NoExit":
+                    gm.onClick.AddListener(() => ExitNoButton());
+                    break;
+                case "SoundCheckButton":
+                    gm.onClick.AddListener(() => CheckSoungSettingButton());
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     /// <summary>
     /// 기능 : 고른 맵으로 이동
@@ -91,5 +122,57 @@ public class MenuUIManager : MonoBehaviour
         GameManager.Instance.CurrentMapPageIndex += 1;
         if (GameManager.Instance.CurrentMapPageIndex > 1) GameManager.Instance.CurrentMapPageIndex = 1;
         mapPageList[GameManager.Instance.CurrentMapPageIndex].SetActive(true);
+    }
+    /// <summary>
+    /// 기능 : 게임 종료창 열기
+    /// </summary>
+    public void OpenExitWindow()
+    {
+        if (!exitUIObject.activeSelf)
+        {
+            exitUIObject.SetActive(true);
+        }
+    }
+    /// <summary>
+    /// 기능 : 게임 종료
+    /// </summary>
+    public void ExitYesButton()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+    /// <summary>
+    /// 기능 : 게임 종료창 닫기
+    /// </summary>
+    public void ExitNoButton()
+    {
+        if (exitUIObject.activeSelf)
+        {
+            exitUIObject.SetActive(false);
+        }
+    }
+    /// <summary>
+    /// 기능 : 사운드 세팅창 열기
+    /// </summary>
+    public void OepnSettingSoundWindow()
+    {
+        if (!settingSoundUIIbject.activeSelf)
+        {
+            settingSoundUIIbject.SetActive(true);
+        }
+    }
+    /// <summary>
+    /// 사운드 세팅 홛인 버튼
+    /// bgm, sfx값 확정하여 최종 적용
+    /// </summary>
+    public void CheckSoungSettingButton()
+    {
+        if (settingSoundUIIbject.activeSelf)
+        {
+            settingSoundUIIbject.SetActive(false);
+        }
     }
 }
