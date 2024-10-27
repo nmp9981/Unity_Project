@@ -20,6 +20,10 @@ public class MenuUIManager : MonoBehaviour
     //사운드 조절 UI
     [SerializeField]
     private GameObject settingSoundUIIbject;
+    //사운드 조절 값
+    [SerializeField]
+    private Slider bgmSlider;
+    private Slider sfxSlider;
 
     private void Awake()
     {
@@ -170,6 +174,10 @@ public class MenuUIManager : MonoBehaviour
     /// </summary>
     public void CheckSoungSettingButton()
     {
+        //사운드 값 확정
+        GameManager.Instance.BGMVolume = bgmSlider.value;
+        GameManager.Instance.SFXVolume = sfxSlider.value;
+        // UI창 닫기
         if (settingSoundUIIbject.activeSelf)
         {
             settingSoundUIIbject.SetActive(false);
