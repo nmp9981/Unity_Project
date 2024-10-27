@@ -66,7 +66,7 @@ public class BoosterManager : MonoBehaviour
     /// </summary>
     async UniTask BoosterOn()
     {
-        GameManager.Instance.SpeedLimit = 214;
+        GameManager.Instance.SpeedLimit = 224;
         GameManager.Instance.Touque = 2500;
         GameManager.Instance.BoosterCount -= 1;
         GameManager.Instance.IsBoostering = true;
@@ -77,7 +77,7 @@ public class BoosterManager : MonoBehaviour
 
         await UniTask.Delay(4000);
         GameManager.Instance.IsBooster = true;
-        GameManager.Instance.SpeedLimit = 172;
+        GameManager.Instance.SpeedLimit = 181;
         GameManager.Instance.BreakPower = 8000000;
         boosterEffect.Stop();
         //부스터 사운드 Off
@@ -107,14 +107,30 @@ public class BoosterManager : MonoBehaviour
     }
     /// <summary>
     /// 출발 부스터 효과
+    /// 2초 지속
     /// </summary>
     public async UniTask StartBooster()
     {
         boosterEffect.Play();
-        GameManager.Instance.Touque = 13000;
+        GameManager.Instance.Touque = 14000;
         SoundManger._sound.PlaySfx((int)SFXSound.Booster);
 
         await UniTask.Delay(2000);
+        GameManager.Instance.Touque = GameManager.Instance.DefaultTouque;
+        boosterEffect.Stop();
+    }
+    /// <summary>
+    /// 드리프트 부스터 효과
+    /// 1.5초 지속
+    /// </summary>
+    /// <returns></returns>
+    public async UniTask DriftBooster()
+    {
+        boosterEffect.Play();
+        GameManager.Instance.Touque = 15000;
+        SoundManger._sound.PlaySfx((int)SFXSound.Booster);
+
+        await UniTask.Delay(1500);
         GameManager.Instance.Touque = GameManager.Instance.DefaultTouque;
         boosterEffect.Stop();
     }
