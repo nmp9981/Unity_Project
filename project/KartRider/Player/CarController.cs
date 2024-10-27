@@ -79,7 +79,7 @@ public class CarController : MonoBehaviour
     {
         ResponKart();
         FlowTime();
-        //FrontTireMoveDirection();
+        FrontTireMoveDirection();
     }
     //자동차 움직임
     private void FixedUpdate()
@@ -113,7 +113,7 @@ public class CarController : MonoBehaviour
         if (GameManager.Instance.IsDriving == false) return;
 
         float verticalAmount = verticalKey;
-        if (GameManager.Instance.CarSpeed <= GameManager.Instance.SpeedLimit && verticalAmount!=0 && !GameManager.Instance.IsBreaking)
+        if (GameManager.Instance.CarSpeed < GameManager.Instance.SpeedLimit && verticalAmount!=0 && !GameManager.Instance.IsBreaking)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -130,7 +130,7 @@ public class CarController : MonoBehaviour
         }
 
         // 전후진 키를 누르지 않으면 제동이 걸리도록 한다	
-        float decSpeed = 1800;
+        float decSpeed = 3000;
         if (verticalAmount == 0) {
             for (int i = 0; i < 4; i++)
             {
@@ -298,21 +298,22 @@ public class CarController : MonoBehaviour
         // 드리프트 상태
         if (Input.GetKey(KeyCode.LeftShift) && horizontalKey != 0)
         {
-            steeringMaxAxis = 30;
+            steeringMaxAxis = 15;
             PlayKartDriftSound();
+           
             wheels[1].brakeTorque = GameManager.Instance.BreakPower*5f;
             wheels[2].brakeTorque = GameManager.Instance.BreakPower*5f;
 
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
 
-            sFrictionBackLeft.stiffness = slipRate *0.01f;
+            sFrictionBackLeft.stiffness = slipRate *0.02f;
             wheels[1].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackLeft;
 
             fFrictionBackRight.stiffness = slipRate;
             wheels[2].GetComponent<WheelCollider>().forwardFriction = fFrictionBackRight;
 
-            sFrictionBackRight.stiffness = slipRate *0.01f;
+            sFrictionBackRight.stiffness = slipRate *0.02f;
             wheels[2].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackRight;
 
             BoosterGageAmountUP();
@@ -321,7 +322,7 @@ public class CarController : MonoBehaviour
         {
             steeringMaxAxis = 30;
             currentDriftSFXTime = 0.3f;
-            
+
             wheels[1].brakeTorque = 0;
             wheels[2].brakeTorque = 0;
 
