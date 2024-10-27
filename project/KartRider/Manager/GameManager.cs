@@ -49,8 +49,11 @@ public class GameManager : MonoBehaviour
         mapDictoinaty = new Dictionary<string, int>();
         GameObject mapListObj = GameObject.Find("MapList");
         int number = 0;
-        foreach(var mapName in mapListObj.GetComponentsInChildren<TextMeshProUGUI>())
+        mapLapList = new int[6];
+        foreach(var mapName in mapListObj.GetComponentsInChildren<TextMeshProUGUI>(true))
         {
+            mapLapList[number] = 1;
+            if (number == 1) mapLapList[number] = 2;
             mapDictoinaty.Add(mapName.text,number);
             number += 1;
         }
@@ -101,6 +104,7 @@ public class GameManager : MonoBehaviour
         GameManager.Instance.CurrentBoosterGage = 0;
         GameManager.Instance.BestLapTime = 0;
         GameManager.Instance.CurrentTime = 0;
+        GameManager.Instance.SpeedLimit = _defaultSpeedLimit;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -126,13 +130,14 @@ public class GameManager : MonoBehaviour
 
     #region 데이터
     float _carSpeed;//차량의 현재 속도
-    float _speedLimit = 172f;//속도 제한
+    float _speedLimit = 181f;//속도 제한
     float _racingDist = 0;//주행 거리
-    float _touque = 1500;//차량 가속도
-    const float _defaultTouque = 1500;//기본 가속도
+    float _touque = 1550;//차량 가속도
+    const float _defaultSpeedLimit = 181;//기본 최대 속도
+    const float _defaultTouque = 1550;//기본 가속도
     
     bool _isBreaking = false;//브레이크 여부
-    float _breakPower = 30000;//브레이크 파워
+    float _breakPower = 32000;//브레이크 파워
 
     bool _isBooster = false;//부스터 여부
     bool _isBoostering = false;//부스터 사용중인가?
@@ -153,7 +158,7 @@ public class GameManager : MonoBehaviour
     float _bgmVolume = 0.5f;
     float _sfxVolume = 0.5f;
 
-    public int[] mapLapList = { 1, 2, 1,1,1,1 };
+    public int[] mapLapList;//맵 바퀴 수
 
     int _currentMapPageIndex = 0;//현재 맵 페이지 번호
 
@@ -162,6 +167,7 @@ public class GameManager : MonoBehaviour
     public float RacingDist { get { return _racingDist; } set { _racingDist = value; } }
     public float Touque { get { return _touque; } set { _touque = value; } }
     public float DefaultTouque { get { return _defaultTouque; }}
+    public float DefaultSpeedLimit { get { return _defaultSpeedLimit; } }
 
     public bool IsBooster { get { return _isBooster; } set { _isBooster = value; } }
     public bool IsBoostering { get { return _isBoostering; } set { _isBoostering = value; } }
