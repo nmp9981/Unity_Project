@@ -30,6 +30,10 @@ public class CarController : MonoBehaviour
     float slipRate = 1.8f;
     float handBreakSlipRate = 0.7f;
 
+    // 스키드 마크 오브젝트
+    [SerializeField]
+    GameObject skidMarkPrefab;
+
     //부스터 클래스
     BoosterManager boosterManager;
 
@@ -75,6 +79,7 @@ public class CarController : MonoBehaviour
         fFrictionBackRight = wheels[2].GetComponent<WheelCollider>().forwardFriction;
         sFrictionBackRight = wheels[2].GetComponent<WheelCollider>().sidewaysFriction;
     }
+    
     private void Update()
     {
         ResponKart();
@@ -315,7 +320,8 @@ public class CarController : MonoBehaviour
 
             sFrictionBackRight.stiffness = slipRate *0.02f;
             wheels[2].GetComponent<WheelCollider>().sidewaysFriction = sFrictionBackRight;
-
+            
+            DrawSkidMark();
             BoosterGageAmountUP();
         }
         else // 드리프트 상태 아님
@@ -349,5 +355,17 @@ public class CarController : MonoBehaviour
         float gageChargeAmount = GameManager.Instance.CarSpeed / 300f;
         GameManager.Instance.CurrentBoosterGage += (gageChargeAmount * Time.deltaTime);
         if (GameManager.Instance.CurrentBoosterGage >= 1) boosterManager.BoosterGet();
+    }
+    /// <summary>
+    /// 기능 : 스키드 마크 그리기
+    /// 1) 바퀴 위치 - (0,바퀴 반지름,0) 지점에 오브젝트 설치
+    /// </summary>
+    void DrawSkidMark()
+    {
+        for(int i = 1; i < 3; i++)
+        {
+            GameObject skid = Instantiate(skidMarkPrefab);
+            skid.transform.position = wheelMeshs[i].transform.position - Vector3.down*wheels[i].radius;
+        }
     }
 }
