@@ -17,6 +17,7 @@ public class InGameUI : MonoBehaviour
     TextMeshProUGUI readyText;
 
     TextMeshProUGUI lapUI;
+    RectTransform velocityNeedleImage;
     Image gageAmountUI;
     BoosterManager boosterManager;
 
@@ -27,6 +28,7 @@ public class InGameUI : MonoBehaviour
         bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
         readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
         lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        velocityNeedleImage = GameObject.Find("needle").GetComponent<RectTransform>();
         boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
     }
     private void OnEnable()
@@ -35,7 +37,7 @@ public class InGameUI : MonoBehaviour
     }
     void Update()
     {
-        ShowVelocityText();
+        ShowVelocityTextAndNeedle();
         ShowDistText();
         ShowRestTimeText();
         ShowBestTimeText();
@@ -51,7 +53,7 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     async UniTask ShowReadyText()
     {
-        GameManager.Instance.CurrentRestTime = 55f+18*GameManager.Instance.CurrentMapIndex;
+        GameManager.Instance.CurrentRestTime = 48f+24*GameManager.Instance.CurrentMapIndex;
         GameManager.Instance.IsDriving = false;
         await UniTask.Delay(2000);
       
@@ -79,10 +81,12 @@ public class InGameUI : MonoBehaviour
             await UniTask.Delay(1000);
         }
     }
-    void ShowVelocityText()
+    void ShowVelocityTextAndNeedle()
     {
         float velocityValue = Mathf.Round(GameManager.Instance.CarSpeed);
         velocityText.text = $"{velocityValue} km/h";
+        //속도계 바늘 회전
+        velocityNeedleImage.rotation = Quaternion.Euler(0, 0, -velocityValue);
     }
     void ShowDistText()
     {
