@@ -14,6 +14,15 @@ public class MenuUIManager : MonoBehaviour
     [SerializeField]
     private List<GameObject> mapPageList = new List<GameObject>();
 
+    //로비UI
+    [SerializeField]
+    private GameObject lobbyUI;
+    //타임어택 UI
+    [SerializeField]
+    private GameObject timeAttackUI;
+    //상점 UI
+    [SerializeField]
+    private GameObject storeUI;
     //게임 종료 UI
     [SerializeField]
     private GameObject exitUIObject;
@@ -23,11 +32,11 @@ public class MenuUIManager : MonoBehaviour
     //사운드 조절 값
     [SerializeField]
     private Slider bgmSlider;
+    [SerializeField]
     private Slider sfxSlider;
 
     private void Awake()
     {
-        SettingMainUI();
         MenuButtonBinding();
     }
     private void Start()
@@ -79,6 +88,15 @@ public class MenuUIManager : MonoBehaviour
                     break;
                 case "SoundCheckButton":
                     gm.onClick.AddListener(() => CheckSoungSettingButton());
+                    break;
+                case "TimeAttack":
+                    gm.onClick.AddListener(() => GoTimeAttackMode());
+                    break;
+                case "Store":
+                    gm.onClick.AddListener(() => GoStore());
+                    break;
+                case "BackLobbyButton":
+                    gm.onClick.AddListener(() => BackLobbyUI());
                     break;
                 default:
                     break;
@@ -182,5 +200,23 @@ public class MenuUIManager : MonoBehaviour
         {
             settingSoundUIIbject.SetActive(false);
         }
+    }
+    public void GoTimeAttackMode()
+    {
+        lobbyUI.SetActive(false);
+        timeAttackUI.SetActive(true);
+        GameManager.Instance.SettingMapList();
+        SettingMainUI();
+    }
+    public void GoStore()
+    {
+        lobbyUI.SetActive(false);
+        storeUI.SetActive(true);
+    }
+    public void BackLobbyUI()
+    {
+        timeAttackUI.SetActive(false);
+        storeUI.SetActive(false);
+        lobbyUI.SetActive(true);
     }
 }
