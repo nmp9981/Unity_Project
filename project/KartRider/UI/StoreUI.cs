@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,11 +20,19 @@ public enum KartColor
 public class StoreUI : MonoBehaviour
 {
     //각 색상을 가지는가?
-    public Dictionary<int, bool> isHaveColor;
+    public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
+
+    [SerializeField]
+    TextMeshProUGUI playerLucciText;
+
     void Awake()
     {
         SettingColorDic();
         BindingStoreUIButton();
+    }
+    private void OnEnable()
+    {
+        ShowPlayerLucci();
     }
     void SettingColorDic()
     {
@@ -44,15 +53,32 @@ public class StoreUI : MonoBehaviour
 
             if (gmTag == "ColorButton")
             {
-                gm.onClick.AddListener(() => BuyKartColor(gmName));
+                string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
+                gm.onClick.AddListener(() => BuyKartColor(gmName, payLucciText));
             }
         }
     }
-    public void BuyKartColor(string gmName)
+    /// <summary>
+    /// 기능 : 물품 구매
+    /// </summary>
+    /// <param name="gmName"></param>
+    public void BuyKartColor(string gmName, string payLucciText)
     {
-        //구매
-        //돈이 충분하면 구매
-        Debug.Log(KartColor.White.ToString());
+        //구매 가격
+        int payLucciTextLen = payLucciText.Length;
+        int payLucci = int.Parse(payLucciText.Substring(0, payLucciTextLen - 6));
+        //구매 가능한가?
+        if(payLucci <= GameManager.Instance.PlayerLucci)
+        {
+            GameManager.Instance.PlayerLucci -= payLucci;
+            //구매 확정 UI
+        }
+        else
+        {
+            //구매 불가 UI
+            return;
+        }
+        // 구매 여부 기록
         switch (gmName)
         {
             case "White":
@@ -83,6 +109,13 @@ public class StoreUI : MonoBehaviour
                 break;
 
         }
+        ShowPlayerLucci();
     }
-  
+    /// <summary>
+    /// 기능 : 플레이어가 가지고 있는 돈
+    /// </summary>
+    void ShowPlayerLucci()
+    {
+        playerLucciText.text = GameManager.Instance.PlayerLucci.ToString();
+    }
 }
