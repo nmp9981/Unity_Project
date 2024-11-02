@@ -34,14 +34,13 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
-        SettingMapList();
     }
     
     /// <summary>
     /// 기능 : 맵 리스트 세팅
     /// 1) 맵 이름, 번호 세팅
     /// </summary>
-    void SettingMapList()
+    public void SettingMapList()
     {
         Scene scene = SceneManager.GetActiveScene();
         if (scene.name != "MenuUI") return;
@@ -132,9 +131,9 @@ public class GameManager : MonoBehaviour
     float _carSpeed;//차량의 현재 속도
     float _speedLimit = 181f;//속도 제한
     float _racingDist = 0;//주행 거리
-    float _touque = 1550;//차량 가속도
+    float _touque = 1500;//차량 가속도
     const float _defaultSpeedLimit = 181;//기본 최대 속도
-    const float _defaultTouque = 1550;//기본 가속도
+    const float _defaultTouque = 1500;//기본 가속도
     
     bool _isBreaking = false;//브레이크 여부
     float _breakPower = 32000;//브레이크 파워
@@ -154,6 +153,8 @@ public class GameManager : MonoBehaviour
 
     string _currentMap = string.Empty;//현재 주행하는 맵 이름
     int _currentMapIndex;//현재 주행하는 맵 번호
+
+    int _playerLucci = 30000;//돈
 
     float _bgmVolume = 0.5f;
     float _sfxVolume = 0.5f;
@@ -186,6 +187,8 @@ public class GameManager : MonoBehaviour
 
     public string CurrentMap { get { return _currentMap; } set { _currentMap = value; } }
     public int CurrentMapIndex { get { return _currentMapIndex; } set { _currentMapIndex = value; } }
+
+    public int PlayerLucci { get { return _playerLucci; } set { _playerLucci = value; } }
 
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
