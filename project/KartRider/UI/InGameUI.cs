@@ -9,6 +9,8 @@ using Cysharp.Threading.Tasks;
 public class InGameUI : MonoBehaviour
 {
     [SerializeField]
+    GameObject returnHome;
+    [SerializeField]
     TextMeshProUGUI velocityText;
     [SerializeField]
     TextMeshProUGUI distText;
@@ -23,13 +25,7 @@ public class InGameUI : MonoBehaviour
 
     private void Awake()
     {
-        gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
-        timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
-        bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
-        readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
-        lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
-        velocityNeedleImage = GameObject.Find("needle").GetComponent<RectTransform>();
-        boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
+        BindingInGameUI();
     }
     private void OnEnable()
     {
@@ -43,6 +39,21 @@ public class InGameUI : MonoBehaviour
         ShowBestTimeText();
         ShowLapText();
         BoosterGageUI();
+        ShowReturnUI();
+    }
+    /// <summary>
+    /// 기능 : ingame UI 바인딩
+    /// </summary>
+    void BindingInGameUI()
+    {
+
+        gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
+        timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
+        bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
+        readyText = GameObject.Find("ReadyText").GetComponent<TextMeshProUGUI>();
+        lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        velocityNeedleImage = GameObject.Find("needle").GetComponent<RectTransform>();
+        boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
     }
     /// <summary>
     /// 기능 : 출발 이벤트
@@ -166,5 +177,22 @@ public class InGameUI : MonoBehaviour
     {
         GameManager.Instance.IsDriving = false;
         timerText.text = "Finish";
+    }
+    /// <summary>
+    /// 기능 : Return Home UI열기
+    /// </summary>
+    void ShowReturnUI()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (returnHome.activeSelf)
+            {
+                returnHome.SetActive(false);
+            }
+            else if(!returnHome.activeSelf)
+            {
+                returnHome.SetActive(true);
+            }
+        }
     }
 }
