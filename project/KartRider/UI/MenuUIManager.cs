@@ -117,6 +117,8 @@ public class MenuUIManager : MonoBehaviour
             SceneManager.LoadScene("KartGameMain");
             //로딩창 켜기
             GameLoading.LoadingOn();
+            //주행 상태 아님
+            GameManager.Instance.IsDriving = false;
             //시작지점으로 이동
             int mapNumber = GameManager.mapDictoinaty[mapName];
             GameManager.MoveStartPositionAndDataInit(mapNumber);
