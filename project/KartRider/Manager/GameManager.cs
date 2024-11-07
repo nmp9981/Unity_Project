@@ -98,6 +98,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     static public void InitRacingData()
     {
+        GameManager.Instance.IsDriving = false;
         GameManager.Instance._racingDist = 0;
         GameManager.Instance.CurrentLap = 0;
         GameManager.Instance.CurrentBoosterGage = 0;
@@ -154,7 +155,8 @@ public class GameManager : MonoBehaviour
     string _currentMap = string.Empty;//현재 주행하는 맵 이름
     int _currentMapIndex;//현재 주행하는 맵 번호
 
-    int _playerLucci = 30000;//돈
+    int _playerLucci = 0;//돈
+    bool _isCollideCoin = false;//동전과 충돌 여부
 
     float _bgmVolume = 0.5f;
     float _sfxVolume = 0.5f;
@@ -189,6 +191,7 @@ public class GameManager : MonoBehaviour
     public int CurrentMapIndex { get { return _currentMapIndex; } set { _currentMapIndex = value; } }
 
     public int PlayerLucci { get { return _playerLucci; } set { _playerLucci = value; } }
+    public bool IsCollideCoin { get { return _isCollideCoin; } set { _isCollideCoin = value; } }
 
     public float BGMVolume { get { return _bgmVolume; } set { _bgmVolume = value; } }
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
