@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class CoinFunction : MonoBehaviour
 {
     const float rotationAngle = 30;
+   
     void Update()
     {
         RotateCoin();
     }
     //코인 회전
+    //y,x,z축 회전
     void RotateCoin()
     {
         gameObject.transform.parent.transform.Rotate(rotationAngle*Time.deltaTime,0,0);
@@ -19,8 +22,7 @@ public class CoinFunction : MonoBehaviour
     {
         if(other.tag == "Player")
         {
-            int getLucci = Random.Range(50, 100);
-            GameManager.Instance.PlayerLucci += getLucci;
+            GameManager.Instance.IsCollideCoin = true;
             gameObject.SetActive(false);
             Invoke("RegenerateCoin",10f);
         }
