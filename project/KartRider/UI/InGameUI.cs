@@ -18,6 +18,9 @@ public class InGameUI : MonoBehaviour
     TextMeshProUGUI bestTimerText;
     TextMeshProUGUI readyText;
 
+    [SerializeField] 
+    TextMeshProUGUI getLucciText;
+
     TextMeshProUGUI lapUI;
     RectTransform velocityNeedleImage;
     Image gageAmountUI;
@@ -38,6 +41,7 @@ public class InGameUI : MonoBehaviour
         ShowRestTimeText();
         ShowBestTimeText();
         ShowLapText();
+        ShowGetLucciText();
         BoosterGageUI();
         ShowReturnUI();
     }
@@ -46,7 +50,6 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     void BindingInGameUI()
     {
-
         gageAmountUI = GameObject.Find("GageAmountImage").GetComponent<Image>();
         timerText = GameObject.Find("TimerUI").GetComponent<TextMeshProUGUI>();
         bestTimerText = GameObject.Find("BestTimeText").GetComponent<TextMeshProUGUI>();
@@ -107,6 +110,24 @@ public class InGameUI : MonoBehaviour
     void ShowLapText()
     {
         lapUI.text = $"{GameManager.Instance.CurrentLap}/{GameManager.Instance.MapLap}";
+    }
+    void ShowGetLucciText()
+    {
+        if (GameManager.Instance.IsCollideCoin)
+        {
+            StartCoroutine(ShowGetLucci());
+        }
+    }
+    //얻은 루찌 텍스트
+    IEnumerator ShowGetLucci()
+    {
+        int getLucci = Random.Range(50, 100);
+        GameManager.Instance.PlayerLucci += getLucci;
+        GameManager.Instance.IsCollideCoin = false;
+
+        getLucciText.text = $"+{getLucci} Lucci";
+        yield return new WaitForSeconds(1.5f);
+        getLucciText.text = string.Empty;
     }
     /// <summary>
     /// 부스터 게이지 관리
