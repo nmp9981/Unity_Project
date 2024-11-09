@@ -8,7 +8,9 @@ public class MyRoomUI : MonoBehaviour
 {
     [SerializeField]
     TextMeshProUGUI showCurrentLucciText;
-
+    [SerializeField]
+    List<GameObject> allColorListButtonObject = new List<GameObject>();
+   
     void Awake()
     {
         BidingMyRoomUIButton();
@@ -16,11 +18,25 @@ public class MyRoomUI : MonoBehaviour
     private void OnEnable()
     {
         ShowPlayerLucci();
+        ShowCurrentHaveColor();
     }
-    
-    void Update()
+    /// <summary>
+    /// 현재 가지고 있는 색상
+    /// </summary>
+    void ShowCurrentHaveColor()
     {
-        
+        for(int idx=0;idx< GameManager.Instance.isHaveColor.Count;idx++)
+        {
+            //가지고 있음
+            if (GameManager.Instance.isHaveColor[idx])
+            {
+                allColorListButtonObject[idx].SetActive(true);
+            }//가지고 있지 않음
+            else
+            {
+                allColorListButtonObject[idx].SetActive(false);
+            }
+        }
     }
     /// <summary>
     /// 마이룸 UI버튼 바인딩
