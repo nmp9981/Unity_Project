@@ -9,6 +9,8 @@ using Cysharp.Threading.Tasks;
 public class InGameUI : MonoBehaviour
 {
     [SerializeField]
+    MeshRenderer kartColor;
+    [SerializeField]
     GameObject returnHome;
     [SerializeField]
     TextMeshProUGUI velocityText;
@@ -32,6 +34,7 @@ public class InGameUI : MonoBehaviour
     }
     private void OnEnable()
     {
+        PaintKartColor();
         ShowReadyText();
     }
     void Update()
@@ -57,6 +60,13 @@ public class InGameUI : MonoBehaviour
         lapUI = GameObject.Find("Lap").transform.GetChild(1).GetComponent<TextMeshProUGUI>();
         velocityNeedleImage = GameObject.Find("needle").GetComponent<RectTransform>();
         boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
+    }
+    /// <summary>
+    /// 카트 색상 적용
+    /// </summary>
+    void PaintKartColor()
+    {
+        kartColor.material.color = GameManager.Instance.CurrentKartColor;
     }
     /// <summary>
     /// 기능 : 출발 이벤트
