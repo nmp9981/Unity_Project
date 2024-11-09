@@ -20,6 +20,9 @@ public class MenuUIManager : MonoBehaviour
     //타임어택 UI
     [SerializeField]
     private GameObject timeAttackUI;
+    //마이룸 UI
+    [SerializeField]
+    private GameObject myRoomUI;
     //상점 UI
     [SerializeField]
     private GameObject storeUI;
@@ -91,6 +94,9 @@ public class MenuUIManager : MonoBehaviour
                     break;
                 case "TimeAttack":
                     gm.onClick.AddListener(() => GoTimeAttackMode());
+                    break;
+                case "MyRoom":
+                    gm.onClick.AddListener(() => GoTimeMyRoomMode());
                     break;
                 case "Store":
                     gm.onClick.AddListener(() => GoStore());
@@ -203,20 +209,41 @@ public class MenuUIManager : MonoBehaviour
             settingSoundUIIbject.SetActive(false);
         }
     }
+    /// <summary>
+    /// 기능 ; 타임어택 모드로 이동
+    /// </summary>
     public void GoTimeAttackMode()
     {
         lobbyUI.SetActive(false);
+        myRoomUI.SetActive(false);
         timeAttackUI.SetActive(true);
         GameManager.Instance.SettingMapList();
         SettingMainUI();
     }
+    /// <summary>
+    /// 기능 : 마이룸 모드로 이동
+    /// </summary>
+    public void GoTimeMyRoomMode()
+    {
+        lobbyUI.SetActive(false);
+        storeUI.SetActive(false);
+        myRoomUI.SetActive(true);
+    }
+    /// <summary>
+    /// 기능 : 상점으로 이동
+    /// </summary>
     public void GoStore()
     {
         lobbyUI.SetActive(false);
+        myRoomUI.SetActive(false);
         storeUI.SetActive(true);
     }
+    /// <summary>
+    /// 기능 : 로비로 이동
+    /// </summary>
     public void BackLobbyUI()
     {
+        myRoomUI.SetActive(false);
         timeAttackUI.SetActive(false);
         storeUI.SetActive(false);
         lobbyUI.SetActive(true);
