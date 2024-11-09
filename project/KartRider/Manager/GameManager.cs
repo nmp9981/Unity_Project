@@ -34,8 +34,16 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
+        SettingColorDic();
     }
-    
+
+    void SettingColorDic()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            isHaveColor.Add(i, false);
+        }
+    }
     /// <summary>
     /// 기능 : 맵 리스트 세팅
     /// 1) 맵 이름, 번호 세팅
@@ -165,6 +173,10 @@ public class GameManager : MonoBehaviour
 
     int _currentMapPageIndex = 0;//현재 맵 페이지 번호
 
+    Color _kartColor = Color.yellow;//카트 색상
+    //각 색상을 가지는가?
+    public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
+
     public float CarSpeed { get { return _carSpeed; } set { _carSpeed = value; } }
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
     public float RacingDist { get { return _racingDist; } set { _racingDist = value; } }
@@ -197,5 +209,7 @@ public class GameManager : MonoBehaviour
     public float SFXVolume { get { return _sfxVolume; } set { _sfxVolume = value; } }
 
     public int CurrentMapPageIndex { get { return _currentMapPageIndex; } set { _currentMapPageIndex = value; } }
+
+    public Color CurrentKartColor { get { return _kartColor; } set { _kartColor = value; } }
     #endregion
 }
