@@ -19,27 +19,16 @@ public enum KartColor
 
 public class StoreUI : MonoBehaviour
 {
-    //각 색상을 가지는가?
-    public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
-
     [SerializeField]
     TextMeshProUGUI playerLucciText;
 
     void Awake()
     {
-        SettingColorDic();
         BindingStoreUIButton();
     }
     private void OnEnable()
     {
         ShowPlayerLucci();
-    }
-    void SettingColorDic()
-    {
-        for(int i = 0; i < 8; i++)
-        {
-            isHaveColor.Add(i, false);
-        }
     }
     /// <summary>
     /// 기능 : 상점UI에 있는 버튼 바인딩
@@ -82,28 +71,28 @@ public class StoreUI : MonoBehaviour
         switch (gmName)
         {
             case "White":
-                isHaveColor[(int)KartColor.White] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.White] = true;
                 break;
             case "Red":
-                isHaveColor[(int)KartColor.Red] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Red] = true;
                 break;
             case "Yellow":
-                isHaveColor[(int)KartColor.Yellow] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Yellow] = true;
                 break;
             case "Green":
-                isHaveColor[(int)KartColor.Green] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Green] = true;
                 break;
             case "Blue":
-                isHaveColor[(int)KartColor.Blue] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Blue] = true;
                 break;
             case "Brown":
-                isHaveColor[(int)KartColor.Brown] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Brown] = true;
                 break;
             case "Purple":
-                isHaveColor[(int)KartColor.Purple] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Purple] = true;
                 break;
             case "Black":
-                isHaveColor[(int)KartColor.Black] = true;
+                GameManager.Instance.isHaveColor[(int)KartColor.Black] = true;
                 break;
             default:
                 break;
