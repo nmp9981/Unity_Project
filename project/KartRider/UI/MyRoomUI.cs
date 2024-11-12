@@ -10,15 +10,44 @@ public class MyRoomUI : MonoBehaviour
     TextMeshProUGUI showCurrentLucciText;
     [SerializeField]
     List<GameObject> allColorListButtonObject = new List<GameObject>();
-   
+
+    GameObject kartListObj;
+    GameObject skidListObj;
+    GameObject paintListObj;
+
     void Awake()
     {
+        RegisterObjectList();
         BidingMyRoomUIButton();
     }
     private void OnEnable()
     {
         ShowPlayerLucci();
         ShowCurrentHaveColor();
+    }
+    /// <summary>
+    /// 기능 : 오브젝트 리스트 등록
+    /// </summary>
+    void RegisterObjectList()
+    {
+        foreach (var gm in gameObject.GetComponentsInChildren<Transform>(true))
+        {
+            string gmName = gm.gameObject.name;
+            switch (gmName)
+            {
+                case "KartList":
+                    kartListObj = gm.gameObject;
+                    break;
+                case "SkidList":
+                    skidListObj = gm.gameObject;
+                    break;
+                case "PaintList":
+                    paintListObj = gm.gameObject;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     /// <summary>
     /// 현재 가지고 있는 색상
@@ -52,6 +81,23 @@ public class MyRoomUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => SetKartColor(gmName));
+            }
+            else
+            {
+                switch (gmName)
+                {
+                    case "KartTab":
+                        gm.onClick.AddListener(() => ShowObjectList(kartListObj));
+                        break;
+                    case "SkidMarkTab":
+                        gm.onClick.AddListener(() => ShowObjectList(skidListObj));
+                        break;
+                    case "PaintTab":
+                        gm.onClick.AddListener(() => ShowObjectList(paintListObj));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -93,5 +139,20 @@ public class MyRoomUI : MonoBehaviour
     void ShowPlayerLucci()
     {
         showCurrentLucciText.text = GameManager.Instance.PlayerLucci.ToString();
+    }
+    /// <summary>
+    /// 기능 : 리스트 오브젝트 끄고 키기
+    /// </summary>
+    /// <param name="listObj">탭 메뉴에 따라 다름</param>
+    void ShowObjectList(GameObject listObj)
+    {
+        if (listObj.activeSelf)
+        {
+            listObj.SetActive(false);
+        }
+        else
+        {
+            listObj.SetActive(true);
+        }
     }
 }
