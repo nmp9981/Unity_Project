@@ -160,13 +160,9 @@ public class StoreUI : MonoBehaviour
     /// <param name="listObj">탭 메뉴에 따라 다름</param>
     void ShowObjectList(GameObject listObj)
     {
-        if (listObj.activeSelf)
-        {
-            listObj.SetActive(false);
-        }
-        else
-        {
-            listObj.SetActive(true);
-        }
+        kartListObj.SetActive(false);
+        skidListObj.SetActive(false);
+        paintListObj.SetActive(false);
+        listObj.SetActive(true);
     }
 }
