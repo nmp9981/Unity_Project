@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,13 +23,42 @@ public class StoreUI : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI playerLucciText;
 
+    GameObject kartListObj;
+    GameObject skidListObj;
+    GameObject paintListObj;
+
     void Awake()
     {
+        RegisterObjectList();
         BindingStoreUIButton();
     }
     private void OnEnable()
     {
         ShowPlayerLucci();
+    }
+    /// <summary>
+    /// 기능 : 오브젝트 리스트 등록
+    /// </summary>
+    void RegisterObjectList()
+    {
+        foreach (var gm in gameObject.GetComponentsInChildren<Transform>(true))
+        {
+            string gmName = gm.gameObject.name;
+            switch (gmName)
+            {
+                case "KartList":
+                    kartListObj = gm.gameObject;
+                    break;
+                case "SkidList":
+                    skidListObj = gm.gameObject;
+                    break;
+                case "PaintList":
+                    paintListObj = gm.gameObject;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     /// <summary>
     /// 기능 : 상점UI에 있는 버튼 바인딩
@@ -44,6 +74,23 @@ public class StoreUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => BuyKartColor(gmName, payLucciText));
+            }
+            else
+            {
+                switch (gmName)
+                {
+                    case "KartTab":
+                        gm.onClick.AddListener(() => ShowObjectList(kartListObj));
+                        break;
+                    case "SkidMarkTab":
+                        gm.onClick.AddListener(() => ShowObjectList(skidListObj));
+                        break;
+                    case "PaintTab":
+                        gm.onClick.AddListener(() => ShowObjectList(paintListObj));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -106,5 +153,20 @@ public class StoreUI : MonoBehaviour
     void ShowPlayerLucci()
     {
         playerLucciText.text = GameManager.Instance.PlayerLucci.ToString();
+    }
+    /// <summary>
+    /// 기능 : 리스트 오브젝트 끄고 키기
+    /// </summary>
+    /// <param name="listObj">탭 메뉴에 따라 다름</param>
+    void ShowObjectList(GameObject listObj)
+    {
+        if (listObj.activeSelf)
+        {
+            listObj.SetActive(false);
+        }
+        else
+        {
+            listObj.SetActive(true);
+        }
     }
 }
