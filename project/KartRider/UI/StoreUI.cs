@@ -17,6 +17,17 @@ public enum KartColor
     Black,
     Count
 }
+public enum KartSkid
+{
+    Orange,
+    Red,
+    Yellow,
+    Green,
+    Blue,
+    Purple,
+    Rainbow,
+    Count
+}
 
 public class StoreUI : MonoBehaviour
 {
@@ -74,6 +85,10 @@ public class StoreUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => BuyKartColor(gmName, payLucciText));
+            }else if(gmTag == "SkidSelectedButton")
+            {
+                string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
+                gm.onClick.AddListener(() => BuySkidMark(gmName, payLucciText));
             }
             else
             {
@@ -140,6 +155,56 @@ public class StoreUI : MonoBehaviour
                 break;
             case "Black":
                 GameManager.Instance.isHaveColor[(int)KartColor.Black] = true;
+                break;
+            default:
+                break;
+
+        }
+        ShowPlayerLucci();
+    }
+    /// <summary>
+    /// 기능 : 스키드 마크 물품 구매
+    /// </summary>
+    /// <param name="gmName">제품명</param>
+    public void BuySkidMark(string gmName, string payLucciText)
+    {
+        //구매 가격
+        int payLucciTextLen = payLucciText.Length;
+        int payLucci = int.Parse(payLucciText.Substring(0, payLucciTextLen - 6));
+        //구매 가능한가?
+        if (payLucci <= GameManager.Instance.PlayerLucci)
+        {
+            GameManager.Instance.PlayerLucci -= payLucci;
+            //구매 확정 UI
+        }
+        else
+        {
+            //구매 불가 UI
+            return;
+        }
+        // 구매 여부 기록
+        switch (gmName)
+        {
+            case "Orange":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Orange] = true;
+                break;
+            case "Red":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Red] = true;
+                break;
+            case "Yellow":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Yellow] = true;
+                break;
+            case "Green":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Green] = true;
+                break;
+            case "Blue":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Blue] = true;
+                break;
+            case "Purple":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Purple] = true;
+                break;
+            case "Rainbow":
+                GameManager.Instance.isHaveSkidMark[(int)KartSkid.Rainbow] = true;
                 break;
             default:
                 break;
