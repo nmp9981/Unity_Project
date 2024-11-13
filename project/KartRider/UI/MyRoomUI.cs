@@ -10,6 +10,10 @@ public class MyRoomUI : MonoBehaviour
     TextMeshProUGUI showCurrentLucciText;
     [SerializeField]
     List<GameObject> allColorListButtonObject = new List<GameObject>();
+    [SerializeField]
+    List<GameObject> allSkidListButtonObject = new List<GameObject>();
+    [SerializeField]
+    List<GameObject> allSkidListObject = new List<GameObject>();
 
     GameObject kartListObj;
     GameObject skidListObj;
@@ -24,6 +28,7 @@ public class MyRoomUI : MonoBehaviour
     {
         ShowPlayerLucci();
         ShowCurrentHaveColor();
+        ShowCurrentHaveSkidMark();
     }
     /// <summary>
     /// 기능 : 오브젝트 리스트 등록
@@ -38,7 +43,7 @@ public class MyRoomUI : MonoBehaviour
                 case "KartList":
                     kartListObj = gm.gameObject;
                     break;
-                case "SkidList":
+                case "SkidMarkList":
                     skidListObj = gm.gameObject;
                     break;
                 case "PaintList":
@@ -68,6 +73,25 @@ public class MyRoomUI : MonoBehaviour
         }
     }
     /// <summary>
+    /// 현재 가지고 있는 스키드 마크
+    /// </summary>
+    void ShowCurrentHaveSkidMark()
+    {
+        allSkidListButtonObject[0].SetActive(true);//기본 스키드 마크
+        for (int idx = 1; idx < GameManager.Instance.isHaveSkidMark.Count; idx++)
+        {
+            //가지고 있음
+            if (GameManager.Instance.isHaveSkidMark[idx])
+            {
+                allSkidListButtonObject[idx].SetActive(true);
+            }//가지고 있지 않음
+            else
+            {
+                allSkidListButtonObject[idx].SetActive(false);
+            }
+        }
+    }
+    /// <summary>
     /// 마이룸 UI버튼 바인딩
     /// </summary>
     void BidingMyRoomUIButton()
@@ -81,6 +105,10 @@ public class MyRoomUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => SetKartColor(gmName));
+            }else if (gmTag=="SkidSelectedButton")
+            {
+                string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
+                gm.onClick.AddListener(() => SetKartSkidMark(gmName));
             }
             else
             {
@@ -133,6 +161,38 @@ public class MyRoomUI : MonoBehaviour
                 break;
         }
     }
+    void SetKartSkidMark(string gmName)
+    {
+        switch (gmName)
+        {
+            case "Basic":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[0];
+                break;
+            case "Orange":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[1];
+                break;
+            case "Red":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[2];
+                break;
+            case "Yellow":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[3];
+                break;
+            case "Green":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[4];
+                break;
+            case "Blue":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[5];
+                break;
+            case "Purple":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[6];
+                break;
+            case "Rainbow":
+                GameManager.Instance.CurrentSkidMark = allSkidListObject[7];
+                break;
+            default:
+                break;
+        }
+    }
     /// <summary>
     /// 기능 : 플레이어가 가지고 있는 돈
     /// </summary>
@@ -146,13 +206,9 @@ public class MyRoomUI : MonoBehaviour
     /// <param name="listObj">탭 메뉴에 따라 다름</param>
     void ShowObjectList(GameObject listObj)
     {
-        if (listObj.activeSelf)
-        {
-            listObj.SetActive(false);
-        }
-        else
-        {
-            listObj.SetActive(true);
-        }
+        kartListObj.SetActive(false);
+        skidListObj.SetActive(false);
+        paintListObj.SetActive(false);
+        listObj.SetActive(true);
     }
 }
