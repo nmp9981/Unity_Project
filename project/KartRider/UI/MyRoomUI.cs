@@ -23,6 +23,7 @@ public class MyRoomUI : MonoBehaviour
     {
         RegisterObjectList();
         BidingMyRoomUIButton();
+        InitCurrentSkidMark();
     }
     private void OnEnable()
     {
@@ -55,6 +56,13 @@ public class MyRoomUI : MonoBehaviour
         }
     }
     /// <summary>
+    /// 기능 : 맨 처음 스키드 마크는 기본 스키드 마크
+    /// </summary>
+    void InitCurrentSkidMark()
+    {
+        GameManager.Instance.CurrentSkidMark = allSkidListObject[0];
+    }
+    /// <summary>
     /// 현재 가지고 있는 색상
     /// </summary>
     void ShowCurrentHaveColor()
@@ -77,7 +85,9 @@ public class MyRoomUI : MonoBehaviour
     /// </summary>
     void ShowCurrentHaveSkidMark()
     {
-        allSkidListButtonObject[0].SetActive(true);//기본 스키드 마크
+        //기본 스키드 마크
+        allSkidListButtonObject[0].SetActive(true);
+
         for (int idx = 1; idx < GameManager.Instance.isHaveSkidMark.Count; idx++)
         {
             //가지고 있음
