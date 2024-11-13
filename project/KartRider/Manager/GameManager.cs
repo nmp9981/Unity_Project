@@ -34,14 +34,19 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
-        SettingColorDic();
+        SettingDic();
     }
 
-    void SettingColorDic()
+    void SettingDic()
     {
         for (int i = 0; i < 8; i++)
         {
             isHaveColor.Add(i, false);
+        }
+        isHaveSkidMark.Add(0, true);
+        for (int i = 1; i < 8; i++)
+        {
+            isHaveSkidMark.Add(i, false);
         }
     }
     /// <summary>
