@@ -14,6 +14,8 @@ public class MyRoomUI : MonoBehaviour
     List<GameObject> allSkidListButtonObject = new List<GameObject>();
     [SerializeField]
     List<GameObject> allSkidListObject = new List<GameObject>();
+    [SerializeField]
+    List<GameObject> allKartListButtonObject = new List<GameObject>();
 
     GameObject kartListObj;
     GameObject skidListObj;
@@ -30,6 +32,7 @@ public class MyRoomUI : MonoBehaviour
         ShowPlayerLucci();
         ShowCurrentHaveColor();
         ShowCurrentHaveSkidMark();
+        ShowCurrentHaveKart();
     }
     /// <summary>
     /// 기능 : 오브젝트 리스트 등록
@@ -102,6 +105,27 @@ public class MyRoomUI : MonoBehaviour
         }
     }
     /// <summary>
+    /// 현재 가지고 있는 카트
+    /// </summary>
+    void ShowCurrentHaveKart()
+    {
+        //기본 스키드 마크
+        allKartListButtonObject[0].SetActive(true);
+
+        for (int idx = 1; idx < GameManager.Instance.isHaveKart.Count; idx++)
+        {
+            //가지고 있음
+            if (GameManager.Instance.isHaveKart[idx])
+            {
+                allKartListButtonObject[idx].SetActive(true);
+            }//가지고 있지 않음
+            else
+            {
+                allKartListButtonObject[idx].SetActive(false);
+            }
+        }
+    }
+    /// <summary>
     /// 마이룸 UI버튼 바인딩
     /// </summary>
     void BidingMyRoomUIButton()
@@ -119,6 +143,11 @@ public class MyRoomUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => SetKartSkidMark(gmName));
+            }
+            else if (gmTag == "KartSelectedButton")
+            {
+                string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
+                gm.onClick.AddListener(() => SetKartMain(gmName));
             }
             else
             {
@@ -198,6 +227,26 @@ public class MyRoomUI : MonoBehaviour
                 break;
             case "Rainbow":
                 GameManager.Instance.CurrentSkidMark = allSkidListObject[7];
+                break;
+            default:
+                break;
+        }
+    }
+    void SetKartMain(string gmName)
+    {
+        switch (gmName)
+        {
+            case "Basic":
+                GameManager.Instance.CurrentKartNum = 0;
+                break;
+            case "Cotton":
+                GameManager.Instance.CurrentKartNum = 1;
+                break;
+            case "Police":
+                GameManager.Instance.CurrentKartNum = 2;
+                break;
+            case "Taxi":
+                GameManager.Instance.CurrentKartNum = 3;
                 break;
             default:
                 break;
