@@ -19,6 +19,7 @@ public enum KartColor
 }
 public enum KartSkid
 {
+    Basic,
     Orange,
     Red,
     Yellow,
@@ -26,6 +27,14 @@ public enum KartSkid
     Blue,
     Purple,
     Rainbow,
+    Count
+}
+public enum KartName
+{
+    Basic,
+    Cotton,
+    Police,
+    Taxi,
     Count
 }
 
@@ -89,6 +98,10 @@ public class StoreUI : MonoBehaviour
             {
                 string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
                 gm.onClick.AddListener(() => BuySkidMark(gmName, payLucciText));
+            }else if (gmTag == "KartSelectedButton")
+            {
+                string payLucciText = gm.GetComponentInChildren<TextMeshProUGUI>().text;
+                gm.onClick.AddListener(() => BuyKart(gmName, payLucciText));
             }
             else
             {
@@ -205,6 +218,44 @@ public class StoreUI : MonoBehaviour
                 break;
             case "Rainbow":
                 GameManager.Instance.isHaveSkidMark[(int)KartSkid.Rainbow] = true;
+                break;
+            default:
+                break;
+
+        }
+        ShowPlayerLucci();
+    }
+    /// <summary>
+    /// 기능 : 카트 구매
+    /// </summary>
+    /// <param name="gmName">제품명</param>
+    public void BuyKart(string gmName, string payLucciText)
+    {
+        //구매 가격
+        int payLucciTextLen = payLucciText.Length;
+        int payLucci = int.Parse(payLucciText.Substring(0, payLucciTextLen - 6));
+        //구매 가능한가?
+        if (payLucci <= GameManager.Instance.PlayerLucci)
+        {
+            GameManager.Instance.PlayerLucci -= payLucci;
+            //구매 확정 UI
+        }
+        else
+        {
+            //구매 불가 UI
+            return;
+        }
+        // 구매 여부 기록
+        switch (gmName)
+        {
+            case "Cotton":
+                GameManager.Instance.isHaveKart[(int)KartName.Cotton] = true;
+                break;
+            case "Red":
+                GameManager.Instance.isHaveKart[(int)KartName.Police] = true;
+                break;
+            case "Yellow":
+                GameManager.Instance.isHaveKart[(int)KartName.Taxi] = true;
                 break;
             default:
                 break;
