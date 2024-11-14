@@ -179,12 +179,15 @@ public class GameManager : MonoBehaviour
     int _currentMapPageIndex = 0;//현재 맵 페이지 번호
 
     Color _kartColor = Color.yellow;//카트 색상
-    GameObject _skidPrefab = null;
+    GameObject _skidPrefab = null;//스키드 마크
+    GameObject _racingKart;//달리는 카트 디자인
 
     //각 색상을 가지는가?
     public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
     //각 스키드 마크를 가지는가?
     public Dictionary<int, bool> isHaveSkidMark= new Dictionary<int, bool>();
+    //각 차량을 가지는가?
+    public Dictionary<int, bool> isHaveKart = new Dictionary<int, bool>();
 
     public float CarSpeed { get { return _carSpeed; } set { _carSpeed = value; } }
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
@@ -221,5 +224,6 @@ public class GameManager : MonoBehaviour
 
     public Color CurrentKartColor { get { return _kartColor; } set { _kartColor = value; } }
     public GameObject CurrentSkidMark { get { return _skidPrefab; } set { _skidPrefab = value; } }
+    public GameObject CurrentKart { get { return _racingKart; } set { _racingKart = value; } }
     #endregion
 }
