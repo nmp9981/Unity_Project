@@ -48,6 +48,11 @@ public class GameManager : MonoBehaviour
         {
             isHaveSkidMark.Add(i, false);
         }
+        isHaveKart.Add(0, true);
+        for (int i = 1; i < 4; i++)
+        {
+            isHaveKart.Add(i, false);
+        }
     }
     /// <summary>
     /// 기능 : 맵 리스트 세팅
@@ -180,7 +185,7 @@ public class GameManager : MonoBehaviour
 
     Color _kartColor = Color.yellow;//카트 색상
     GameObject _skidPrefab = null;//스키드 마크
-    GameObject _racingKart;//달리는 카트 디자인
+    int _racingKartNum = 0;//달리는 카트 디자인
 
     //각 색상을 가지는가?
     public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
@@ -224,6 +229,6 @@ public class GameManager : MonoBehaviour
 
     public Color CurrentKartColor { get { return _kartColor; } set { _kartColor = value; } }
     public GameObject CurrentSkidMark { get { return _skidPrefab; } set { _skidPrefab = value; } }
-    public GameObject CurrentKart { get { return _racingKart; } set { _racingKart = value; } }
+    public int CurrentKartNum { get { return _racingKartNum; } set { _racingKartNum = value; } }
     #endregion
 }
