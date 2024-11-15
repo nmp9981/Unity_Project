@@ -9,7 +9,9 @@ using Cysharp.Threading.Tasks;
 public class InGameUI : MonoBehaviour
 {
     [SerializeField]
-    MeshRenderer kartColor;
+    List<GameObject> activeKartList = new List<GameObject>();
+    [SerializeField]
+    List<MeshRenderer> kartColor = new List<MeshRenderer>();
     [SerializeField]
     GameObject returnHome;
     [SerializeField]
@@ -34,6 +36,7 @@ public class InGameUI : MonoBehaviour
     }
     private void OnEnable()
     {
+        PickActiveKart();
         PaintKartColor();
         ShowReadyText();
     }
@@ -62,11 +65,42 @@ public class InGameUI : MonoBehaviour
         boosterManager = GameObject.Find("Player").GetComponent<BoosterManager>();
     }
     /// <summary>
-    /// 카트 색상 적용
+    /// 기능 : 선택한 카트 디자인 적용
+    /// </summary>
+    void PickActiveKart()
+    {
+        for (int idx = 0; idx < activeKartList.Count; idx++)
+        {
+            if (GameManager.Instance.CurrentKartNum == idx)
+            {
+                activeKartList[idx].SetActive(true);
+            }
+            else
+            {
+                activeKartList[idx].SetActive(false);
+            }
+        }
+    }
+    /// <summary>
+    /// 기능 : 카트 색상 적용
     /// </summary>
     void PaintKartColor()
     {
-        kartColor.material.color = GameManager.Instance.CurrentKartColor;
+        switch (GameManager.Instance.CurrentKartNum)
+        {
+            case 0:
+                kartColor[0].material.color = GameManager.Instance.CurrentKartColor;
+                break;
+            case 1:
+                kartColor[1].materials[0].color = GameManager.Instance.CurrentKartColor;
+                break;
+            case 2:
+                kartColor[2].material.color = GameManager.Instance.CurrentKartColor;
+                break;
+            case 3:
+                kartColor[3].material.color = GameManager.Instance.CurrentKartColor;
+                break;
+        }
     }
     /// <summary>
     /// 기능 : 출발 이벤트
