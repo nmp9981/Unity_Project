@@ -63,7 +63,10 @@ public class MyRoomUI : MonoBehaviour
     /// </summary>
     void InitCurrentSkidMark()
     {
-        GameManager.Instance.CurrentSkidMark = allSkidListObject[0];
+        if (GameManager.Instance.CurrentSkidMark == null)
+        {
+            GameManager.Instance.CurrentSkidMark = allSkidListObject[0];
+        }
     }
     /// <summary>
     /// 현재 가지고 있는 색상
