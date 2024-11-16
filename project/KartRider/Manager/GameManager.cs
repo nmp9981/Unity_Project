@@ -173,7 +173,7 @@ public class GameManager : MonoBehaviour
     string _currentMap = string.Empty;//현재 주행하는 맵 이름
     int _currentMapIndex;//현재 주행하는 맵 번호
 
-    int _playerLucci = 0;//돈
+    int _playerLucci = 1000;//돈
     bool _isCollideCoin = false;//동전과 충돌 여부
 
     float _bgmVolume = 0.5f;
