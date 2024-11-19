@@ -153,7 +153,11 @@ public class GameManager : MonoBehaviour
     float _touque = 1500;//차량 가속도
     const float _defaultSpeedLimit = 181;//기본 최대 속도
     const float _defaultTouque = 1500;//기본 가속도
-    
+    public List<float> speedLimitList = new List<float>();//속도 제한
+    public List<float> touqueList = new List<float>();//가속도 리스트
+    public List<float> boosterSpeedLimitList = new List<float>();//부스터 속도 제한
+    public List<float> breakePowerList = new List<float>();//감속 리스트
+
     bool _isBreaking = false;//브레이크 여부
     float _breakPower = 32000;//브레이크 파워
 
