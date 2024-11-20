@@ -30,10 +30,6 @@ public class CarController : MonoBehaviour
     float slipRate = 1.8f;
     float handBreakSlipRate = 0.7f;
 
-    // 스키드 마크 오브젝트
-    [SerializeField]
-    GameObject skidMarkPrefab;
-
     //부스터 클래스
     BoosterManager boosterManager;
 
@@ -135,7 +131,7 @@ public class CarController : MonoBehaviour
         }
 
         // 전후진 키를 누르지 않으면 제동이 걸리도록 한다	
-        float decSpeed = 3000;
+        float decSpeed = 3500;
         if (verticalAmount == 0) {
             for (int i = 0; i < 4; i++)
             {
@@ -306,8 +302,8 @@ public class CarController : MonoBehaviour
             steeringMaxAxis = 15;
             PlayKartDriftSound();
            
-            wheels[1].brakeTorque = GameManager.Instance.BreakPower*5f;
-            wheels[2].brakeTorque = GameManager.Instance.BreakPower*5f;
+            wheels[1].brakeTorque = GameManager.Instance.breakePowerList[GameManager.Instance.CurrentKartNum]*5f;
+            wheels[2].brakeTorque = GameManager.Instance.breakePowerList[GameManager.Instance.CurrentKartNum]* 5f;
 
             fFrictionBackLeft.stiffness = slipRate;
             wheels[1].GetComponent<WheelCollider>().forwardFriction = fFrictionBackLeft;
@@ -364,7 +360,7 @@ public class CarController : MonoBehaviour
     {
         for(int i = 1; i < 3; i++)
         {
-            GameObject skid = Instantiate(skidMarkPrefab);
+            GameObject skid = Instantiate(GameManager.Instance.CurrentSkidMark);
             skid.transform.position = wheelMeshs[i].transform.position - Vector3.down*wheels[i].radius;
         }
     }
