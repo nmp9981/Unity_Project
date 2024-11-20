@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class BoosterManager : MonoBehaviour
 {
@@ -66,8 +65,8 @@ public class BoosterManager : MonoBehaviour
     /// </summary>
     async UniTask BoosterOn()
     {
-        GameManager.Instance.SpeedLimit = 224;
-        GameManager.Instance.Touque = 2500;
+        GameManager.Instance.SpeedLimit = GameManager.Instance.boosterSpeedLimitList[GameManager.Instance.CurrentKartNum];
+        GameManager.Instance.Touque = GameManager.Instance.boosterTouqueList[GameManager.Instance.CurrentKartNum];
         GameManager.Instance.BoosterCount -= 1;
         GameManager.Instance.IsBoostering = true;
         boosterUIImage[GameManager.Instance.BoosterCount].enabled = false;
@@ -78,7 +77,7 @@ public class BoosterManager : MonoBehaviour
         await UniTask.Delay(4000);
         GameManager.Instance.IsBooster = true;
         GameManager.Instance.SpeedLimit = GameManager.Instance.DefaultSpeedLimit;
-        GameManager.Instance.BreakPower = 10000000;
+        GameManager.Instance.BreakPower = 11000000;
         boosterEffect.Stop();
         //부스터 사운드 Off
 
@@ -113,7 +112,7 @@ public class BoosterManager : MonoBehaviour
     {
         boosterEffect.Play();
         GameManager.Instance.SpeedLimit = GameManager.Instance.DefaultSpeedLimit;
-        GameManager.Instance.Touque = 10000;
+        GameManager.Instance.Touque = GameManager.Instance.startTouqueList[GameManager.Instance.CurrentKartNum];
         SoundManger._sound.PlaySfx((int)SFXSound.Booster);
 
         await UniTask.Delay(400);
