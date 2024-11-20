@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
     {
         Init();
         SettingDic();
+        SettingKartData();
     }
 
     void SettingDic()
@@ -53,6 +54,37 @@ public class GameManager : MonoBehaviour
         {
             isHaveKart.Add(i, false);
         }
+    }
+    /// <summary>
+    /// 기능 : 각 카트 데이터 세팅
+    /// </summary>
+    void SettingKartData()
+    {
+        //기본 속도
+        speedLimitList[0] = 181;
+        speedLimitList[1] = 188;
+        speedLimitList[2] = 197;
+        speedLimitList[3] = 210;
+        //출발 가속도
+        startTouqueList[0] = 10000;
+        startTouqueList[1] = 10300;
+        startTouqueList[2] = 10500;
+        startTouqueList[3] = 10800;
+        //부스터 가속도
+        boosterTouqueList[0] = 2500;
+        boosterTouqueList[1] = 2550;
+        boosterTouqueList[2] = 2700;
+        boosterTouqueList[3] = 2850;
+        //부스터 속도
+        boosterSpeedLimitList[0] = 224;
+        boosterSpeedLimitList[1] = 231;
+        boosterSpeedLimitList[2] = 244;
+        boosterSpeedLimitList[3] = 280;
+        //감속
+        breakePowerList[0] = 32000;
+        breakePowerList[1] = 31000;
+        breakePowerList[2] = 33000;
+        breakePowerList[3] = 35000;
     }
     /// <summary>
     /// 기능 : 맵 리스트 세팅
@@ -122,7 +154,8 @@ public class GameManager : MonoBehaviour
         GameManager.Instance.CurrentBoosterGage = 0;
         GameManager.Instance.BestLapTime = 0;
         GameManager.Instance.CurrentTime = 0;
-        GameManager.Instance.SpeedLimit = _defaultSpeedLimit;
+        GameManager.Instance.DefaultSpeedLimit = GameManager.Instance.speedLimitList[GameManager.Instance.CurrentKartNum];
+        GameManager.Instance.SpeedLimit = GameManager.Instance.DefaultSpeedLimit;
     }
     /// <summary>
     /// 기능 : 메인씬으로 이동
@@ -151,12 +184,13 @@ public class GameManager : MonoBehaviour
     float _speedLimit = 181f;//속도 제한
     float _racingDist = 0;//주행 거리
     float _touque = 1500;//차량 가속도
-    const float _defaultSpeedLimit = 181;//기본 최대 속도
-    const float _defaultTouque = 1500;//기본 가속도
-    public List<float> speedLimitList = new List<float>();//속도 제한
-    public List<float> touqueList = new List<float>();//가속도 리스트
-    public List<float> boosterSpeedLimitList = new List<float>();//부스터 속도 제한
-    public List<float> breakePowerList = new List<float>();//감속 리스트
+    float _defaultSpeedLimit = 181;//기본 최대 속도
+    float _defaultTouque = 1500;//기본 가속도
+    public float[] speedLimitList = new float[4];//속도 제한
+    public float[] startTouqueList = new float[4];//출발 가속도 리스트
+    public float[] boosterTouqueList = new float[4];//부스터 가속도 리스트
+    public float[] boosterSpeedLimitList = new float[4];//부스터 속도 제한
+    public float[] breakePowerList = new float[4];//감속 리스트
 
     bool _isBreaking = false;//브레이크 여부
     float _breakPower = 32000;//브레이크 파워
@@ -202,8 +236,8 @@ public class GameManager : MonoBehaviour
     public float SpeedLimit { get { return _speedLimit; } set { _speedLimit = value; } }
     public float RacingDist { get { return _racingDist; } set { _racingDist = value; } }
     public float Touque { get { return _touque; } set { _touque = value; } }
-    public float DefaultTouque { get { return _defaultTouque; }}
-    public float DefaultSpeedLimit { get { return _defaultSpeedLimit; } }
+    public float DefaultTouque { get { return _defaultTouque; } set { _defaultTouque = value; } }
+    public float DefaultSpeedLimit { get { return _defaultSpeedLimit; }set { _defaultSpeedLimit = value; } }
 
     public bool IsBooster { get { return _isBooster; } set { _isBooster = value; } }
     public bool IsBoostering { get { return _isBoostering; } set { _isBoostering = value; } }
