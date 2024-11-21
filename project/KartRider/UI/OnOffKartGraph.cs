@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,10 +15,18 @@ public class KartManager : MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
     [SerializeField]
     int kartIndexNumber;
 
+    TextMeshProUGUI kartNameTextObj;
+    TextMeshProUGUI kartNameText;
+    void Awake()
+    {
+        kartNameTextObj = kartGraphObject.transform.GetChild(1).GetComponent<TextMeshProUGUI>();
+        kartNameText = gameObject.transform.GetChild(3).GetComponent<TextMeshProUGUI>();
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         kartGraphObject.SetActive(true);
         GameManager.Instance.MouseUpKartNum = kartIndexNumber;
+        kartNameTextObj.text = kartNameText.text;
         kartGraphObject.transform.position = eventData.position+new Vector2(200,0);
     }
     //마우스 커서 올라가 있는 동안
