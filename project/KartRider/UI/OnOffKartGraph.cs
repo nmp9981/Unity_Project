@@ -10,16 +10,21 @@ public class KartManager : MonoBehaviour,IPointerEnterHandler,IPointerExitHandle
 {
     [SerializeField]
     GameObject kartGraphObject;
-    
+
+    [SerializeField]
+    int kartIndexNumber;
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         kartGraphObject.SetActive(true);
-        kartGraphObject.transform.position = eventData.position+new Vector2(150,0);
+        GameManager.Instance.MouseUpKartNum = kartIndexNumber;
+        kartGraphObject.transform.position = eventData.position+new Vector2(200,0);
     }
+    //마우스 커서 올라가 있는 동안
     public void OnPointerUp(PointerEventData eventData)
     {
         kartGraphObject.SetActive(true);
-        kartGraphObject.transform.position = eventData.position + new Vector2(150, 0);
+        kartGraphObject.transform.position = eventData.position + new Vector2(200, 0);
     }
     public void OnPointerExit(PointerEventData eventData)
     {
