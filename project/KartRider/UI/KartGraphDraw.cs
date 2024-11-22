@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class KartGraphDraw : MonoBehaviour
 {
+    [SerializeField]
+    Material mt;
+
     CanvasRenderer renderer;
-    public Material mt;
-   
+
+    string shaderName = "UI/Default";
+
     void Awake()
     {
         renderer = gameObject.GetComponent<CanvasRenderer>();
+        mt.shader = Shader.Find(shaderName);
     }
 
     private void OnEnable()
@@ -63,8 +68,9 @@ public class KartGraphDraw : MonoBehaviour
         mesh.triangles = triangles;
 
         renderer.SetMesh(mesh);
+        renderer.SetMaterial(mt,null);
         renderer.SetColor(Color.red);
-        renderer.SetMaterial(mt, null);
+       
     }
     //그래프 지우기
     void DestroyGraph()
