@@ -15,7 +15,7 @@ public class SelecteMap : MonoBehaviour, IPointerClickHandler
             if (gameObject.tag != "Map") mapName = string.Empty;
             else mapName = gameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text;
             
-            GameManager.Instance.CurrentMap = mapName;
+            GameManager.Instance.CurrentMap = mapName.Substring(0,mapName.Length-13);
             MenuUIManager.selectMapText.text = GameManager.Instance.CurrentMap;
             GameManager.Instance.CurrentMapIndex = GameManager.mapDictoinaty[MenuUIManager.selectMapText.text];
         }
