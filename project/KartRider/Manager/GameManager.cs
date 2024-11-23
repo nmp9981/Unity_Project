@@ -102,10 +102,17 @@ public class GameManager : MonoBehaviour
         foreach(var mapName in mapListObj.GetComponentsInChildren<TextMeshProUGUI>(true))
         {
             mapLapList[number] = 1;
-            if (number == 1) mapLapList[number] = 2;
+            if (number == 1 || number == 4) mapLapList[number] = 2;
             mapDictoinaty.Add(mapName.text,number);
             number += 1;
         }
+        mapTimeLimitList = new float[6];
+        mapTimeLimitList[0] = 47;
+        mapTimeLimitList[1] = 135;
+        mapTimeLimitList[2] = 119;
+        mapTimeLimitList[3] = 129;
+        mapTimeLimitList[4] = 175;
+        mapTimeLimitList[5] = 182;
     }
     /// <summary>
     /// 기능 : 시작지점으로 이동 및 레이싱 데이터 초기화
@@ -124,7 +131,7 @@ public class GameManager : MonoBehaviour
         }
         GameObject player = GameObject.FindWithTag("Player");
         player.transform.position = startPosList[idx];
-        await UniTask.Delay(800);
+        await UniTask.Delay(1000);
         InitRacingData();
         GameLoading.LoadingOff();
     }
@@ -218,12 +225,14 @@ public class GameManager : MonoBehaviour
     float _sfxVolume = 0.5f;
 
     public int[] mapLapList;//맵 바퀴 수
+    public float[] mapTimeLimitList;//각 맵별 시간 제한
 
     int _currentMapPageIndex = 0;//현재 맵 페이지 번호
 
     Color _kartColor = Color.yellow;//카트 색상
     GameObject _skidPrefab = null;//스키드 마크
     int _racingKartNum = 0;//달리는 카트 디자인
+    int _mouseUpKartNum;//UI 카트 선택 번호
 
     //각 색상을 가지는가?
     public Dictionary<int, bool> isHaveColor = new Dictionary<int, bool>();
@@ -268,5 +277,6 @@ public class GameManager : MonoBehaviour
     public Color CurrentKartColor { get { return _kartColor; } set { _kartColor = value; } }
     public GameObject CurrentSkidMark { get { return _skidPrefab; } set { _skidPrefab = value; } }
     public int CurrentKartNum { get { return _racingKartNum; } set { _racingKartNum = value; } }
+    public int MouseUpKartNum { get { return _mouseUpKartNum; } set { _mouseUpKartNum = value; } }
     #endregion
 }
