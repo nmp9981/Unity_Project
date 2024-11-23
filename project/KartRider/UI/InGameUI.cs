@@ -111,10 +111,10 @@ public class InGameUI : MonoBehaviour
     /// </summary>
     async UniTask ShowReadyText()
     {
-        GameManager.Instance.CurrentRestTime = 48f+24*GameManager.Instance.CurrentMapIndex;
         GameManager.Instance.IsDriving = false;
+        GameManager.Instance.CurrentRestTime = GameManager.Instance.mapTimeLimitList[GameManager.Instance.CurrentMapIndex];
         await UniTask.Delay(2000);
-      
+       
         GameManager.Instance.MapLap = GameManager.Instance.mapLapList[GameManager.Instance.CurrentMapIndex];//여기서 총 몇바퀴 맵인지 설정
         for (int i = 3; i >= -1; i--)
         {
