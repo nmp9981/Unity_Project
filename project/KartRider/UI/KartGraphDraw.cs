@@ -69,8 +69,6 @@ public class KartGraphDraw : MonoBehaviour
 
         renderer.SetMesh(mesh);
         renderer.SetMaterial(mt,null);
-        renderer.SetColor(Color.red);
-       
     }
     //그래프 지우기
     void DestroyGraph()
