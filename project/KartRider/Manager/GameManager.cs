@@ -103,7 +103,9 @@ public class GameManager : MonoBehaviour
         {
             mapLapList[number] = 1;
             if (number == 1 || number == 4) mapLapList[number] = 2;
-            mapDictoinaty.Add(mapName.text,number);
+            string mapNameText = mapName.text;
+            mapNameText = mapNameText.Substring(0, mapNameText.Length - 13);
+            mapDictoinaty.Add(mapNameText,number);
             number += 1;
         }
         mapTimeLimitList = new float[6];
