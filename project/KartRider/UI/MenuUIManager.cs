@@ -114,6 +114,7 @@ public class MenuUIManager : MonoBehaviour
     /// 1) 선택된 맵이 존재해야함
     /// 2) 인게임으로 씬 전환
     /// 3) 각 맵의 시작 지점으로 이동
+    /// 4) BGM 재생
     /// </summary>
     public void GoRacingStart(string mapName)
     {
@@ -128,8 +129,8 @@ public class MenuUIManager : MonoBehaviour
             //시작지점으로 이동
             int mapNumber = GameManager.mapDictoinaty[mapName];
             GameManager.MoveStartPositionAndDataInit(mapNumber);
+            //BGM 재생
             int musicNum = 2*mapNumber+(Random.Range(0, 10) % 2)+1;
-            if (musicNum > 6) musicNum = 6;
             SoundManger._sound.PlayBGM(musicNum);
         }
     }
