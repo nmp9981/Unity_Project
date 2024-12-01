@@ -99,20 +99,26 @@ public class GJKAlgorithm : MonoBehaviour
     }
     /// <summary>
     /// 기능 : 다각형의 실제 넓이
-    /// 신발끈 공식을 이용
-    /// 다만 좌표들이 정렬되어 있으리라 보장 X
+    /// 1) 내부의 임의의 점 잡음 (중점)
+    /// 2) 그 임의의 점 기준으로 면적 구하기
     /// </summary>
     float AreaPolygon(List<Vector3> meshPointSetList)
     {
-        float addValue = 0;
-        float diffValue = 0;
+        float sumArea = 0;
         int meshSetCount = meshPointSetList.Count;
-        for (int idx=0;idx<meshSetCount;idx++)
+        //내부의 점 (중점)
+        Vector3 standVec = (meshPointSetList[0] + meshPointSetList[1])*0.5f;
+        //각 삼각형의 넓이의 합
+        for (int idx = 0; idx < meshSetCount; idx++)
         {
-            addValue += (meshPointSetList[idx % meshSetCount].x * meshPointSetList[(idx + 1) % meshSetCount].y);
-            diffValue += (meshPointSetList[idx % meshSetCount].y * meshPointSetList[(idx + 1) % meshSetCount].x);
+            //두 벡터의 외적
+            Vector3 vector1 = meshPointSetList[idx % meshSetCount] - standVec;
+            Vector3 vector2 = meshPointSetList[(idx + 1) % meshSetCount] - standVec;
+
+            float triangle = (vector1.x * vector2.y) - (vector1.y * vector2.x);
+            sumArea += Mathf.Abs(triangle);
         }
-        return Mathf.Abs(addValue - diffValue);
+        return sumArea;
     }
     /// <summary>
     /// 기능 : 다각형의 삼각형 넓이의 합
