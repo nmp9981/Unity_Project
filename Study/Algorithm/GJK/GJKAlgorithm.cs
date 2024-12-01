@@ -53,11 +53,17 @@ public class GJKAlgorithm : MonoBehaviour
     /// </summary>
     void MincovskiDiff()
     {
-       meshPointSetList.Clear();
-       foreach(var vecA in objA.meshPoints)
+        meshPointSetList.Clear();
+
+        Vector3 Apos = objA.transform.position;
+        Vector3 Bpos = objB.transform.position;
+        foreach (var vecA in objA.meshPoints)
         {
             foreach(var vecB in objB.meshPoints)
             {
+                Vector3 vecAreal = vecA+ Apos;
+                Vector3 vecBreal = vecB + Bpos;
+                //meshPointSetList.Add(vecAreal - vecBreal);
                 meshPointSetList.Add(vecA - vecB);
             }
         }
@@ -93,17 +99,19 @@ public class GJKAlgorithm : MonoBehaviour
     }
     /// <summary>
     /// 기능 : 다각형의 실제 넓이
+    /// 신발끈 공식을 이용
+    /// 다만 좌표들이 정렬되어 있으리라 보장 X
     /// </summary>
     float AreaPolygon(List<Vector3> meshPointSetList)
     {
         float addValue = 0;
         float diffValue = 0;
-        for(int idx=0;idx<meshPointSetList.Count-1;idx++)
+        int meshSetCount = meshPointSetList.Count;
+        for (int idx=0;idx<meshSetCount;idx++)
         {
-            addValue += (meshPointSetList[idx].x * meshPointSetList[idx + 1].y);
-            diffValue += (meshPointSetList[idx].y * meshPointSetList[idx + 1].x);
+            addValue += (meshPointSetList[idx % meshSetCount].x * meshPointSetList[(idx + 1) % meshSetCount].y);
+            diffValue += (meshPointSetList[idx % meshSetCount].y * meshPointSetList[(idx + 1) % meshSetCount].x);
         }
-        Debug.Log(addValue - diffValue+" 다각형");
         return Mathf.Abs(addValue - diffValue);
     }
     /// <summary>
@@ -112,16 +120,16 @@ public class GJKAlgorithm : MonoBehaviour
     float SumTrianglePolygon(List<Vector3> meshPointSetList)
     {
         float sumArea = 0;
-        for (int idx = 0; idx < meshPointSetList.Count -1; idx++)
+        int meshSetCount = meshPointSetList.Count;
+        for (int idx = 0; idx < meshSetCount; idx++)
         {
             //두 벡터의 외적
-            Vector3 vector1 = meshPointSetList[idx];
-            Vector3 vector2 = meshPointSetList[idx+1];
+            Vector3 vector1 = meshPointSetList[idx%meshSetCount];
+            Vector3 vector2 = meshPointSetList[(idx+1)%meshSetCount];
 
             float triangle = (vector1.x * vector2.y) - (vector1.y * vector2.x);
             sumArea += Mathf.Abs(triangle);
         }
-        Debug.Log(sumArea + " 다각형2");
         return sumArea;
     }
     /// <summary>
@@ -135,8 +143,14 @@ public class GJKAlgorithm : MonoBehaviour
         if (AABBCollideJudge())
         {
             MincovskiDiff();
-            //meshPointSetList.Add(meshPointSetList[0]);
-            
+            float areaPolygon = AreaPolygon(meshPointSetList);
+            float triangleAreaSum = SumTrianglePolygon(meshPointSetList);
+
+            if(areaPolygon >= triangleAreaSum)
+            {
+                Debug.Log("원점 포함");
+            }
+
             if (IsIncludeOriginPoint(meshPointSetList))
             {
                 objA.isCollide = true;
