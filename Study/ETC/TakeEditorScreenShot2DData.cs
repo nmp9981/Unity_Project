@@ -8,6 +8,12 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+public enum MainBusPipe
+{
+    None,
+    From,
+    To
+}
 public class TakeEditorScreenShot2DData : MonoBehaviour
 {
     /// 2D 학습 파이프 데이터 리스트에 대한 스크린샷 촬영
@@ -31,6 +37,7 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
         )
     {
         // 나머지는 전체 끈다.
+        await OffUnknown();
         await OffAllPipe();
       
         // 메인 카메라 캐싱
@@ -54,8 +61,19 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
                 var obj = list[index];
                 if (obj is FilteredPipeline)
                 {
-                    await Take2DPipeDataScreenShot(cam, obj, screenshotData, filter,
+                    //메인버스를 경유하지 않음
+                    if (obj.MainBusPipeList == null)
+                    {
+                        await Take2DPipeDataScreenShot(cam, obj, MainBusPipe.None, screenshotData, filter,
+                       (float) index / list.Count, cts, progressAction, isNext, endNext);
+                    }
+                    else//메인버스를 경유 -> from, to로 나눠져야함
+                    {
+                        await Take2DPipeDataScreenShot(cam, obj, MainBusPipe.From, screenshotData, filter,
                         (float) index / list.Count, cts, progressAction, isNext, endNext);
+                        await Take2DPipeDataScreenShot(cam, obj, MainBusPipe.To, screenshotData, filter,
+                       (float) index / list.Count, cts, progressAction, isNext, endNext);
+                    }
                 }
                 await UniTask.Yield(PlayerLoopTiming.Update);
                 
@@ -79,12 +97,13 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             mainCamera.enabled = true;
             //전체 오브젝트 다시 켜기
             OnAllPipeObject();
+            OnUnknown();
         }
     }
 
     static async UniTask Take2DPipeDataScreenShot(
            Camera cam,
-           FilteredPipeline pipeline,
+           FilteredPipeline pipeline, MainBusPipe mainBusPipeState,
            ScreenshotSettingsData screenshotData,
            ScreenShotFilterData filter,
            float prograss,
@@ -111,11 +130,22 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             // 장비 필터링
             ScreenshotUtility.FilterEquipmentObjects(filter.equipmentFilterType, rendererHash);
             //전체 파이프 켜기
-            var pipeList = pipeline.GetAllPipe();
-            Debug.Log(prograss + " @@@@@@@@@@@@@@@");
+            List<Pipe> pipeList = new List<Pipe>();
+            switch (mainBusPipeState)
+            {
+                case MainBusPipe.None:
+                    pipeList = pipeline.GetAllPipe();
+                    break;
+                case MainBusPipe.From:
+                    pipeList = pipeline.FromPipeList;
+                    break;
+                case MainBusPipe.To:
+                    pipeList = pipeline.ToPipeList;
+                    break;
+            }
 
             // 메세지 생성
-            string message = $"{pipeline.Name.Replace("\"", "")}";
+            string message = $"{pipeline.Name.Replace("\"", "")}_{mainBusPipeState}";
             // 메세지 중 폴더 이름에 사용할 수 없는 문자 제거
             // 해당 동작으로 중복되는 캡처 저장 방지 (단 날짜 태그를 사용하면 파일명 이슈로 여러장 생성)
             string objFolderName = message.Replace('/', ' ').Replace('\\', ' ');
@@ -127,13 +157,32 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             //찍기 전 활성화
             await OnSelectPipeObject(pipeList);
 
+            //가상 노즐 생성
+            List<(Vector3 pos, Vector3 dir)> path;
+            (Nozzle fromNozzle, Nozzle toNozzle) nozzlePair = (null,null);
+            switch (mainBusPipeState)
+            {
+                case MainBusPipe.None:
+                    nozzlePair.fromNozzle = pipeline.FromNozzle;
+                    nozzlePair.toNozzle = pipeline.ToNozzle;
+                    break;
+                case MainBusPipe.From:
+                    pipeList = pipeline.FromPipeList;
+                    path = PipelineFilter.Instance.GetPipelinePath(pipeList, pipeline.FromNozzle);
+                    nozzlePair = GetCreateFromAndToNozzle(pipeline.FromNozzle, pipeline.ToNozzle, path, true);
+                    break;
+                case MainBusPipe.To:
+                    pipeList = pipeline.ToPipeList;
+                    path = PipelineFilter.Instance.GetPipelinePath(pipeList, pipeline.ToNozzle);
+                    nozzlePair = GetCreateFromAndToNozzle(pipeline.FromNozzle, pipeline.ToNozzle, path, false);
+                    break;
+            }
+           
             //From, to 색상 설정
-            await SetNozzleColor(pipeline.FromNozzle, pipeline.ToNozzle);
+            await SetNozzleColor(nozzlePair.fromNozzle, nozzlePair.toNozzle);
             // 촬영 영역 설정
-            Bounds bounds = PipePathGetBounds(pipeList, pipeline.FromNozzle, pipeline.ToNozzle);
+            Bounds bounds = PipePathGetBounds(pipeList, nozzlePair.fromNozzle, nozzlePair.toNozzle);
             Bounds clipingAreaBound = bounds;
-            //Bounds bounds = pipeline.GetPipelineBounds(pipeline.FromNozzle, pipeline.ToNozzle,pipeline.GetAllPipe());
-            Debug.Log(bounds.size.x + " " + bounds.size.y + " @@@@ " + bounds.size.z);
             
            
             //확대율 고정 여부
@@ -168,7 +217,7 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             //찍은 후 파이프 지우기
             await OffSelectPipeObject(pipeList);
             //색상 초기화
-            await InitNozzleColor(pipeline.FromNozzle, pipeline.ToNozzle);
+            await InitNozzleColor(nozzlePair.fromNozzle, nozzlePair.toNozzle);
             await UniTask.Yield();
         }
         catch (System.Exception e)
@@ -184,6 +233,18 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             ScreenshotUtility.ResetNozzleObject(materialSwapaHash);
             ScreenshotUtility.ResetFilterObjects(rendererHash);
         }
+    }
+    /// <summary>
+    /// 기능 : Unknown 오브젝트 끄기
+    /// </summary>
+    /// <returns></returns>
+    static async UniTask OffUnknown()
+    {
+        foreach(var gm in ObjectManager.Instance.RootUnknownObjectList)
+        {
+            gm.SetActive(false);
+        }
+        await UniTask.Yield();
     }
     /// <summary>
     /// 기능 : 파이프 모두 끄기
@@ -301,6 +362,18 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
         }
     }
     /// <summary>
+    /// 기능 : Unknown 오브젝트 켜기
+    /// </summary>
+    /// <returns></returns>
+    static async UniTask OnUnknown()
+    {
+        foreach (var gm in ObjectManager.Instance.RootUnknownObjectList)
+        {
+            gm.SetActive(true);
+        }
+        await UniTask.Yield();
+    }
+    /// <summary>
     /// 기능 : 대상 오브젝트 켜기
     /// </summary>
     static async UniTask OnSelectPipeObject(List<Pipe> pipeList)
@@ -380,6 +453,58 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
         }
         return renderTextures;
     }
+
+    /// <summary> 파이프라인의 끝 점에 임시 노즐 생성 후 반환 </summary>
+    static public (Nozzle fromNozzle, Nozzle toNozzle) GetCreateFromAndToNozzle(Nozzle fromNozzle, Nozzle toNozzle, List<(Vector3 pos, Vector3 dir)> pathList, bool isFromPipeline)
+    {
+        if (pathList == null)
+        {
+            Debug.LogWarning("경로 에러");
+            return (null, null);
+        }
+
+        var lastPos = pathList[^1];
+
+        Nozzle resultFromNozzle = null;
+        Nozzle resultToNozzle = null;
+
+        // 끝 점에 노즐 생성 및 From인지 To인지 여부에 따라  타입 지정
+        if (isFromPipeline)
+        {
+            resultFromNozzle = fromNozzle;
+            resultFromNozzle.ObjectType = EObjectType.FromNozzle;
+
+            resultToNozzle = CloneCreateNozzle(fromNozzle, lastPos.pos, Quaternion.LookRotation(-lastPos.dir));
+            resultToNozzle.ObjectType = EObjectType.ToNozzle;
+        }
+        else
+        {
+            resultToNozzle = toNozzle;
+            resultToNozzle.ObjectType = EObjectType.ToNozzle;
+
+            resultFromNozzle = CloneCreateNozzle(toNozzle, lastPos.pos, Quaternion.LookRotation(-lastPos.dir));
+            resultFromNozzle.ObjectType = EObjectType.FromNozzle;
+        }
+
+        return (resultFromNozzle, resultToNozzle);
+    }
+    /// <summary> 노즐을 복사하여 반환 </summary>
+    static public Nozzle CloneCreateNozzle(Nozzle nozzle, Vector3 pos, Quaternion rotation)
+    {
+        Nozzle toNozzle = Instantiate(nozzle);
+
+        if (toNozzle == null)
+        {
+            Debug.LogWarning("노즐 생성 에러");
+            return null;
+        }
+
+        toNozzle.transform.position = pos;
+        toNozzle.transform.rotation = rotation;
+
+        return toNozzle;
+    }
+
     /// <summary>
     /// 스크린샷을 찍기 위해 입력 받은 카메라의 위치를 이동한다.
     /// </summary>
@@ -437,29 +562,8 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
         cam.transform.SetPositionAndRotation(position, rotation);
         cam.orthographicSize = orthographicSize * offset;
 
-        //이게 필요한가?
-        switch (direction)
-        {
-            case EDirectionType.Top:
-                float xPos = cam.transform.position.x - (float) (cam.orthographicSize / Screen.height) * (float) Screen.width;
-                float xPosMax = cam.transform.position.x + (float) (cam.orthographicSize / Screen.height) * (float) Screen.width;
-                ObjectManager.Instance.OPointX.Add(xPos);
-                ObjectManager.Instance.OPointXMax.Add(xPosMax);
-                float zPos = cam.transform.position.z - cam.orthographicSize;
-                float zPosMax = cam.transform.position.z + cam.orthographicSize;
-                ObjectManager.Instance.OPointZ.Add(zPos);
-                ObjectManager.Instance.OPointZMax.Add(zPosMax);
-                Debug.Log(xPos + " " + xPosMax + " " + zPos + " " + zPosMax + "@4444");
-                break;
-            case EDirectionType.Right:
-                float yPos = cam.transform.position.y - cam.orthographicSize;
-                float yPosMax = cam.transform.position.y + cam.orthographicSize;
-                ObjectManager.Instance.OPointY.Add(yPos);
-                ObjectManager.Instance.OPointYMax.Add(yPosMax);
-                break;
-        }
-
         //클리핑 여부
+        //파이프 기준 클리핑은 포인트 기준 클리핑
         if (isCliping)
         {
             switch (direction)
@@ -468,27 +572,27 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
                 case EDirectionType.Top:
                 case EDirectionType.Bottom:
                     float distanceToCenter = Mathf.Abs(position.y - boundsCenter.y);
-                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.y, 0);
-                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.y;
+                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.y*0.5f,0);
+                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.y*0.5f;
                     break;
                 //x축 클리핑
                 case EDirectionType.Left:
                 case EDirectionType.Right:
                     distanceToCenter = Mathf.Abs(position.x - boundsCenter.x);
-                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.x, 0);
-                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.x;
+                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.x * 0.5f, 0);
+                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.x * 0.5f;
                     break;
                 //z축 클리핑
                 case EDirectionType.Front:
                 case EDirectionType.Back:
                     distanceToCenter = Mathf.Abs(position.z - boundsCenter.z);
-                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.z, 0);
-                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.z;
+                    cam.nearClipPlane = Mathf.Max(distanceToCenter - clipingAreaBound.size.z * 0.5f, 0);
+                    cam.farClipPlane = distanceToCenter + clipingAreaBound.size.z * 0.5f;
                     break;
                 default:
                     break;
             }
-            await ClipingObjects(targetBounds, clipingAreaBound, direction);
+            //await ClipingObjects(targetBounds, clipingAreaBound, direction);
         }
         else
         {
@@ -502,8 +606,7 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
     /// <summary>
     /// 기능 : 오브젝트 클리핑
     /// 매개변수 : 촬영 대상 영역, 촬영 방향
-    /// 1) 포인트 기준으로 클리핑
-    /// 2) 탱크도 클리핑
+    /// 1) 오브젝트 기준으로 클리핑
     /// 3) 대상 영역만 남겨두고 나머지는 모두 클리핑
     /// 4) 각 축에 대해 클리핑 대상 : 전체(박스) - 대상
     /// 5) 확대율 고정모드이므로 각 박스는 3부분으로 나뉨(양옆, 개상)
@@ -512,6 +615,7 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
     /// <returns></returns>
     static private async UniTask ClipingObjects(Bounds allBound,Bounds bound, EDirectionType direction)
     {
+        //촬영 영역 3분할
         Bounds bound1 = default;
         Bounds bound2 = default;
         switch (direction)
@@ -543,6 +647,7 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
             default:
                 break;
         }
+        // 오브젝트 단위 비활성화
         Collider[] hit1Colliders = null;
         hit1Colliders = Physics.OverlapBox(bound1.center, bound1.size);
         Collider[] hit2Colliders = null;
@@ -550,24 +655,31 @@ public class TakeEditorScreenShot2DData : MonoBehaviour
         foreach(var hit in hit1Colliders)
         {
             var hitObj = hit.GetComponent<GeometryObject>();
-            if (hitObj.GetComponent<Structure>() != null || hitObj.GetComponent<Equipment>() != null || hitObj.GetComponent<Unknown>() != null)
+            if (hitObj == null) continue;
+            
+            if (hitObj.MyObject.GetComponent<Structure>() != null)
             {
-                hit.gameObject.SetActive(false);
-                ObjectManager.Instance.clipingIObjectList.Add(hit.gameObject);
+                hitObj.MyObject.gameObject.SetActive(false);
+                ObjectManager.Instance.clipingIObjectList.Add(hitObj.MyObject.gameObject);
             }
         }
         foreach (var hit in hit2Colliders)
         {
             var hitObj = hit.GetComponent<GeometryObject>();
-            if (hitObj.GetComponent<Structure>() != null || hitObj.GetComponent<Equipment>() != null || hitObj.GetComponent<Unknown>() != null)
+            if (hitObj == null) continue;
+           
+            if (hitObj.MyObject.GetComponent<Structure>() != null)
             {
-                hit.gameObject.SetActive(false);
-                ObjectManager.Instance.clipingIObjectList.Add(hit.gameObject);
+                hitObj.MyObject.gameObject.SetActive(false);
+                ObjectManager.Instance.clipingIObjectList.Add(hitObj.MyObject.gameObject);
             }
         }
         await UniTask.Yield();
     }
-    //클리핑된 오브젝트 재활성화
+    /// <summary>
+    /// 기능 : 클리핑된 오브젝트 재활성화
+    /// </summary>
+    /// <returns></returns>
     static async UniTask ClipingObjectsInit()
     {
         foreach(var gm in ObjectManager.Instance.clipingIObjectList)
