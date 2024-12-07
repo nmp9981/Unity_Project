@@ -15,12 +15,14 @@ public class QuestionProblem : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI timeText;
 
+    InputKeyInGame inputKeyInGame;
     TextMeshProUGUI problemText;
     public float currentTime;
 
     private void Awake()
     {
         problemText = GetComponent<TextMeshProUGUI>();
+        inputKeyInGame = GameObject.Find("InputKey").GetComponent<InputKeyInGame>();
         currentTime = 0;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -84,5 +86,16 @@ public class QuestionProblem : MonoBehaviour
     {
         GameManager.Instance.CurrentSolveCount += 1;
         problemCountText.text = $"{GameManager.Instance.CurrentSolveCount} / {GameManager.Instance.TargetSolveCount}";
+    }
+    /// <summary>
+    /// 기능 : 패스
+    /// 1) 다음 문제로 넘어가기
+    /// 2) 점수 반영 X
+    /// </summary>
+    public void PassButton()
+    {
+        ShowProblemCount();
+        SetProblem();
+        inputKeyInGame.InputInit();
     }
 }
