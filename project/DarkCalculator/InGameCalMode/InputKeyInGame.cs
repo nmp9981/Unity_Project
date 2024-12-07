@@ -78,10 +78,7 @@ public class InputKeyInGame : MonoBehaviour
             questionProblem.SetProblem();
             questionProblem.ShowProblemCount();
             //초기화
-            inputAnswerField.text = string.Empty;
-            GameManager.Instance.InputAnswerString = string.Empty;
-
-            
+            InputInit();
         }
         else
         {
@@ -97,5 +94,13 @@ public class InputKeyInGame : MonoBehaviour
     {
         GameManager.Instance.RecordTime = questionProblem.currentTime;
         clearObject.SetActive(true);
+    }
+    /// <summary>
+    /// 기능 : 입력 초기화
+    /// </summary>
+    public void InputInit()
+    {
+        inputAnswerField.text = string.Empty;
+        GameManager.Instance.InputAnswerString = string.Empty;
     }
 }
