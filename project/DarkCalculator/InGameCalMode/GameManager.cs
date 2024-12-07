@@ -1,16 +1,58 @@
+using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    static GameManager _instance;
+
+    public static GameManager Instance { get { Init(); return _instance; } }
+
+    static public Dictionary<string, int> mapDictoinaty;
+    static public List<Vector3> startPosList = new List<Vector3>();
+    static void Init()
     {
-        
+        if (_instance == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm == null)
+            {
+                gm = new GameObject { name = "GameManager" };
+
+                gm.AddComponent<GameManager>();
+            }
+            DontDestroyOnLoad(gm);
+            _instance = gm.GetComponent<GameManager>();
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    void Awake()
     {
-        
+        Init();
+       
     }
+    
+    #region 데이터
+    int _inputAnswer;//입력값
+    string _inputAnswerString;//입력 문자열 값
+    int _realAnswer;//찐 정답
+
+    float _recordTime;//기록
+    int _currentSolveCount = -1;//현재 맞춘 개수
+    int _targetSolveCount;//총 맞춰야하는 개수
+
+    CalMode _calMode;//계산 모드
+
+    public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
+    public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
+    public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
+
+    public float RecordTime { get { return _recordTime; }set { _recordTime = value; } }
+    public int CurrentSolveCount { get { return _currentSolveCount; } set { _currentSolveCount = value; } }
+    public int TargetSolveCount { get { return _targetSolveCount; } set { _targetSolveCount = value; } }
+
+    public CalMode CurrentCalMode { get { return _calMode; } set { _calMode = value; } }
+    #endregion
 }
