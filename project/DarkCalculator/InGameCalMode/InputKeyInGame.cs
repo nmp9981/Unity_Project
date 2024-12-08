@@ -69,8 +69,9 @@ public class InputKeyInGame : MonoBehaviour
         //정답
         if (GameManager.Instance.InputAnswerString == GameManager.Instance.RealAnswer.ToString())
         {
+            GameManager.Instance.CurrentSolveCount += 1;//정답 개수 증가
             //모두 맞춤
-            if (GameManager.Instance.CurrentSolveCount+1 == GameManager.Instance.TargetSolveCount)
+            if (GameManager.Instance.CurrentProblemNum == GameManager.Instance.TargetSolveCount)
             {
                 AllSolveProblem();
             }
@@ -80,19 +81,15 @@ public class InputKeyInGame : MonoBehaviour
             //초기화
             InputInit();
         }
-        else
-        {
-            Debug.Log("배드");
-        }
     }
     /// <summary>
     /// 기능 : 문제를 모두 맟췃을 때 로직
     /// 1) 시간 기록
     /// 2) 클리어 UI 활성화
     /// </summary>
-    void AllSolveProblem()
+    public void AllSolveProblem()
     {
-        GameManager.Instance.RecordTime = questionProblem.currentTime;
+        GameManager.Instance.RecordTime = Mathf.Floor(questionProblem.currentTime);
         clearObject.SetActive(true);
     }
     /// <summary>
