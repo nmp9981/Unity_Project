@@ -96,8 +96,8 @@ public class QuestionProblem : MonoBehaviour
     }
     public void ShowProblemCount()
     {
-        GameManager.Instance.CurrentSolveCount += 1;
-        problemCountText.text = $"{GameManager.Instance.CurrentSolveCount} / {GameManager.Instance.TargetSolveCount}";
+        GameManager.Instance.CurrentProblemNum += 1;
+        problemCountText.text = $"{GameManager.Instance.CurrentProblemNum} / {GameManager.Instance.TargetSolveCount}";
     }
     /// <summary>
     /// 기능 : 패스
@@ -107,7 +107,7 @@ public class QuestionProblem : MonoBehaviour
     public void PassButton()
     {
         //모두 맞춤
-        if (GameManager.Instance.CurrentSolveCount == GameManager.Instance.TargetSolveCount)
+        if (GameManager.Instance.CurrentProblemNum == GameManager.Instance.TargetSolveCount)
         {
             inputKeyInGame.AllSolveProblem();
         }
