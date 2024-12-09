@@ -15,14 +15,14 @@ public class MainUI : MonoBehaviour
     //사운드 조절 값
     [SerializeField]
     private Slider bgmSlider;
-   
+
     private void Awake()
     {
         MenuButtonBinding();
     }
     private void Start()
     {
-        //SoundManger._sound.PlayBGM(0);
+        SoundManager._sound.PlayBGM(0);
     }
 
     /// <summary>
@@ -35,6 +35,7 @@ public class MainUI : MonoBehaviour
         foreach (var gm in gameObject.GetComponentsInChildren<Button>(true))
         {
             string gmName = gm.gameObject.name;
+            
             switch (gmName)
             {
                 case "Play":
@@ -70,9 +71,11 @@ public class MainUI : MonoBehaviour
         {
             case "Play":
                 SceneManager.LoadScene("InGameCalMode");
+                SoundManager._sound.StopBGM(0);
                 break;
             case "Prime":
                 SceneManager.LoadScene("InGameCalMode");
+                SoundManager._sound.StopBGM(0);
                 break;
             default:
                 break;
