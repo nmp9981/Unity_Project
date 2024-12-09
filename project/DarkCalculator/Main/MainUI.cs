@@ -2,18 +2,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Xml.Linq;
 
 public class MainUI : MonoBehaviour
 {
-    //마이룸 UI
+    //세팅 UI
     [SerializeField]
-    private GameObject myRoomUI;
-    //상점 UI
-    [SerializeField]
-    private GameObject storeUI;
-    //게임 종료 UI
-    [SerializeField]
-    private GameObject exitUIObject;
+    private GameObject settingUI;
     //사운드 조절 UI
     [SerializeField]
     private GameObject settingSoundUIIbject;
@@ -71,14 +66,27 @@ public class MainUI : MonoBehaviour
     /// </summary>
     public void GoGameStart(string mode)
     {
-        SceneManager.LoadScene("InGameCalMode");
+        switch (mode)
+        {
+            case "Play":
+                SceneManager.LoadScene("InGameCalMode");
+                break;
+            case "Prime":
+                SceneManager.LoadScene("InGameCalMode");
+                break;
+            default:
+                break;
+        }
     }
     /// <summary>
     /// 기능 : 암산 모드 세팅창 열기
     /// </summary>
     public void SettingCalMode()
     {
-        SceneManager.LoadScene("InGameCalMode");
+        if (!settingUI.activeSelf)
+        {
+            settingUI.SetActive(true);
+        }
     }
 
     /// <summary>
