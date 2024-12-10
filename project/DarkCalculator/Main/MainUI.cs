@@ -22,6 +22,8 @@ public class MainUI : MonoBehaviour
     }
     private void Start()
     {
+        //초기 사운드 값 결정
+        bgmSlider.value = GameManager.Instance.BGMVolume;
         SoundManager._sound.PlayBGM(0);
     }
 
@@ -47,10 +49,16 @@ public class MainUI : MonoBehaviour
                 case "Setting":
                     gm.onClick.AddListener(() => SettingCalMode());
                     break;
+                case "SettingOK":
+                    gm.onClick.AddListener(() => CloseSettingCalMode());
+                    break;
                 case "Exit":
                     gm.onClick.AddListener(() => ExitButton());
                     break;       
                 case "Sound":
+                    gm.onClick.AddListener(() => OepnSettingSoundWindow());
+                    break;
+                case "SoundClose":
                     gm.onClick.AddListener(() => CheckSoungSettingButton());
                     break;
                 default:
@@ -90,6 +98,21 @@ public class MainUI : MonoBehaviour
         {
             settingUI.SetActive(true);
         }
+    }
+    /// <summary>
+    /// 기능 : 암산 모드 세팅창 닫기
+    /// </summary>
+    public void CloseSettingCalMode()
+    {
+        SettingCalModeDetail();
+        settingUI.SetActive(false);
+    }
+    /// <summary>
+    /// 기능 : 계산 모드 세부 세팅
+    /// </summary>
+    public void SettingCalModeDetail()
+    {
+        
     }
 
     /// <summary>
