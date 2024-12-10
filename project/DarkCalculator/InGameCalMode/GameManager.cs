@@ -31,7 +31,15 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
-       
+    }
+    /// <summary>
+    /// 기능 : 인게임 데이터 초기화
+    /// </summary>
+    public void InitInGameData()
+    {
+        _currentProblemNum = 0;
+        _currentSolveCount = 0;
+        _score = 0;
     }
     
     #region 데이터
@@ -49,6 +57,8 @@ public class GameManager : MonoBehaviour
 
     bool _isGamePlay;//게임 진행중인가?
 
+    float _bgmValue = 0.7f;//소리 크기
+
     public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
     public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
     public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
@@ -62,5 +72,7 @@ public class GameManager : MonoBehaviour
     public CalMode CurrentCalMode { get { return _calMode; } set { _calMode = value; } }
 
     public bool IsGamePlay { get { return _isGamePlay; } set { _isGamePlay = value; } }
+
+    public float BGMVolume { get { return _bgmValue; } set { _bgmValue = value; } }
     #endregion
 }
