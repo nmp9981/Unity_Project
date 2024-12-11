@@ -10,10 +10,22 @@ public class CalSetting : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI problemCountText;
 
-    void Awake()
+    private void Awake()
+    {
+        InitShowText();
+    }
+    void OnEnable()
     {
         BindingToggle();
         BindingSlider();
+    }
+    /// <summary>
+    /// 기능 : 초기 보이는 설정값
+    /// </summary>
+    void InitShowText()
+    {
+        problemCountText.text = $"Problem Count : {GameManager.Instance.TargetSolveCount}";
+        digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
     }
     /// <summary>
     /// 기능 : 각 토글들 기능 바인딩
@@ -35,21 +47,27 @@ public class CalSetting : MonoBehaviour
             switch (gmName)
             {
                 case "Plus":
+                    gm.isOn = true;
                     gm.onValueChanged.AddListener(delegate{ SettingSymbol(gm, 0); });
                     break;
                 case "Minus":
+                    gm.isOn = false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 1); });
                     break;
                 case "Multi":
+                    gm.isOn = false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 2); });
                     break;
                 case "Div":
+                    gm.isOn = false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 3); });
                     break;
                 case "Count2":
+                    gm.isOn = true;
                     gm.onValueChanged.AddListener(delegate { SettingCalCount(gm, 0); });
                     break;
                 case "Count3":
+                    gm.isOn = false;
                     gm.onValueChanged.AddListener(delegate { SettingCalCount(gm, 1); });
                     break;
                 default:
