@@ -85,8 +85,9 @@ public class QuestionProblem : MonoBehaviour
 
         int a = (int)Random.Range(minNum, maxNum);
         int b = (int)Random.Range(minNum, maxNum);
-       
-        int calModeidx = Random.Range(0, 4);
+
+        int idx = Random.Range(0, GameManager.Instance.calSymbolJudgeList.Count);
+        int calModeidx = GameManager.Instance.calSymbolJudgeList[idx];
 
         switch (calModeidx)
         {
@@ -100,7 +101,7 @@ public class QuestionProblem : MonoBehaviour
                 break;
             case 2:
                 GameManager.Instance.RealAnswer = a * b;
-                problemText.text = a.ToString() + " * " + b.ToString();
+                problemText.text = a.ToString() + " x " + b.ToString();
                 break;
             case 3:
                 GameManager.Instance.RealAnswer = a / b;
@@ -119,7 +120,8 @@ public class QuestionProblem : MonoBehaviour
         int b = (int)Random.Range(minNum, maxNum);
         int c = (int)Random.Range(minNum, maxNum);
 
-        int calModeidx = Random.Range(0, 4);
+        int idx = Random.Range(0, GameManager.Instance.calSymbolJudgeList.Count);
+        int calModeidx = GameManager.Instance.calSymbolJudgeList[idx];
 
         switch (calModeidx)
         {
@@ -133,7 +135,7 @@ public class QuestionProblem : MonoBehaviour
                 break;
             case 2:
                 GameManager.Instance.RealAnswer = a * b * c;
-                problemText.text = a.ToString() + " * " + b.ToString() + " * " + c.ToString(); ;
+                problemText.text = a.ToString() + " x " + b.ToString() + " x " + c.ToString(); ;
                 break;
             case 3://나눗셈은 2자리만 지원
                 GameManager.Instance.RealAnswer = a / b;
