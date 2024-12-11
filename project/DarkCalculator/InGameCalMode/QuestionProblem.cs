@@ -21,6 +21,7 @@ public class QuestionProblem : MonoBehaviour
     TextMeshProUGUI problemText;
     public float currentTime;
 
+    const long maxInt = 2147483648;
     private void Awake()
     {
         problemText = GetComponent<TextMeshProUGUI>();
@@ -134,6 +135,14 @@ public class QuestionProblem : MonoBehaviour
                 problemText.text = a.ToString() + " - " + b.ToString() + " - " + c.ToString(); ;
                 break;
             case 2:
+                long tempAnswer = (long)a * b * c;
+                //int overflow 예외처리
+                if(tempAnswer >= maxInt)
+                {
+                    a /= 6;
+                    b /= 8;
+                    c /= 10;
+                }
                 GameManager.Instance.RealAnswer = a * b * c;
                 problemText.text = a.ToString() + " x " + b.ToString() + " x " + c.ToString(); ;
                 break;
