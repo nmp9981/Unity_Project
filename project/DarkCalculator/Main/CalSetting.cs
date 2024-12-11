@@ -128,10 +128,12 @@ public class CalSetting : MonoBehaviour
         if (!gm.isOn)
         {
             GameManager.Instance.calCountList[idx] = false;
+            GameManager.Instance.calSymbolJudgeList.Remove(idx);
         }
         else
         {
             GameManager.Instance.calCountList[idx] = true;
+            GameManager.Instance.calSymbolJudgeList.Add(idx);
         }
     }
     /// <summary>
