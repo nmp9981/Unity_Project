@@ -59,6 +59,10 @@ public class GameManager : MonoBehaviour
 
     float _bgmValue = 0.7f;//소리 크기
 
+    public bool[] calSymbolList = new bool[4];//기호
+    public bool[] calCountList = new bool[2];//계산할 숫자 개수
+    int _digitMinCount=2;//계산할 최소 자릿수
+    int _digitMaxCount=2;//계산할 최대 자릿수
     public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
     public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
     public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
@@ -74,5 +78,9 @@ public class GameManager : MonoBehaviour
     public bool IsGamePlay { get { return _isGamePlay; } set { _isGamePlay = value; } }
 
     public float BGMVolume { get { return _bgmValue; } set { _bgmValue = value; } }
+
+
+    public int DigitMinCount { get { return _digitMinCount; } set { _digitMinCount = value; } }
+    public int DigitMaxCount { get { return _digitMaxCount; } set { _digitMaxCount = value; } }
     #endregion
 }
