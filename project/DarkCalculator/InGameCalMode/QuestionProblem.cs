@@ -49,35 +49,99 @@ public class QuestionProblem : MonoBehaviour
     {
         passButton.onClick.AddListener(PassButton);
     }
+    
     //문제 출제
     public void SetProblem()
     {
-        int a = Random.Range(10, 100);
-        int b = Random.Range(10, 100);
-        GameManager.Instance.CurrentCalMode = CalMode.Pluse;
-
-        switch (GameManager.Instance.CurrentCalMode)
+        //3개
+        if (GameManager.Instance.calCountList[0] == false && GameManager.Instance.calCountList[1] == true)
         {
-            case CalMode.Pluse:
+            SetProblemDegree3();
+        }//2개
+        else if (GameManager.Instance.calCountList[0] == true && GameManager.Instance.calCountList[1] == false)
+        {
+            SetProblemDegree2();
+        }
+        else if (GameManager.Instance.calCountList[0] == true && GameManager.Instance.calCountList[1] == true)
+        {
+            int digitRan = Random.Range(0, 10) % 2;
+            switch (digitRan)
+            {
+                case 0: //2개
+                    SetProblemDegree2();
+                    break;
+                case 1: //3개
+                    SetProblemDegree3();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    public void SetProblemDegree2()
+    {
+        int minNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMinCount - 1);
+        int maxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMaxCount);
+
+        int a = (int)Random.Range(minNum, maxNum);
+        int b = (int)Random.Range(minNum, maxNum);
+       
+        int calModeidx = Random.Range(0, 4);
+
+        switch (calModeidx)
+        {
+            case 0:
                 GameManager.Instance.RealAnswer = a + b;
                 problemText.text = a.ToString() + " + " + b.ToString();
                 break;
-            case CalMode.Minus:
+            case 1:
                 GameManager.Instance.RealAnswer = a - b;
                 problemText.text = a.ToString() + " - " + b.ToString();
                 break;
-            case CalMode.Multi:
+            case 2:
                 GameManager.Instance.RealAnswer = a * b;
                 problemText.text = a.ToString() + " * " + b.ToString();
                 break;
-            case CalMode.Div:
+            case 3:
                 GameManager.Instance.RealAnswer = a / b;
                 problemText.text = a.ToString() + " / " + b.ToString();
                 break;
             default:
                 break;
         }
-       
+    }
+    public void SetProblemDegree3()
+    {
+        int minNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMinCount - 1);
+        int maxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMaxCount);
+
+        int a = (int)Random.Range(minNum, maxNum);
+        int b = (int)Random.Range(minNum, maxNum);
+        int c = (int)Random.Range(minNum, maxNum);
+
+        int calModeidx = Random.Range(0, 4);
+
+        switch (calModeidx)
+        {
+            case 0:
+                GameManager.Instance.RealAnswer = a + b + c;
+                problemText.text = a.ToString() + " + " + b.ToString()+ " + " + c.ToString();
+                break;
+            case 1:
+                GameManager.Instance.RealAnswer = a - b - c;
+                problemText.text = a.ToString() + " - " + b.ToString() + " - " + c.ToString(); ;
+                break;
+            case 2:
+                GameManager.Instance.RealAnswer = a * b * c;
+                problemText.text = a.ToString() + " * " + b.ToString() + " * " + c.ToString(); ;
+                break;
+            case 3://나눗셈은 2자리만 지원
+                GameManager.Instance.RealAnswer = a / b;
+                problemText.text = a.ToString() + " / " + b.ToString();
+                break;
+            default:
+                break;
+        }
     }
     /// <summary>
     /// 기능 ; 시간 흐름
