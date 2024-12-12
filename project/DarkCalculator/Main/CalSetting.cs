@@ -10,6 +10,9 @@ public class CalSetting : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI problemCountText;
 
+    [SerializeField]
+    TextMeshProUGUI errorMessageText;
+
     private void Awake()
     {
         InitShowText();
@@ -40,6 +43,7 @@ public class CalSetting : MonoBehaviour
         GameManager.Instance.calCountList[0] = true;
         GameManager.Instance.calCountList[1] = false;
 
+        GameManager.Instance.calSymbolJudgeList.Add(0);
         foreach (var gm in gameObject.GetComponentsInChildren<Toggle>(true))
         {
             string gmName = gm.gameObject.name;
@@ -103,6 +107,7 @@ public class CalSetting : MonoBehaviour
     /// <summary>
     /// 기능 :연산 기호 세팅
     /// 1) On : 해당 연산이 문제 출제가 되도록
+    /// 2) 모두 미선택일 경우 예외처리
     /// </summary>
     /// <param name="gm">토글 버튼</param>
     /// <param name="idx">연산 인덱스</param>
@@ -111,15 +116,36 @@ public class CalSetting : MonoBehaviour
         if (!gm.isOn)
         {
             GameManager.Instance.calSymbolList[idx] = false;
+            if (GameManager.Instance.calSymbolJudgeList.Count >= 1)
+            {
+                GameManager.Instance.calSymbolJudgeList.Remove(idx);
+            }
+            //모두 미선택일 경우 : 팝업창 띄우고 기본 세팅
+            if (GameManager.Instance.calSymbolJudgeList.Count == 0)
+            {
+                GameManager.Instance.IsSettingPossible = false;
+                ShowSettingErrorMessage(1);
+            }
         }
         else
         {
             GameManager.Instance.calSymbolList[idx] = true;
+            GameManager.Instance.IsSettingPossible = true;
+            //중복 방지
+            foreach (var item in GameManager.Instance.calSymbolJudgeList)
+            {
+                if (item == idx)
+                {
+                    return;
+                }
+            }
+            GameManager.Instance.calSymbolJudgeList.Add(idx);
         }
     }
     /// <summary>
     /// 기능 : 계산할 숫자 개수 설정
     /// 1) On : 체크에 따라 2항 or 3항으로 출제
+    /// 2) 모두 미선택할 경우 예외처리
     /// </summary>
     /// <param name="gm">토글 버튼</param>
     /// <param name="idx">개수 인덱스</param>
@@ -128,23 +154,18 @@ public class CalSetting : MonoBehaviour
         if (!gm.isOn)
         {
             GameManager.Instance.calCountList[idx] = false;
-            if (GameManager.Instance.calSymbolJudgeList.Count > 1)
+
+            //모두 미선택 : 팝업창 띄우고 기본 세팅
+            if (GameManager.Instance.calCountList[0]==false && GameManager.Instance.calCountList[1] == false)
             {
-                GameManager.Instance.calSymbolJudgeList.Remove(idx);
+                GameManager.Instance.IsSettingPossible = false;
+                ShowSettingErrorMessage(1);
             }
         }
         else
         {
+            GameManager.Instance.IsSettingPossible = true;
             GameManager.Instance.calCountList[idx] = true;
-            //중복 방지
-            foreach(var item in GameManager.Instance.calSymbolJudgeList)
-            {
-                if(item == idx)
-                {
-                    return;
-                }
-            }
-            GameManager.Instance.calSymbolJudgeList.Add(idx);
         }
     }
     /// <summary>
@@ -164,6 +185,17 @@ public class CalSetting : MonoBehaviour
     {
         GameManager.Instance.DigitMinCount = (int)sl.value;
         digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
+
+        // 최대 < 최소
+        if (GameManager.Instance.DigitMaxCount < GameManager.Instance.DigitMinCount)
+        {
+            GameManager.Instance.IsSettingPossible = false;
+            ShowSettingErrorMessage(0);
+        }
+        else
+        {
+            GameManager.Instance.IsSettingPossible = true;
+        }
     }
     /// <summary>
     /// 기능 : 최대 자릿수 세팅
@@ -173,5 +205,32 @@ public class CalSetting : MonoBehaviour
     {
         GameManager.Instance.DigitMaxCount = (int)sl.value;
         digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
+
+        if (GameManager.Instance.DigitMaxCount >= GameManager.Instance.DigitMinCount)
+        {
+            GameManager.Instance.IsSettingPossible = true;
+        }
+    }
+    /// <summary>
+    /// 기능 : 에러 메세지 보이기
+    /// </summary>
+    void ShowSettingErrorMessage(int idx)
+    {
+        errorMessageText.transform.parent.gameObject.SetActive(true);
+        if (idx == 0)
+        {
+            errorMessageText.text = "Not max < min";
+        }else if (idx == 1)
+        {
+            errorMessageText.text = "At least 1 selected";
+        }
+        Invoke("DeleteErrorMessage", 0.75f);
+    }
+    /// <summary>
+    /// 기능 : 에러 메세지 비활성화
+    /// </summary>
+    void DeleteErrorMessage()
+    {
+        errorMessageText.transform.parent.gameObject.SetActive(false);
     }
 }
