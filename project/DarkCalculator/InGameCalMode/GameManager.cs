@@ -50,15 +50,17 @@ public class GameManager : MonoBehaviour
     float _recordTime;//기록
     int _currentProblemNum = 0;//현재 문제 번호
     int _currentSolveCount = 0;//현재 맞춘 개수
-    int _targetSolveCount;//총 맞춰야하는 개수
+    int _targetSolveCount=5;//총 맞춰야하는 개수
     int _score;//점수
 
     CalMode _calMode;//계산 모드
 
     bool _isGamePlay;//게임 진행중인가?
+    bool _isSettingPossible = true;//세팅 가능한 값인가?
 
     float _bgmValue = 0.7f;//소리 크기
 
+    public List<int> calSymbolJudgeList = new List<int>();//사용 기호 판정 리스트
     public bool[] calSymbolList = new bool[4];//기호
     public bool[] calCountList = new bool[2];//계산할 숫자 개수
     int _digitMinCount=2;//계산할 최소 자릿수
@@ -76,6 +78,7 @@ public class GameManager : MonoBehaviour
     public CalMode CurrentCalMode { get { return _calMode; } set { _calMode = value; } }
 
     public bool IsGamePlay { get { return _isGamePlay; } set { _isGamePlay = value; } }
+    public bool IsSettingPossible { get { return _isSettingPossible; } set { _isSettingPossible = value; } }
 
     public float BGMVolume { get { return _bgmValue; } set { _bgmValue = value; } }
 
