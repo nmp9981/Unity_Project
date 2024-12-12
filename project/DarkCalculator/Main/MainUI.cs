@@ -100,19 +100,15 @@ public class MainUI : MonoBehaviour
         }
     }
     /// <summary>
-    /// 기능 : 암산 모드 세팅창 닫기
+    /// 기능 : 암산 모드 세팅창 닫기 (세팅 가능할 경우만)
     /// </summary>
     public void CloseSettingCalMode()
     {
-        SettingCalModeDetail();
-        settingUI.SetActive(false);
-    }
-    /// <summary>
-    /// 기능 : 계산 모드 세부 세팅
-    /// </summary>
-    public void SettingCalModeDetail()
-    {
-        
+        if (GameManager.Instance.IsSettingPossible)
+        {
+            SettingCalModeDetail();
+            settingUI.SetActive(false);
+        }
     }
 
     /// <summary>
