@@ -47,6 +47,10 @@ public class GameManager : MonoBehaviour
     string _inputAnswerString;//입력 문자열 값
     int _realAnswer;//찐 정답
 
+    ulong _inputPrime;//입력 정수값
+    string _inputPrimeString;//입력 소수 값
+    string _outputPrimeString;//입력 소수 값
+
     float _recordTime;//기록
     int _currentProblemNum = 0;//현재 문제 번호
     int _currentSolveCount = 0;//현재 맞춘 개수
@@ -68,6 +72,10 @@ public class GameManager : MonoBehaviour
     public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
     public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
     public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
+
+    public ulong InputPrime { get { return _inputPrime; } set { _inputPrime = value; } }
+    public string InputPrimeString { get { return _inputPrimeString; } set { _inputPrimeString = value; } }
+    public string OutputPrimeString { get { return _outputPrimeString; } set { _outputPrimeString = value; } }
 
     public float RecordTime { get { return _recordTime; }set { _recordTime = value; } }
     public int CurrentProblemNum { get { return _currentProblemNum; } set { _currentProblemNum = value; } }
