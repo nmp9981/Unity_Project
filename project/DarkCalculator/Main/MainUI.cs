@@ -82,7 +82,7 @@ public class MainUI : MonoBehaviour
                 SoundManager._sound.StopBGM(0);
                 break;
             case "Prime":
-                SceneManager.LoadScene("InGameCalMode");
+                SceneManager.LoadScene("PrimeMode");
                 SoundManager._sound.StopBGM(0);
                 break;
             default:
@@ -109,6 +109,13 @@ public class MainUI : MonoBehaviour
             SettingCalModeDetail();
             settingUI.SetActive(false);
         }
+    }
+    /// <summary>
+    /// 기능 : 계산 모드 세부 세팅
+    /// </summary>
+    public void SettingCalModeDetail()
+    {
+        
     }
 
     /// <summary>
