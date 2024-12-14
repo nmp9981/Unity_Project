@@ -1,3 +1,5 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,6 +9,9 @@ public class PrimeModeKeySetting : MonoBehaviour
 {
     [SerializeField]
     GameObject KeyButtonSet;
+
+    [SerializeField]
+    FactorizationIntoPrimes factorsPrimeClass;
 
     [SerializeField]
     Button resultButton;
@@ -20,6 +25,7 @@ public class PrimeModeKeySetting : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI outputField;
 
+    List<ulong> factorStringList = new List<ulong>();
     void Awake()
     {
         BindingKeyButton();
@@ -70,13 +76,30 @@ public class PrimeModeKeySetting : MonoBehaviour
     void ResultPrime()
     {
         GameManager.Instance.InputPrime = ulong.Parse(GameManager.Instance.InputPrimeString);
-        outputField.text = GameManager.Instance.InputPrimeString;
+        // TODO : 여기서 최종 결과를 가져온다.
+        if(GameManager.Instance.InputPrime <= 1)
+        {
+            outputField.text = "Not Prime";
+        }
+        else
+        {
+            factorStringList = factorsPrimeClass.FactorizationPrimes(GameManager.Instance.InputPrime);
+            outputField.text += factorStringList[0].ToString();
+            if(factorStringList.Count >= 2)
+            {
+                for(int idx = 1;idx < factorStringList.Count;idx++)
+                {
+                    outputField.text += $" x {factorStringList[idx].ToString()}";
+                }
+            }
+        }
     }
     /// <summary>
     /// 기능 : 입력 초기화
     /// </summary>
     public void InputInit()
     {
+        factorStringList.Clear();
         inputField.text = string.Empty;
         outputField.text = string.Empty;
         GameManager.Instance.InputPrimeString = string.Empty;
