@@ -25,6 +25,7 @@ public class PrimeModeKeySetting : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI outputField;
 
+    const int maxInputNum = 18446744;//입력 최대 숫자
     List<ulong> factorStringList = new List<ulong>();
     void Awake()
     {
@@ -69,14 +70,41 @@ public class PrimeModeKeySetting : MonoBehaviour
     void ShowInputAnswer()
     {
         inputField.text = GameManager.Instance.InputPrimeString;
+
+        if(inputField.text.Length >= 15)
+        {
+            inputField.pointSize = 70;
+        }else if(inputField.text.Length > 10)
+        {
+            inputField.pointSize = 100;
+        }
+        else
+        {
+            inputField.pointSize = 120;
+        }
+        // 10자리 이상이면 사이즈 줄이기
     }
     /// <summary>
     /// 소인수 분해 결과 보이기
     /// </summary>
     void ResultPrime()
     {
+        //범위 초과 수 예외 처리
+        if(GameManager.Instance.InputPrimeString.Length >= 21)
+        {
+            outputField.text = "Possible to 1844Kyeong";
+            return;
+        }else if(GameManager.Instance.InputPrimeString.Length == 20)
+        {
+            if (IsUpperUlong(GameManager.Instance.InputPrimeString))
+            {
+                outputField.text = "Possible to 1844Kyeong";
+                return;
+            }
+        }
+
         GameManager.Instance.InputPrime = ulong.Parse(GameManager.Instance.InputPrimeString);
-        // TODO : 여기서 최종 결과를 가져온다.
+        Debug.Log(GameManager.Instance.InputPrime+" 입력 숫자");
         if(GameManager.Instance.InputPrime <= 1)
         {
             outputField.text = "Not Prime";
@@ -93,6 +121,20 @@ public class PrimeModeKeySetting : MonoBehaviour
                 }
             }
         }
+    }
+    
+    /// <summary>
+    /// 기능 : ulong 범위 초과 여부
+    /// </summary>
+    /// <returns></returns>
+    bool IsUpperUlong(string inputString)
+    {
+        string sub = inputString.Substring(0, 8);
+        if(int.Parse(sub) >= maxInputNum)
+        {
+            return true;
+        }
+        return false;
     }
     /// <summary>
     /// 기능 : 입력 초기화
