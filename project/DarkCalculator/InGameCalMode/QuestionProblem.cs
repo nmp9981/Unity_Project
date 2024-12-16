@@ -81,11 +81,15 @@ public class QuestionProblem : MonoBehaviour
     }
     public void SetProblemDegree2()
     {
-        int minNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMinCount - 1);
-        int maxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMaxCount);
-
-        int a = (int)Random.Range(minNum, maxNum);
-        int b = (int)Random.Range(minNum, maxNum);
+        int plusMinNum = 10;
+        int plusMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitPlusMaxCount);
+        int multiMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMultiMaxCount);
+        int multiMinNum = 10;
+        
+        int a = (int)Random.Range(plusMinNum, plusMaxNum);
+        int b = (int)Random.Range(plusMinNum, plusMaxNum);
+        int c = (int)Random.Range(multiMinNum, multiMaxNum);
+        int d = (int)Random.Range(multiMinNum, multiMaxNum);
 
         int idx = Random.Range(0, GameManager.Instance.calSymbolJudgeList.Count);
         int calModeidx = GameManager.Instance.calSymbolJudgeList[idx];
@@ -101,12 +105,13 @@ public class QuestionProblem : MonoBehaviour
                 problemText.text = a.ToString() + " - " + b.ToString();
                 break;
             case 2:
-                GameManager.Instance.RealAnswer = a * b;
-                problemText.text = a.ToString() + " x " + b.ToString();
+                GameManager.Instance.RealAnswer = c * d;
+                problemText.text = c.ToString() + " x " + d.ToString();
                 break;
             case 3:
-                GameManager.Instance.RealAnswer = a / b;
-                problemText.text = a.ToString() + " / " + b.ToString();
+                d /= 10;
+                GameManager.Instance.RealAnswer = c / d;
+                problemText.text = c.ToString() + " / " + d.ToString();
                 break;
             default:
                 break;
@@ -114,12 +119,18 @@ public class QuestionProblem : MonoBehaviour
     }
     public void SetProblemDegree3()
     {
-        int minNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMinCount - 1);
-        int maxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMaxCount);
+        int plusMinNum = 10;
+        int plusMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitPlusMaxCount);
+        int multiMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMultiMaxCount);
+        int multiMinNum = 10;
 
-        int a = (int)Random.Range(minNum, maxNum);
-        int b = (int)Random.Range(minNum, maxNum);
-        int c = (int)Random.Range(minNum, maxNum);
+        int a = (int)Random.Range(plusMinNum, plusMaxNum);
+        int b = (int)Random.Range(plusMinNum, plusMaxNum);
+        int c = (int)Random.Range(plusMinNum, plusMaxNum);
+
+        int d = (int)Random.Range(multiMinNum, multiMaxNum);
+        int e = (int)Random.Range(multiMinNum, multiMaxNum);
+        int f = (int)Random.Range(multiMinNum, multiMaxNum);
 
         int idx = Random.Range(0, GameManager.Instance.calSymbolJudgeList.Count);
         int calModeidx = GameManager.Instance.calSymbolJudgeList[idx];
@@ -135,20 +146,21 @@ public class QuestionProblem : MonoBehaviour
                 problemText.text = a.ToString() + " - " + b.ToString() + " - " + c.ToString(); ;
                 break;
             case 2:
-                long tempAnswer = (long)a * b * c;
+                long tempAnswer = (long) d * e * f;
                 //int overflow 예외처리
                 if(tempAnswer >= maxInt)
                 {
-                    a /= 6;
-                    b /= 8;
-                    c /= 10;
+                    d /= 6;
+                    e /= 8;
+                    f /= 10;
                 }
-                GameManager.Instance.RealAnswer = a * b * c;
-                problemText.text = a.ToString() + " x " + b.ToString() + " x " + c.ToString(); ;
+                GameManager.Instance.RealAnswer = d * e * f;
+                problemText.text = d.ToString() + " x " + e.ToString() + " x " + f.ToString(); ;
                 break;
             case 3://나눗셈은 2자리만 지원
-                GameManager.Instance.RealAnswer = a / b;
-                problemText.text = a.ToString() + " / " + b.ToString();
+                e /= 10;
+                GameManager.Instance.RealAnswer = d / e;
+                problemText.text = d.ToString() + " / " + e.ToString();
                 break;
             default:
                 break;
