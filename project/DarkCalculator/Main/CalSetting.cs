@@ -6,7 +6,10 @@ public class CalSetting : MonoBehaviour
 {
     [SerializeField]
     TextMeshProUGUI digitText;
-    
+
+    [SerializeField]
+    TextMeshProUGUI digitMultiText;
+
     [SerializeField]
     TextMeshProUGUI problemCountText;
 
@@ -28,13 +31,9 @@ public class CalSetting : MonoBehaviour
     void InitShowText()
     {
         problemCountText.text = $"Problem Count : {GameManager.Instance.TargetSolveCount}";
-        digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
-    }
-    /// <summary>
-    /// 기능 : 각 토글들 기능 바인딩
-    /// </summary>
-    void BindingToggle()
-    {
+        digitText.text = $"Plus Max Digit {GameManager.Instance.DigitPlusMaxCount}";
+        digitMultiText.text = $"Multi/Div Max Digit {GameManager.Instance.DigitMultiMaxCount}";
+
         GameManager.Instance.calSymbolList[0] = true;
         GameManager.Instance.calSymbolList[1] = false;
         GameManager.Instance.calSymbolList[2] = false;
@@ -44,6 +43,12 @@ public class CalSetting : MonoBehaviour
         GameManager.Instance.calCountList[1] = false;
 
         GameManager.Instance.calSymbolJudgeList.Add(0);
+    }
+    /// <summary>
+    /// 기능 : 각 토글들 기능 바인딩
+    /// </summary>
+    void BindingToggle()
+    {
         foreach (var gm in gameObject.GetComponentsInChildren<Toggle>(true))
         {
             string gmName = gm.gameObject.name;
@@ -91,7 +96,7 @@ public class CalSetting : MonoBehaviour
             switch (gmName)
             {
                 case "MinSlider":
-                    gm.onValueChanged.AddListener(delegate { SettingMinDigit(gm); });
+                    gm.onValueChanged.AddListener(delegate { SettingPlusMaxDigit(gm); });
                     break;
                 case "MaxSlider":
                     gm.onValueChanged.AddListener(delegate { SettingMaxDigit(gm); });
@@ -178,38 +183,33 @@ public class CalSetting : MonoBehaviour
         problemCountText.text = $"Problem Count : {GameManager.Instance.TargetSolveCount}";
     }
     /// <summary>
-    /// 기능 : 최소 자릿수 세팅
+    /// 기능 : 덧,뺄셈 자릿수 세팅
     /// </summary>
     /// <param name="sl">슬라이더</param>
-    public void SettingMinDigit(Slider sl)
+    public void SettingPlusMaxDigit(Slider sl)
     {
-        GameManager.Instance.DigitMinCount = (int)sl.value;
-        digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
+        GameManager.Instance.DigitPlusMaxCount = (int)sl.value;
+        digitText.text = $"Plus Max Digit {GameManager.Instance.DigitPlusMaxCount}";
 
-        // 최대 < 최소
-        if (GameManager.Instance.DigitMaxCount < GameManager.Instance.DigitMinCount)
-        {
-            GameManager.Instance.IsSettingPossible = false;
-            ShowSettingErrorMessage(0);
-        }
-        else
-        {
-            GameManager.Instance.IsSettingPossible = true;
-        }
+        //// 최대 < 최소
+        //if (GameManager.Instance.DigitMaxCount < GameManager.Instance.DigitMinCount)
+        //{
+        //    GameManager.Instance.IsSettingPossible = false;
+        //    ShowSettingErrorMessage(0);
+        //}
+        //else
+        //{
+        //    GameManager.Instance.IsSettingPossible = true;
+        //}
     }
     /// <summary>
-    /// 기능 : 최대 자릿수 세팅
+    /// 기능 : 곱셈, 나눗셈 자릿수 세팅
     /// </summary>
     /// <param name="sl">슬라이더</param>
     public void SettingMaxDigit(Slider sl)
     {
-        GameManager.Instance.DigitMaxCount = (int)sl.value;
-        digitText.text = $"Digit ({GameManager.Instance.DigitMinCount}~{GameManager.Instance.DigitMaxCount})";
-
-        if (GameManager.Instance.DigitMaxCount >= GameManager.Instance.DigitMinCount)
-        {
-            GameManager.Instance.IsSettingPossible = true;
-        }
+        GameManager.Instance.DigitMultiMaxCount = (int)sl.value;
+        digitMultiText.text = $"Multi/Div Max Digit {GameManager.Instance.DigitMultiMaxCount}";
     }
     /// <summary>
     /// 기능 : 에러 메세지 보이기
