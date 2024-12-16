@@ -104,7 +104,7 @@ public class PrimeModeKeySetting : MonoBehaviour
         }
 
         GameManager.Instance.InputPrime = ulong.Parse(GameManager.Instance.InputPrimeString);
-        Debug.Log(GameManager.Instance.InputPrime+" 입력 숫자");
+
         if(GameManager.Instance.InputPrime <= 1)
         {
             outputField.text = "Not Prime";
@@ -112,14 +112,8 @@ public class PrimeModeKeySetting : MonoBehaviour
         else
         {
             factorStringList = factorsPrimeClass.FactorizationPrimes(GameManager.Instance.InputPrime);
-            outputField.text += factorStringList[0].ToString();
-            if(factorStringList.Count >= 2)
-            {
-                for(int idx = 1;idx < factorStringList.Count;idx++)
-                {
-                    outputField.text += $" x {factorStringList[idx].ToString()}";
-                }
-            }
+            ExponentialNotation(factorStringList);//지수 표기 방식으로 변환
+            ShowResultFactorPrimeText(factorStringList);//결과 표시
         }
     }
     
@@ -142,15 +136,61 @@ public class PrimeModeKeySetting : MonoBehaviour
     public void InputInit()
     {
         factorStringList.Clear();
+        GameManager.Instance.primeFactorCountDic.Clear();
         inputField.text = string.Empty;
         outputField.text = string.Empty;
         GameManager.Instance.InputPrimeString = string.Empty;
+    }
+    /// <summary>
+    /// 기능 : 지수 표기 방식으로 변환
+    /// </summary>
+    void ExponentialNotation(List<ulong> factorStringList)
+    {
+        foreach(ulong fac in factorStringList)
+        {
+            //새로운 소인수 등록
+            if (!GameManager.Instance.primeFactorCountDic.ContainsKey(fac))
+            {
+                GameManager.Instance.primeFactorCountDic.Add(fac,1);
+            }//기존 소인수
+            else
+            {
+                GameManager.Instance.primeFactorCountDic[fac] += 1;
+            }
+        }
+    }
+    /// <summary>
+    /// 시능 : 소인수 분해 결과 보이기
+    /// </summary>
+    void ShowResultFactorPrimeText(List<ulong> factorStringList)
+    {
+        if (factorStringList.Count == 1)
+        {
+            outputField.text = factorStringList[0].ToString()+" (Prime)";
+        }
+        else
+        {
+            foreach (var dic in GameManager.Instance.primeFactorCountDic)
+            {
+                if (dic.Value == 1)
+                {
+                    outputField.text += $"{dic.Key}";
+                }
+                else
+                {
+                    outputField.text += $"{dic.Key}^{dic.Value}";
+                }
+                outputField.text += $" x ";
+            }
+            outputField.text = outputField.text.Substring(0, outputField.text.Length - 3);
+        }
     }
     /// <summary>
     /// 기능 : 메인씬으로 돌아가기
     /// </summary>
     public void ReturnMain()
     {
+        InputInit();//입력 초기화
         SceneManager.LoadScene("MainCalMode", LoadSceneMode.Single);
         SoundManager._sound.PlayBGM(0);
     }
