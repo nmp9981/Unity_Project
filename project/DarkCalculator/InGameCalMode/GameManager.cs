@@ -64,11 +64,13 @@ public class GameManager : MonoBehaviour
 
     float _bgmValue = 0.7f;//소리 크기
 
+    public Dictionary<ulong, int> primeFactorCountDic = new Dictionary<ulong, int>();//각 숫자가 몇번 나왔는지
+
     public List<int> calSymbolJudgeList = new List<int>();//사용 기호 판정 리스트
     public bool[] calSymbolList = new bool[4];//기호
     public bool[] calCountList = new bool[2];//계산할 숫자 개수
-    int _digitMinCount=2;//계산할 최소 자릿수
-    int _digitMaxCount=2;//계산할 최대 자릿수
+    int _digitPlusMaxCount=2;//계산할 최소 자릿수
+    int _digitMultiMaxCount=2;//계산할 최대 자릿수
     public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
     public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
     public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
@@ -91,7 +93,7 @@ public class GameManager : MonoBehaviour
     public float BGMVolume { get { return _bgmValue; } set { _bgmValue = value; } }
 
 
-    public int DigitMinCount { get { return _digitMinCount; } set { _digitMinCount = value; } }
-    public int DigitMaxCount { get { return _digitMaxCount; } set { _digitMaxCount = value; } }
+    public int DigitPlusMaxCount { get { return _digitPlusMaxCount; } set { _digitPlusMaxCount = value; } }
+    public int DigitMultiMaxCount { get { return _digitMultiMaxCount; } set { _digitMultiMaxCount = value; } }
     #endregion
 }
