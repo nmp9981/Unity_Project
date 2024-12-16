@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class ScoreResult : MonoBehaviour
 {
@@ -31,7 +32,9 @@ public class ScoreResult : MonoBehaviour
     /// </summary>
     void MoveToMainScene()
     {
-
+        GameManager.Instance.InitInGameData();
+        SceneManager.LoadScene("MainCalMode", LoadSceneMode.Single);
+        SoundManager._sound.PlayBGM(0);
     }
     /// <summary>
     /// 기능 : 결과 기록 조회
@@ -46,10 +49,10 @@ public class ScoreResult : MonoBehaviour
     /// </summary>
     void CalScore()
     {
-        float answerCountScore = (float)(GameManager.Instance.CurrentSolveCount*40)/GameManager.Instance.TargetSolveCount;
-        float timeScore = (GameManager.Instance.RecordTime <= GameManager.Instance.TargetSolveCount) ? 60f :
-            Mathf.Max(0, 60 + GameManager.Instance.TargetSolveCount - GameManager.Instance.RecordTime);
+        float answerCountScore = (float)GameManager.Instance.CurrentSolveCount/GameManager.Instance.TargetSolveCount;
+        float finalScore = (GameManager.Instance.RecordTime <= GameManager.Instance.TargetSolveCount+1) ? 60f* answerCountScore :
+            Mathf.Max(0, 60 + GameManager.Instance.TargetSolveCount - GameManager.Instance.RecordTime)* answerCountScore;
   
-        GameManager.Instance.Score = (int) (answerCountScore+timeScore);
+        GameManager.Instance.Score = (int) finalScore;
     }
 }
