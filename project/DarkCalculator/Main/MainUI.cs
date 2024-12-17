@@ -19,7 +19,6 @@ public class MainUI : MonoBehaviour
     private void Awake()
     {
         MenuButtonBinding();
-        SettingCalInitDetail();
     }
     private void Start()
     {
@@ -110,22 +109,7 @@ public class MainUI : MonoBehaviour
             settingUI.SetActive(false);
         }
     }
-    /// <summary>
-    /// 기능 : 계산 모드 초기 세팅
-    /// </summary>
-    public void SettingCalInitDetail()
-    {
-        GameManager.Instance.calSymbolList[0] = true;
-        GameManager.Instance.calSymbolList[1] = false;
-        GameManager.Instance.calSymbolList[2] = false;
-        GameManager.Instance.calSymbolList[3] = false;
-
-        GameManager.Instance.calCountList[0] = true;
-        GameManager.Instance.calCountList[1] = false;
-
-        GameManager.Instance.calSymbolJudgeList.Add(0);
-    }
-
+    
     /// <summary>
     /// 기능 : 게임 종료
     /// </summary>
