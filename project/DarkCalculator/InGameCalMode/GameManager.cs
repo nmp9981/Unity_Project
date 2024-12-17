@@ -31,7 +31,24 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
+        SettingCalInitDetail();
     }
+    /// <summary>
+    /// 기능 : 계산 모드 초기 세팅
+    /// </summary>
+    public void SettingCalInitDetail()
+    {
+        GameManager.Instance.calSymbolList[0] = true;
+        GameManager.Instance.calSymbolList[1] = false;
+        GameManager.Instance.calSymbolList[2] = false;
+        GameManager.Instance.calSymbolList[3] = false;
+
+        GameManager.Instance.calCountList[0] = true;
+        GameManager.Instance.calCountList[1] = false;
+
+        GameManager.Instance.calSymbolJudgeList.Add(0);
+    }
+
     /// <summary>
     /// 기능 : 인게임 데이터 초기화
     /// </summary>
