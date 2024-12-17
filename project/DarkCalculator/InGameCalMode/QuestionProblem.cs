@@ -84,7 +84,7 @@ public class QuestionProblem : MonoBehaviour
         int plusMinNum = 10;
         int plusMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitPlusMaxCount);
         int multiMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMultiMaxCount);
-        int multiMinNum = 10;
+        int multiMinNum = 3;
         
         int a = (int)Random.Range(plusMinNum, plusMaxNum);
         int b = (int)Random.Range(plusMinNum, plusMaxNum);
@@ -109,7 +109,7 @@ public class QuestionProblem : MonoBehaviour
                 problemText.text = c.ToString() + " x " + d.ToString();
                 break;
             case 3:
-                d /= 10;
+                d = (d>=30)?d/10:d;
                 GameManager.Instance.RealAnswer = c / d;
                 problemText.text = c.ToString() + " / " + d.ToString();
                 break;
@@ -122,7 +122,7 @@ public class QuestionProblem : MonoBehaviour
         int plusMinNum = 10;
         int plusMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitPlusMaxCount);
         int multiMaxNum = (int)Mathf.Pow(10, GameManager.Instance.DigitMultiMaxCount);
-        int multiMinNum = 10;
+        int multiMinNum = 3;
 
         int a = (int)Random.Range(plusMinNum, plusMaxNum);
         int b = (int)Random.Range(plusMinNum, plusMaxNum);
@@ -158,7 +158,7 @@ public class QuestionProblem : MonoBehaviour
                 problemText.text = d.ToString() + " x " + e.ToString() + " x " + f.ToString(); ;
                 break;
             case 3://나눗셈은 2자리만 지원
-                e /= 10;
+                e = (e >= 30) ? e / 10 : e;
                 GameManager.Instance.RealAnswer = d / e;
                 problemText.text = d.ToString() + " / " + e.ToString();
                 break;
