@@ -30,19 +30,9 @@ public class CalSetting : MonoBehaviour
     /// </summary>
     void InitShowText()
     {
-        problemCountText.text = $"Problem Count : {GameManager.Instance.TargetSolveCount}";
-        digitText.text = $"Plus Max Digit {GameManager.Instance.DigitPlusMaxCount}";
-        digitMultiText.text = $"Multi/Div Max Digit {GameManager.Instance.DigitMultiMaxCount}";
-
-        GameManager.Instance.calSymbolList[0] = true;
-        GameManager.Instance.calSymbolList[1] = false;
-        GameManager.Instance.calSymbolList[2] = false;
-        GameManager.Instance.calSymbolList[3] = false;
-
-        GameManager.Instance.calCountList[0] = true;
-        GameManager.Instance.calCountList[1] = false;
-
-        GameManager.Instance.calSymbolJudgeList.Add(0);
+        problemCountText.text = $"문제 개수 : {GameManager.Instance.TargetSolveCount}";
+        digitText.text = $"덧, 뺄셈 최대 자리수 {GameManager.Instance.DigitPlusMaxCount}";
+        digitMultiText.text = $"곱, 나눗셈 최대 자리수 {GameManager.Instance.DigitMultiMaxCount}";
     }
     /// <summary>
     /// 기능 : 각 토글들 기능 바인딩
@@ -180,7 +170,7 @@ public class CalSetting : MonoBehaviour
     public void SettingProblemCount(Slider sl)
     {
         GameManager.Instance.TargetSolveCount = (int)sl.value;
-        problemCountText.text = $"Problem Count : {GameManager.Instance.TargetSolveCount}";
+        problemCountText.text = $"문제 개수 : {GameManager.Instance.TargetSolveCount}";
     }
     /// <summary>
     /// 기능 : 덧,뺄셈 자릿수 세팅
@@ -189,18 +179,7 @@ public class CalSetting : MonoBehaviour
     public void SettingPlusMaxDigit(Slider sl)
     {
         GameManager.Instance.DigitPlusMaxCount = (int)sl.value;
-        digitText.text = $"Plus Max Digit {GameManager.Instance.DigitPlusMaxCount}";
-
-        //// 최대 < 최소
-        //if (GameManager.Instance.DigitMaxCount < GameManager.Instance.DigitMinCount)
-        //{
-        //    GameManager.Instance.IsSettingPossible = false;
-        //    ShowSettingErrorMessage(0);
-        //}
-        //else
-        //{
-        //    GameManager.Instance.IsSettingPossible = true;
-        //}
+        digitText.text = $"덧, 뺄셈 최대 자리수 {GameManager.Instance.DigitPlusMaxCount}";
     }
     /// <summary>
     /// 기능 : 곱셈, 나눗셈 자릿수 세팅
@@ -209,7 +188,7 @@ public class CalSetting : MonoBehaviour
     public void SettingMaxDigit(Slider sl)
     {
         GameManager.Instance.DigitMultiMaxCount = (int)sl.value;
-        digitMultiText.text = $"Multi/Div Max Digit {GameManager.Instance.DigitMultiMaxCount}";
+        digitMultiText.text = $"곱, 나눗셈 최대 자리수 {GameManager.Instance.DigitMultiMaxCount}";
     }
     /// <summary>
     /// 기능 : 에러 메세지 보이기
@@ -219,10 +198,10 @@ public class CalSetting : MonoBehaviour
         errorMessageText.transform.parent.gameObject.SetActive(true);
         if (idx == 0)
         {
-            errorMessageText.text = "Not max < min";
+            errorMessageText.text = "최솟값보다 최댓값이 작을 수 없습니다.";
         }else if (idx == 1)
         {
-            errorMessageText.text = "At least 1 selected";
+            errorMessageText.text = "최소 1개는 선택해야 합니다.";
         }
         Invoke("DeleteErrorMessage", 0.75f);
     }
