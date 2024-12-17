@@ -46,27 +46,27 @@ public class CalSetting : MonoBehaviour
             switch (gmName)
             {
                 case "Plus":
-                    gm.isOn = true;
+                    gm.isOn = GameManager.Instance.calSymbolList[0] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate{ SettingSymbol(gm, 0); });
                     break;
                 case "Minus":
-                    gm.isOn = false;
+                    gm.isOn = GameManager.Instance.calSymbolList[1] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 1); });
                     break;
                 case "Multi":
-                    gm.isOn = false;
+                    gm.isOn = GameManager.Instance.calSymbolList[2] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 2); });
                     break;
                 case "Div":
-                    gm.isOn = false;
+                    gm.isOn = GameManager.Instance.calSymbolList[3] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate { SettingSymbol(gm, 3); });
                     break;
                 case "Count2":
-                    gm.isOn = true;
+                    gm.isOn = GameManager.Instance.calCountList[0] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate { SettingCalCount(gm, 0); });
                     break;
                 case "Count3":
-                    gm.isOn = false;
+                    gm.isOn = GameManager.Instance.calCountList[1] == true ? true : false;
                     gm.onValueChanged.AddListener(delegate { SettingCalCount(gm, 1); });
                     break;
                 default:
