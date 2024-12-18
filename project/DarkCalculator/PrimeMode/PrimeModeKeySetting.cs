@@ -92,13 +92,13 @@ public class PrimeModeKeySetting : MonoBehaviour
         //범위 초과 수 예외 처리
         if(GameManager.Instance.InputPrimeString.Length >= 21)
         {
-            outputField.text = "Possible to 1844Kyeong";
+            outputField.text = "1844경 초과";
             return;
         }else if(GameManager.Instance.InputPrimeString.Length == 20)
         {
             if (IsUpperUlong(GameManager.Instance.InputPrimeString))
             {
-                outputField.text = "Possible to 1844Kyeong";
+                outputField.text = "1844경 초과";
                 return;
             }
         }
@@ -107,11 +107,11 @@ public class PrimeModeKeySetting : MonoBehaviour
 
         if(GameManager.Instance.InputPrime <= 1)
         {
-            outputField.text = "Not Prime";
+            outputField.text = "소수, 합성수\n둘다 아닙니다.";
         }
         else
         {
-            factorStringList = factorsPrimeClass.FactorizationPrimes(GameManager.Instance.InputPrime);
+            factorStringList = factorsPrimeClass.FactorizationPrimes(GameManager.Instance.InputPrime);//소인수 분해 진행
             ExponentialNotation(factorStringList);//지수 표기 방식으로 변환
             ShowResultFactorPrimeText(factorStringList);//결과 표시
         }
@@ -166,7 +166,7 @@ public class PrimeModeKeySetting : MonoBehaviour
     {
         if (factorStringList.Count == 1)
         {
-            outputField.text = factorStringList[0].ToString()+" (Prime)";
+            outputField.text = factorStringList[0].ToString()+" (소수)";
         }
         else
         {
@@ -178,7 +178,8 @@ public class PrimeModeKeySetting : MonoBehaviour
                 }
                 else
                 {
-                    outputField.text += $"{dic.Key}^{dic.Value}";
+                //지수형식으로 표기
+                    outputField.text += $"{dic.Key}<cspace=-0.1em></cspace><sup><size=180>{dic.Value}</size></sup>";
                 }
                 outputField.text += $" x ";
             }
