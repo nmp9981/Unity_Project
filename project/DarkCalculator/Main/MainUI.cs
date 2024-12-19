@@ -84,6 +84,7 @@ public class MainUI : MonoBehaviour
             case "Prime":
                 SceneManager.LoadScene("PrimeMode");
                 SoundManager._sound.StopBGM(0);
+                SoundManager._sound.PlayBGM(1);
                 break;
             default:
                 break;
