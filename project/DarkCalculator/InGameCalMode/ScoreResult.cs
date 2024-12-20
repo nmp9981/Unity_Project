@@ -41,8 +41,8 @@ public class ScoreResult : MonoBehaviour
     /// </summary>
     void ShowResultRecord()
     {
-        resultText.text = $"Time\n{GameManager.Instance.RecordTime} \n\nCorrect Count\n{GameManager.Instance.CurrentSolveCount} \n\n" +
-            $"Score\n{GameManager.Instance.Score}";
+        resultText.text = $"경과 시간\n{GameManager.Instance.RecordTime} \n\n정답 개수\n{GameManager.Instance.CurrentSolveCount} \n\n" +
+            $"점수\n{GameManager.Instance.Score}";
     }
     /// <summary>
     /// 기능 :점수 계산
@@ -50,8 +50,10 @@ public class ScoreResult : MonoBehaviour
     void CalScore()
     {
         float answerCountScore = (float)GameManager.Instance.CurrentSolveCount/GameManager.Instance.TargetSolveCount;
-        float finalScore = (GameManager.Instance.RecordTime <= GameManager.Instance.TargetSolveCount+1) ? 60f* answerCountScore :
-            Mathf.Max(0, 60 + GameManager.Instance.TargetSolveCount - GameManager.Instance.RecordTime)* answerCountScore;
+        float perfectTimeLimit = (GameManager.Instance.TargetSolveCount * 5/2) + 3 + GameManager.Instance.Cal3DigitCount*3;
+
+        float finalScore = (GameManager.Instance.RecordTime <= perfectTimeLimit) ? 100f* answerCountScore :
+            Mathf.Max(0, 100 - (GameManager.Instance.RecordTime - perfectTimeLimit))* answerCountScore;
   
         GameManager.Instance.Score = (int) finalScore;
     }
