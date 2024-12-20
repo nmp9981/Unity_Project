@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
         GameManager.Instance.calCountList[1] = false;
 
         GameManager.Instance.calSymbolJudgeList.Add(0);
+        Cal3DigitCount = 0;
     }
 
     /// <summary>
@@ -73,6 +74,7 @@ public class GameManager : MonoBehaviour
     int _currentSolveCount = 0;//현재 맞춘 개수
     int _targetSolveCount=5;//총 맞춰야하는 개수
     int _score;//점수
+    int _cal3DigitCount;//계산할 자릿수가 3개인 개수
 
     CalMode _calMode;//계산 모드
 
@@ -88,6 +90,7 @@ public class GameManager : MonoBehaviour
     public bool[] calCountList = new bool[2];//계산할 숫자 개수
     int _digitPlusMaxCount=2;//계산할 최소 자릿수
     int _digitMultiMaxCount=2;//계산할 최대 자릿수
+    
     public int InputAnswer{ get { return _inputAnswer; } set { _inputAnswer = value; } }
     public string InputAnswerString { get { return _inputAnswerString; } set { _inputAnswerString = value; } }
     public int RealAnswer { get { return _realAnswer; } set { _realAnswer = value; } }
@@ -101,6 +104,7 @@ public class GameManager : MonoBehaviour
     public int CurrentSolveCount { get { return _currentSolveCount; } set { _currentSolveCount = value; } }
     public int TargetSolveCount { get { return _targetSolveCount; } set { _targetSolveCount = value; } }
     public int Score { get { return _score; } set { _score = value; } }
+    public int Cal3DigitCount { get { return _cal3DigitCount; } set { _cal3DigitCount = value; } }
 
     public CalMode CurrentCalMode { get { return _calMode; } set { _calMode = value; } }
 
