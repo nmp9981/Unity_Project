@@ -81,7 +81,7 @@ public class GameManager : MonoBehaviour
     bool _isGamePlay;//게임 진행중인가?
     bool _isSettingPossible = true;//세팅 가능한 값인가?
 
-    float _bgmValue = 0.7f;//소리 크기
+    float _bgmValue = 0.7f;//소리 크기(bgm)
 
     public Dictionary<ulong, int> primeFactorCountDic = new Dictionary<ulong, int>();//각 숫자가 몇번 나왔는지
 
