@@ -94,6 +94,9 @@ public class CastleManager : MonoBehaviour
                 case "ReturnMenu":
                     btn.onClick.AddListener(ReturnMainMenu);
                     break;
+                case "CloseUnitUpgrade":
+                    btn.onClick.AddListener(CloseUnitUpgradeButton);
+                    break;
                 default:
                     break;
             }
@@ -137,6 +140,22 @@ public class CastleManager : MonoBehaviour
         if (!upgradeUI.activeSelf)
         {
             upgradeUI.SetActive(true);
+        }
+    }
+    void CloseUnitUpgradeButton()
+    {
+        if (upgradeUI.activeSelf)
+        {
+            upgradeUI.SetActive(false);
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag.Contains("Enemy"))
+        {
+            GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
+            hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
+            hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
         }
     }
 }
