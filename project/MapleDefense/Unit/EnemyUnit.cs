@@ -2,6 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 
+//애니메이터 변수 관리용
+enum AnimatorVar
+{
+    isMoving,
+    isHit,
+    isDie,
+    isAttack
+}
+
 public class EnemyInfo
 {
     public SpriteRenderer spriteRenderer;
@@ -22,10 +31,18 @@ public class EnemyUnit : MonoBehaviour
     public int HP;
     public int Exp;
     public int Attack;
+    public int Meso;
 
     Animator anim;
 
     float moveSpeed = 2f;
+
+    private void Awake()
+    {
+        anim = gameObject.GetComponent<Animator>();
+        anim.SetBool("isDie", false);
+        anim.SetBool("isHit", false);
+    }
     private void OnEnable()
     {
         //EnemyInfo enemy = new EnemyInfo(dp,10,10,10);
@@ -43,7 +60,7 @@ public class EnemyUnit : MonoBehaviour
     void MoveEnemy()
     {
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
-        
+        anim.Play("Move");
         //비활성화
         if(transform.position.x < -15f)
         {
