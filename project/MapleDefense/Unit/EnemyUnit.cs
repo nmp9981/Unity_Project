@@ -61,8 +61,14 @@ public class EnemyUnit : MonoBehaviour
     {
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
         anim.Play("Move");
+        //공격 대상에서 벗어남
+        if (transform.position.x < -2f)
+        {
+            GameManager.Instance.ActiveUnitList.Remove(gameObject);
+        }
+
         //비활성화
-        if(transform.position.x < -15f)
+        if (transform.position.x < -15f)
         {
             gameObject.SetActive(false);
         }
