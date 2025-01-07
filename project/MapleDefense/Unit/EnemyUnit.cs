@@ -29,9 +29,9 @@ public class EnemyInfo
 public class EnemyUnit : MonoBehaviour
 {
     public int HP;
-    public int Exp;
+    public uint Exp;
     public int Attack;
-    public int Meso;
+    public ulong Meso;
 
     Animator anim;
 
@@ -79,5 +79,18 @@ public class EnemyUnit : MonoBehaviour
         {
             moveSpeed = 0;
         }
+        if (collision.tag.Contains("Bullet"))
+        {
+            HP -= collision.gameObject.GetComponent<ThrowObject>().Attack;
+            //사망처리
+            if (HP <= 0)
+            {
+                GameManager.Instance.CurrentMeso += Meso;
+                GameManager.Instance.CurrentExp += Exp;
+                GameManager.Instance.ActiveUnitList.Remove(gameObject);
+                gameObject.SetActive(false);
+            }
+        }
     }
+
 }
