@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.UI;
 
 //애니메이터 변수 관리용
 enum AnimatorVar
@@ -28,6 +29,12 @@ public class EnemyInfo
 }
 public class EnemyUnit : MonoBehaviour
 {
+    [SerializeField]
+    Image hpBarBack;
+    [SerializeField]
+    Image hpBar;
+
+    public int FullHP;
     public int HP;
     public uint Exp;
     public int Attack;
@@ -36,7 +43,7 @@ public class EnemyUnit : MonoBehaviour
     Animator anim;
 
     float moveSpeed = 2f;
-
+   
     private void Awake()
     {
         anim = gameObject.GetComponent<Animator>();
@@ -46,12 +53,13 @@ public class EnemyUnit : MonoBehaviour
     private void OnEnable()
     {
         //EnemyInfo enemy = new EnemyInfo(dp,10,10,10);
-        
-
+        HP = FullHP;
+        hpBar.fillAmount = 1f;
     }
     private void Update()
     {
         MoveEnemy();
+        HPBarMove();
     }
     /// <summary>
     /// 기능 : 적 이동
@@ -73,6 +81,14 @@ public class EnemyUnit : MonoBehaviour
             gameObject.SetActive(false);
         }
     }
+    /// <summary>
+    /// 기능 : HPBar 이동
+    /// </summary>
+    void HPBarMove()
+    {
+        hpBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 0.85f, 0));
+        hpBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 0.85f, 0));
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag.Contains("CastleEnter"))
@@ -81,7 +97,11 @@ public class EnemyUnit : MonoBehaviour
         }
         if (collision.tag.Contains("Bullet"))
         {
+            //HP감소
             HP -= collision.gameObject.GetComponent<ThrowObject>().Attack;
+            float hpRate = (float)HP / FullHP;
+            hpBar.fillAmount = hpRate;
+
             //사망처리
             if (HP <= 0)
             {
