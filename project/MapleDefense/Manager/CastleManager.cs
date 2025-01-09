@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +29,13 @@ public class CastleManager : MonoBehaviour
     {
         InitSettingCastleValue();
     }
+    private void Update()
+    {
+        ShowCastleEXP();
+        ShowCastleMeso();
+        ShowCastleStage();
+    }
+
     /// <summary>
     /// 기능 : UI 이미지 바인딩
     /// </summary>
@@ -113,7 +122,7 @@ public class CastleManager : MonoBehaviour
         stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
         mesoText.text = $"{GameManager.Instance.CurrentMeso }";
         hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
-        expRateText.text = $"Exp. {GameManager.Instance.CurrentExp} / {4000} [{0.00}%]";
+        expRateText.text = $"Exp. {GameManager.Instance.CurrentExp} / {GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage]} [{0.00}%]";
 
         hpBarImage.fillAmount = 1;
         expBarImage.fillAmount = 0;
@@ -153,9 +162,37 @@ public class CastleManager : MonoBehaviour
     {
         if (collision.tag.Contains("Enemy"))
         {
-            GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
-            hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
-            hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
+            StartCoroutine(DecreaseCastleHP(collision));
         }
+    }
+     IEnumerator DecreaseCastleHP(Collider2D collision)
+    {
+        GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
+        hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
+        hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
+
+        yield return new WaitForSeconds(1200);
+    }
+    /// <summary>
+    /// 경험치 보이기
+    /// </summary>
+    void ShowCastleEXP()
+    {
+        expRateText.text = $"EXP. {GameManager.Instance.CurrentExp} / {GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage]}";
+        expBarImage.fillAmount = (float)GameManager.Instance.CurrentExp / (float) GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage];
+    }
+    /// <summary>
+    /// 메소 보이기
+    /// </summary>
+    void ShowCastleMeso()
+    {
+        mesoText.text = $"{GameManager.Instance.CurrentMeso}";
+    }
+    /// <summary>
+    /// 스테이지 보이기
+    /// </summary>
+    void ShowCastleStage()
+    {
+        stageText.text = $"{GameManager.Instance.CurrentStage}";
     }
 }
