@@ -1,190 +1,57 @@
-using Cysharp.Threading.Tasks;
-using System.Collections;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
-public class CastleManager : MonoBehaviour
+public class CastleAttack : MonoBehaviour
 {
     [SerializeField]
-    GameObject castleUI;
-    [SerializeField]
-    GameObject upgradeUI;
+    ObjectFulling objectFulling;
 
-    TextMeshProUGUI expRateText;
-    TextMeshProUGUI hpRateText;
-    TextMeshProUGUI mesoText;
-    TextMeshProUGUI stageText;
-
-    Image expBarImage;
-    Image hpBarImage;
-    
-    void Awake()
+    public GameObject throwObjectPrefab;
+    GameObject finalTarget;
+    float maxDist = 99999999;
+    void Start()
     {
-        TextBinding();
-        ImageBinding();
-        ButtonBinding();
-    }
-    private void Start()
-    {
-        InitSettingCastleValue();
-    }
-    private void Update()
-    {
-        ShowCastleEXP();
-        ShowCastleMeso();
+        InvokeRepeating("SearchNearTarget", 0.5f, 1f);
     }
 
+    void CreateThrowObject()
+    {
+        GameObject throwObject = objectFulling.MakeObj(2); ;
+        throwObject.transform.position = this.gameObject.transform.position;
+        throwObject.GetComponent<ThrowObject>().TargetSetting(finalTarget);
+    }
     /// <summary>
-    /// 기능 : UI 이미지 바인딩
+    /// 가장 가까운 타겟 찾기
     /// </summary>
-    void ImageBinding()
+    void SearchNearTarget()
     {
-        foreach(Image img in castleUI.GetComponentsInChildren<Image>(true))
+        finalTarget = null;
+        //대상 없음
+        if (GameManager.Instance.ActiveUnitList.Count == 0)
         {
-            string imgName = img.gameObject.name;
-            switch (imgName)
+            return;
+        }
+
+        float curDist = maxDist;
+        foreach (var gm in GameManager.Instance.ActiveUnitList)
+        {
+            //게임 오브젝트 존재여부
+            if (gm == null)
             {
-                case "ExpRate":
-                    expBarImage = img;
-                    break;
-                case "HPRate":
-                    hpBarImage = img;
-                    break;
-                default:
-                    break;
+                continue;
+            }
+            float dist = (gm.gameObject.transform.position - this.gameObject.transform.position).sqrMagnitude;
+            //더 가까운 거리 (사거리 내)
+            if (dist < curDist && dist < 200)
+            {
+                curDist = dist;
+                finalTarget = gm;
             }
         }
-    }
-    /// <summary>
-    /// 기능 : 텍스트 바인딩
-    /// </summary>
-    void TextBinding()
-    {
-        foreach (TextMeshProUGUI txt in castleUI.GetComponentsInChildren<TextMeshProUGUI>(true))
+        //타겟 존재시 총알생성
+        if(finalTarget != null)
         {
-            string imgName = txt.gameObject.name;
-            switch (imgName)
-            {
-                case "StageUIText":
-                    stageText = txt;
-                    break;
-                case "MesoText":
-                    mesoText = txt;
-                    break;
-                case "HPText":
-                    hpRateText = txt;
-                    break;
-                case "ExpText":
-                    expRateText = txt;
-                    break;
-                default:
-                    break;
-            }
+            CreateThrowObject();
         }
-    }
-    /// <summary>
-    /// 기능 : UI 버튼 바인딩
-    /// </summary>
-    void ButtonBinding()
-    {
-        foreach (Button btn in castleUI.GetComponentsInChildren<Button>(true))
-        {
-            string btnName = btn.gameObject.name;
-            switch (btnName)
-            {
-                case "UnitSet":
-                    btn.onClick.AddListener(OpenUnitUpgradeButton);
-                    break;
-                case "Setting":
-                    btn.onClick.AddListener(OpenSettingButton);
-                    break;
-                case "ReturnMenu":
-                    btn.onClick.AddListener(ReturnMainMenu);
-                    break;
-                case "CloseUnitUpgrade":
-                    btn.onClick.AddListener(CloseUnitUpgradeButton);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    /// <summary>
-    /// 기능 : 초기 세팅
-    /// </summary>
-    void InitSettingCastleValue()
-    {
-        //처음엔 풀피
-        GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
-
-        stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
-        mesoText.text = $"{GameManager.Instance.CurrentMeso }";
-        hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
-        expRateText.text = $"Exp. {GameManager.Instance.CurrentExp} / {4000} [{0.00}%]";
-
-        hpBarImage.fillAmount = 1;
-        expBarImage.fillAmount = 0;
-    }
-    /// <summary>
-    /// 기능 : 메인메뉴로 돌아가기
-    /// </summary>
-    void ReturnMainMenu()
-    {
-
-    }
-    /// <summary>
-    /// 기능 : 세팅창 열기
-    /// </summary>
-    void OpenSettingButton()
-    {
-
-    }
-    /// <summary>
-    /// 기능 : 유닛 업그레이드 창 열기
-    /// </summary>
-    void OpenUnitUpgradeButton()
-    {
-        if (!upgradeUI.activeSelf)
-        {
-            upgradeUI.SetActive(true);
-        }
-    }
-    void CloseUnitUpgradeButton()
-    {
-        if (upgradeUI.activeSelf)
-        {
-            upgradeUI.SetActive(false);
-        }
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.tag.Contains("Enemy"))
-        {
-            StartCoroutine(DecreaseCastleHP(collision));
-        }
-    }
-     IEnumerator DecreaseCastleHP(Collider2D collision)
-    {
-        GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
-        hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
-        hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
-
-        yield return new WaitForSeconds(1200);
-    }
-    /// <summary>
-    /// 경험치 보이기
-    /// </summary>
-    void ShowCastleEXP()
-    {
-        expRateText.text = $"EXP. {GameManager.Instance.CurrentExp} / 4000";
-        expBarImage.fillAmount = (float)GameManager.Instance.CurrentExp / 4000f;
-    }
-    /// <summary>
-    /// 메소 보이기
-    /// </summary>
-    void ShowCastleMeso()
-    {
-        mesoText.text = $"{GameManager.Instance.CurrentMeso}";
     }
 }
