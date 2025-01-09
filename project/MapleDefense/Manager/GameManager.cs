@@ -32,6 +32,31 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Init();
+        SettingRequireEXP();
+    }
+    /// <summary>
+    /// 요구 경험치 세팅
+    /// </summary>
+    void SettingRequireEXP()
+    {
+        RequireStageUPExp[0] = 0;
+
+        for(uint i = 1; i < 6; i++)
+        {
+            RequireStageUPExp[i] = i * i * 10;
+        }
+    }
+
+    /// <summary>
+    /// 레벨업
+    /// </summary>
+    public void CastleLevelUP()
+    {
+        if(CurrentExp >= RequireStageUPExp[CurrentStage])
+        {
+            CurrentExp -= RequireStageUPExp[CurrentStage];
+            CurrentStage += 1;
+        }
     }
     #region 데이터
     int _currentStage = 1;//현재 스테이지
@@ -40,12 +65,16 @@ public class GameManager : MonoBehaviour
     int _currentCastleHP = 900;//현재 성의 체력
     int _fullCastleHP = 900;//성의 최대 HP
 
-    public uint[] RequireStageUPExp = new uint[10];//스테이지 업을 위한 누적 경험치
+    int _spawnTime = 1500;//스폰 시간
+    public uint[] RequireStageUPExp = new uint[6];//스테이지 업을 위한 누적 경험치
+
+    public List<GameObject> ActiveUnitList = new List<GameObject>();//필드에 활성화된 유닛
 
     public int CurrentStage { get { return _currentStage; } set { _currentStage = value; } }
     public uint CurrentExp { get { return _currentExp; } set { _currentExp = value; } }
     public ulong CurrentMeso { get { return _currentMeso; } set { _currentMeso = value; } }
     public int CurrentCastleHP { get { return _currentCastleHP; } set { _currentCastleHP = value; } }
     public int FullCastleHP { get { return _fullCastleHP; } set { _fullCastleHP = value; } }
+    public int SpawnTime { get { return _spawnTime; } set { _spawnTime = value; } }
     #endregion 데이터
 }
