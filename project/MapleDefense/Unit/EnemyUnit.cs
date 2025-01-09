@@ -70,7 +70,7 @@ public class EnemyUnit : MonoBehaviour
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
         anim.Play("Move");
         //공격 대상에서 벗어남
-        if (transform.position.x < -2f)
+        if (transform.position.x < -5f)
         {
             GameManager.Instance.ActiveUnitList.Remove(gameObject);
         }
@@ -86,8 +86,8 @@ public class EnemyUnit : MonoBehaviour
     /// </summary>
     void HPBarMove()
     {
-        hpBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 0.85f, 0));
-        hpBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 0.85f, 0));
+        hpBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1, 0));
+        hpBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1, 0));
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -107,6 +107,7 @@ public class EnemyUnit : MonoBehaviour
             {
                 GameManager.Instance.CurrentMeso += Meso;
                 GameManager.Instance.CurrentExp += Exp;
+                GameManager.Instance.CastleLevelUP();
                 GameManager.Instance.ActiveUnitList.Remove(gameObject);
                 gameObject.SetActive(false);
             }
