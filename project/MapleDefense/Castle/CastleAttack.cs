@@ -11,14 +11,19 @@ public class CastleAttack : MonoBehaviour
     float maxDist = 99999999;
     void Start()
     {
-        InvokeRepeating("SearchNearTarget", 0.5f, 1f);
+        InvokeRepeating("SearchNearTarget", 0.5f, 0.5f);
     }
-
+    /// <summary>
+    /// 기능 : 타겟 향해 총알 발사
+    /// 무기도 타겟을 향하게
+    /// </summary>
     void CreateThrowObject()
     {
-        GameObject throwObject = objectFulling.MakeObj(2); ;
+        GameObject throwObject = objectFulling.MakeObj(2);
         throwObject.transform.position = this.gameObject.transform.position;
         throwObject.GetComponent<ThrowObject>().TargetSetting(finalTarget);
+        //무기도 타겟을 향하게
+        gameObject.transform.LookAt(finalTarget.transform.position);
     }
     /// <summary>
     /// 가장 가까운 타겟 찾기
