@@ -35,10 +35,11 @@ public class EnemyUnit : MonoBehaviour
     Image hpBar;
 
     public int FullHP;
-    public int HP;
+    int HP;
     public uint Exp;
     public int Attack;
     public ulong Meso;
+    public bool IsAttack;//마공 여부
 
     Animator anim;
 
@@ -60,6 +61,7 @@ public class EnemyUnit : MonoBehaviour
     {
         MoveEnemy();
         HPBarMove();
+        AttackEnemy();
     }
     /// <summary>
     /// 기능 : 적 이동
@@ -89,6 +91,29 @@ public class EnemyUnit : MonoBehaviour
         hpBarBack.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1, 0));
         hpBar.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position + new Vector3(0, 1, 0));
     }
+    /// <summary>
+    /// 기능 : 적 공격
+    /// </summary>
+    void AttackEnemy()
+    {
+        //마공안하는 몹
+        if (!IsAttack)
+        {
+            return;
+        }
+        // TODO : 마공 로직 추가, 마공은 몸박의 1.5배
+    }
+    /// <summary>
+    /// 기능 : 몬스터 사망 처리
+    /// </summary>
+    void DieMonster()
+    {
+        GameManager.Instance.CurrentMeso += Meso;
+        GameManager.Instance.CurrentExp += Exp;
+        GameManager.Instance.CastleLevelUP();
+        GameManager.Instance.ActiveUnitList.Remove(gameObject);
+        gameObject.SetActive(false);
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag.Contains("CastleEnter"))
@@ -105,11 +130,7 @@ public class EnemyUnit : MonoBehaviour
             //사망처리
             if (HP <= 0)
             {
-                GameManager.Instance.CurrentMeso += Meso;
-                GameManager.Instance.CurrentExp += Exp;
-                GameManager.Instance.CastleLevelUP();
-                GameManager.Instance.ActiveUnitList.Remove(gameObject);
-                gameObject.SetActive(false);
+                DieMonster();
             }
         }
     }
