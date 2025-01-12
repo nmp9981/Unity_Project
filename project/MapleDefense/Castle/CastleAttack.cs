@@ -6,11 +6,17 @@ public class CastleAttack : MonoBehaviour
     [SerializeField]
     ObjectFulling objectFulling;
 
+    [SerializeField]
+    float rangeDist;//사거리
+    [SerializeField]
+    float attackBetween;//공격 간격
+
     public GameObject throwObjectPrefab;
     GameObject finalTarget;
     float maxDist = 99999999;
     void Start()
     {
+        //3번째 인자가 공격 속도
         InvokeRepeating("SearchNearTarget", 0.5f, 0.5f);
     }
     /// <summary>
@@ -47,7 +53,7 @@ public class CastleAttack : MonoBehaviour
             }
             float dist = (gm.gameObject.transform.position - this.gameObject.transform.position).sqrMagnitude;
             //더 가까운 거리 (사거리 내)
-            if (dist < curDist && dist < 200)
+            if (dist < curDist && dist < rangeDist)
             {
                 curDist = dist;
                 finalTarget = gm;
