@@ -7,6 +7,9 @@ public class ThrowObject : MonoBehaviour
     public float speed;
     public GameObject target;
 
+    //어느 무기에서 발사했는가?
+    public CastleAttack fromWeapon;
+
     Vector3 dir;
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -30,5 +33,6 @@ public class ThrowObject : MonoBehaviour
         gameObject.transform.eulerAngles = new Vector3(gameObject.transform.rotation.x,0,
          gameObject.transform.rotation.z);
         dir = (target.transform.position - gameObject.transform.position).normalized;
+
     }
 }
