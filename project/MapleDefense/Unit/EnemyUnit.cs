@@ -123,7 +123,9 @@ public class EnemyUnit : MonoBehaviour
         if (collision.tag.Contains("Bullet"))
         {
             //HP감소
-            HP -= collision.gameObject.GetComponent<ThrowObject>().Attack;
+            ThrowObject throwObj = collision.gameObject.GetComponent<ThrowObject>();
+            int hitDamage = throwObj.Attack + throwObj.fromWeapon.weaponAttack;//무기+총알
+            HP -= hitDamage;
             float hpRate = (float)HP / FullHP;
             hpBar.fillAmount = hpRate;
 
