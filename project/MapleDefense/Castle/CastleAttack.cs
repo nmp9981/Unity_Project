@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
@@ -11,13 +12,15 @@ public class CastleAttack : MonoBehaviour
     [SerializeField]
     float attackBetween;//공격 간격
 
+    public int weaponAttack;//무기 공격력
+
     public GameObject throwObjectPrefab;
     GameObject finalTarget;
     float maxDist = 99999999;
     void Start()
     {
         //3번째 인자가 공격 속도
-        InvokeRepeating("SearchNearTarget", 0.5f, 0.5f);
+        InvokeRepeating("SearchNearTarget", 0.5f, attackBetween);
     }
     /// <summary>
     /// 기능 : 타겟 향해 총알 발사
@@ -28,6 +31,8 @@ public class CastleAttack : MonoBehaviour
         GameObject throwObject = objectFulling.MakeObj(2);
         throwObject.transform.position = this.gameObject.transform.position;
         throwObject.GetComponent<ThrowObject>().TargetSetting(finalTarget);
+        //어느 무기에서 발사했는가?
+        throwObject.GetComponent<ThrowObject>().fromWeapon = this;
         //무기도 타겟을 향하게
         gameObject.transform.LookAt(finalTarget.transform.position);
     }
