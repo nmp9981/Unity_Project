@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using System.Collections;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,8 @@ public class CastleManager : MonoBehaviour
     GameObject castleUI;
     [SerializeField]
     GameObject upgradeUI;
+    [SerializeField]
+    GameObject monsterEntranceObj;
 
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
@@ -143,18 +146,35 @@ public class CastleManager : MonoBehaviour
     }
     /// <summary>
     /// 기능 : 유닛 업그레이드 창 열기
+    /// 일시 정지 
     /// </summary>
     void OpenUnitUpgradeButton()
     {
         if (!upgradeUI.activeSelf)
         {
+            foreach(Transform building in this.gameObject.GetComponentInChildren<Transform>())
+            {
+                building.gameObject.SetActive(false);
+            }
+            monsterEntranceObj.SetActive(false);
             upgradeUI.SetActive(true);
+            Time.timeScale = 0;
         }
     }
+    /// <summary>
+    /// 기능 : 유닛 업그레이드 창 닫기
+    /// 일시 정지 해제
+    /// </summary>
     void CloseUnitUpgradeButton()
     {
         if (upgradeUI.activeSelf)
         {
+            Time.timeScale = 1;
+            foreach (Transform building in this.gameObject.GetComponentInChildren<Transform>())
+            {
+                building.gameObject.SetActive(true);
+            }
+            monsterEntranceObj.SetActive(true);
             upgradeUI.SetActive(false);
         }
     }
@@ -168,8 +188,7 @@ public class CastleManager : MonoBehaviour
      IEnumerator DecreaseCastleHP(Collider2D collision)
     {
         GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
-        hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
-        hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
+        ShowCastleHP();
 
         yield return new WaitForSeconds(1200);
     }
@@ -180,6 +199,14 @@ public class CastleManager : MonoBehaviour
     {
         expRateText.text = $"EXP. {GameManager.Instance.CurrentExp} / {GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage]}";
         expBarImage.fillAmount = (float)GameManager.Instance.CurrentExp / (float) GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage];
+    }
+    /// <summary>
+    /// HP 보이기
+    /// </summary>
+    public void ShowCastleHP()
+    {
+        hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
+        hpBarImage.fillAmount = (float)GameManager.Instance.CurrentCastleHP / (float)GameManager.Instance.FullCastleHP;
     }
     /// <summary>
     /// 메소 보이기
@@ -193,6 +220,6 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     void ShowCastleStage()
     {
-        stageText.text = $"{GameManager.Instance.CurrentStage}";
+        stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
     }
 }
