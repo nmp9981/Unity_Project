@@ -9,6 +9,9 @@ public class BuyItemAndSkill : MonoBehaviour
     [SerializeField]
     GameObject castleObj;
 
+    [SerializeField]
+    TextMeshProUGUI weaponBuyCommentText;
+
     Image curWeaponImage;
     uint curWeaponPrice;
     int curWeaponAttack;
@@ -58,27 +61,61 @@ public class BuyItemAndSkill : MonoBehaviour
         curWeaponImage = weaponImage;
         curWeaponPrice = weaponPrice;
         curWeaponAttack = weaponAttack;
+
+        //버튼 클릭 창 열림 및 초기화
         buyWeaponPopUP.SetActive(true);
+        weaponBuyCommentText.text = string.Empty;
     }
     /// <summary>
     /// 구매 확정
     /// 매개변수 : 설치 위치
     /// </summary>
-    void OkWeaponButton(int num)
+    public void OkWeaponButton(int num)
     {
-        //최대 터렛수 검사
+        Debug.Log(curWeaponPrice + " " + curWeaponAttack);
+        //현재 터렛수 검사
+        if(num+1 > GameManager.Instance.MaxTurretCount)
+        {
+            weaponBuyCommentText.text = "터렛 자리 없음";
+            return;
+        }
+        //선택한 터렛 번호
+        GameManager.Instance.CurrentTurretIndex = num;
 
         //해당층에 이미 구매했는지도 검사
 
-        //구매 및 설치 완료
-        //castleAttack의 정보 바꿈
-        GameManager.Instance.CurrentMeso -= curWeaponPrice;
+        //구매 가능 여부 검사
+        if (GameManager.Instance.CurrentMeso < curWeaponPrice)
+        {
+            weaponBuyCommentText.text = "잔액 부족";
+            return;
+        }
+    }
+
+    /// <summary>
+    /// 구매 확정
+    /// castleAttack의 정보 바꿈
+    /// </summary>
+    public void OKWeaponButton()
+    {
+        if (GameManager.Instance.CurrentMeso>= curWeaponPrice)
+        {
+            GameManager.Instance.CurrentMeso -= curWeaponPrice;
+
+            //Turret 정보 변경
+            CastleAttack changeTurret = GameManager.Instance.CurrentTurretList[GameManager.Instance.CurrentTurretIndex];
+            changeTurret.weaponAttack = curWeaponAttack;
+            changeTurret.gameObject.GetComponent<SpriteRenderer>().sprite = curWeaponImage.sprite;
+        }
+        
+
         buyWeaponPopUP.SetActive(false);
     }
+
     /// <summary>
     /// 구매 취소
     /// </summary>
-    void CancleWeaponButton()
+    public void CancleWeaponButton()
     {
         buyWeaponPopUP.SetActive(false);
     }
