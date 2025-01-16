@@ -30,17 +30,13 @@ public class EnemySpawn : MonoBehaviour
             await UniTask.Delay(GameManager.Instance.SpawnTime);
         }
     }
+    /// <summary>
+    /// 기능 : 소환할 적 번호
+    /// </summary>
+    /// <returns></returns>
     int SetSpawnEnemy()
     {
-        int mobNum = 0;
-        if (GameManager.Instance.CurrentStage <= 1)
-        {
-            mobNum = Random.Range(0, 2);
-        }
-        else
-        {
-            mobNum = Random.Range(3, 5);
-        }
+        int mobNum = Random.Range(GameManager.Instance.CurrentStage, GameManager.Instance.CurrentStage + 2);
         return mobNum;
     }
 }
