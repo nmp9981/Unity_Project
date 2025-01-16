@@ -7,14 +7,22 @@ public class BuyItemAndSkill : MonoBehaviour
     [SerializeField]
     GameObject buyWeaponPopUP;
     [SerializeField]
+    GameObject buyThrowPopUP;
+    [SerializeField]
     GameObject castleObj;
 
     [SerializeField]
     TextMeshProUGUI weaponBuyCommentText;
+    [SerializeField]
+    TextMeshProUGUI throwBuyCommentText;
 
     Image curWeaponImage;
     uint curWeaponPrice;
     int curWeaponAttack;
+
+    uint curThrowPrice;
+    int curbuyThrowIndex;
+    int curThrowAttack;
 
     void Awake()
     {
@@ -46,9 +54,19 @@ public class BuyItemAndSkill : MonoBehaviour
                     int weaponAttack = int.Parse(weaponAttackText.Substring(6));
                     btn.onClick.AddListener(()=>ClickWeaponButton(weaponImage,weaponPrice,weaponAttack));
                 }
+                else if (btnName.Contains("Throw") && btnName != "Throw")
+                {
+                    uint weaponPrice = uint.Parse(btn.gameObject.transform.parent.GetChild(3).GetComponent<TextMeshProUGUI>().text);
+                    string weaponAttackText = btn.gameObject.transform.parent.GetChild(5).GetComponent<TextMeshProUGUI>().text;
+                    int weaponAttack = int.Parse(weaponAttackText.Substring(6));
+                    string throwIndexText = btn.gameObject.transform.parent.GetChild(6).GetComponent<TextMeshProUGUI>().text;
+                    int throwIndex = int.Parse(throwIndexText);
+                    btn.onClick.AddListener(() => ClickThrowButton(weaponPrice, throwIndex));
+                }
             }
         }
     }
+    #region 무기 구매
     /// <summary>
     /// 기능 : 무기 구매 버튼 클릭
     /// </summary>
@@ -107,8 +125,6 @@ public class BuyItemAndSkill : MonoBehaviour
             changeTurret.weaponAttack = curWeaponAttack;
             changeTurret.gameObject.GetComponent<SpriteRenderer>().sprite = curWeaponImage.sprite;
         }
-        
-
         buyWeaponPopUP.SetActive(false);
     }
 
@@ -119,4 +135,53 @@ public class BuyItemAndSkill : MonoBehaviour
     {
         buyWeaponPopUP.SetActive(false);
     }
+    #endregion
+
+    #region 투사체 구매
+    /// <summary>
+    /// 기능 : 무기 구매 버튼 클릭
+    /// </summary>
+    /// <param name="weaponImage"></param>
+    /// <param name="weaponPrice"></param>
+    /// <param name="weaponAttack"></param>
+    void ClickThrowButton(uint weaponPrice, int throwIndex)
+    {
+        curThrowPrice = weaponPrice;
+        curbuyThrowIndex = throwIndex;
+
+        //버튼 클릭 창 열림 및 초기화
+        buyThrowPopUP.SetActive(true);
+        throwBuyCommentText.text = string.Empty;
+    }
+    
+    /// <summary>
+    /// 구매 확정
+    /// castleAttack의 정보 바꿈
+    /// </summary>
+    public void OKThrowButton()
+    {
+        //TODO : 구매 여부 검사
+
+        if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+        {
+            GameManager.Instance.CurrentMeso -= curThrowPrice;
+
+            //투사체 변경
+            GameManager.Instance.CurrentThrowIndex = curbuyThrowIndex;
+            buyThrowPopUP.SetActive(false);
+        }
+        else
+        {
+            throwBuyCommentText.text = "잔액 부족";
+        }
+    }
+
+    /// <summary>
+    /// 구매 취소
+    /// </summary>
+    public void CancleThrowButton()
+    {
+        buyThrowPopUP.SetActive(false);
+    }
+    #endregion
 }
