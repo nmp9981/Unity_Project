@@ -13,11 +13,14 @@ public class CastleManager : MonoBehaviour
     GameObject upgradeUI;
     [SerializeField]
     GameObject monsterEntranceObj;
+    [SerializeField]
+    GameObject gameOverUI;
 
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
     TextMeshProUGUI mesoText;
     TextMeshProUGUI stageText;
+    TextMeshProUGUI gameOverStageText;
 
     Image expBarImage;
     Image hpBarImage;
@@ -37,6 +40,7 @@ public class CastleManager : MonoBehaviour
         ShowCastleEXP();
         ShowCastleMeso();
         ShowCastleStage();
+        CastleDestroy();
     }
 
     /// <summary>
@@ -82,6 +86,9 @@ public class CastleManager : MonoBehaviour
                 case "ExpText":
                     expRateText = txt;
                     break;
+                case "GameOverTxt":
+                    gameOverStageText = txt;
+                    break;
                 default:
                     break;
             }
@@ -108,6 +115,9 @@ public class CastleManager : MonoBehaviour
                     break;
                 case "CloseUnitUpgrade":
                     btn.onClick.AddListener(CloseUnitUpgradeButton);
+                    break;
+                case "CloseGameOverUI":
+                    btn.onClick.AddListener(CloseGameOverUI);
                     break;
                 default:
                     break;
@@ -158,7 +168,7 @@ public class CastleManager : MonoBehaviour
             }
             monsterEntranceObj.SetActive(false);
             upgradeUI.SetActive(true);
-            Time.timeScale = 0;
+            
         }
     }
     /// <summary>
@@ -169,7 +179,6 @@ public class CastleManager : MonoBehaviour
     {
         if (upgradeUI.activeSelf)
         {
-            Time.timeScale = 1;
             foreach (Transform building in this.gameObject.GetComponentInChildren<Transform>())
             {
                 building.gameObject.SetActive(true);
@@ -221,5 +230,24 @@ public class CastleManager : MonoBehaviour
     void ShowCastleStage()
     {
         stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
+    }
+
+    /// <summary>
+    /// 기능 : 사망 판정
+    /// </summary>
+    void CastleDestroy()
+    {
+        if(GameManager.Instance.CurrentCastleHP <= 0)
+        {
+            //사망 처리
+            GameManager.Instance.IsDie = true;
+            gameOverUI.gameObject.SetActive(true);
+            //기록 처리
+            gameOverStageText.text = $"스테이지 : {GameManager.Instance.CurrentStage}";
+        }
+    }
+    public void CloseGameOverUI()
+    {
+        gameOverUI.gameObject.SetActive(false);
     }
 }
