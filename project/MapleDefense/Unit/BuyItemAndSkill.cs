@@ -24,6 +24,8 @@ public class BuyItemAndSkill : MonoBehaviour
     int curbuyThrowIndex;
     int curThrowAttack;
 
+    const int maxPageNum = 4;
+
     void Awake()
     {
         UpgradeButtonBinding();
@@ -38,10 +40,16 @@ public class BuyItemAndSkill : MonoBehaviour
             //페이지 이동
             if(btn.gameObject.name== "MoveLeft")
             {
+                GameObject pageObj = btn.gameObject.transform.parent.GetChild(3).gameObject;
+                string pageCategoty = btn.gameObject.transform.parent.gameObject.name;
+                btn.onClick.AddListener(() => MoveLeftPage(pageObj, pageCategoty));
 
-            }else if(btn.gameObject.name == "MoveRight")
+            }
+            else if(btn.gameObject.name == "MoveRight")
             {
-
+                GameObject pageObj = btn.gameObject.transform.parent.GetChild(3).gameObject;
+                string pageCategoty = btn.gameObject.transform.parent.gameObject.name;
+                btn.onClick.AddListener(() => MoveRightPage(pageObj, pageCategoty));
             }
             else//나머지
             {
@@ -57,8 +65,8 @@ public class BuyItemAndSkill : MonoBehaviour
                 else if (btnName.Contains("Throw") && btnName != "Throw")
                 {
                     uint weaponPrice = uint.Parse(btn.gameObject.transform.parent.GetChild(3).GetComponent<TextMeshProUGUI>().text);
-                    string weaponAttackText = btn.gameObject.transform.parent.GetChild(5).GetComponent<TextMeshProUGUI>().text;
-                    int weaponAttack = int.Parse(weaponAttackText.Substring(6));
+                    //string weaponAttackText = btn.gameObject.transform.parent.GetChild(5).GetComponent<TextMeshProUGUI>().text;
+                    //int weaponAttack = int.Parse(weaponAttackText.Substring(6));
                     string throwIndexText = btn.gameObject.transform.parent.GetChild(6).GetComponent<TextMeshProUGUI>().text;
                     int throwIndex = int.Parse(throwIndexText);
                     btn.onClick.AddListener(() => ClickThrowButton(weaponPrice, throwIndex));
@@ -66,6 +74,96 @@ public class BuyItemAndSkill : MonoBehaviour
             }
         }
     }
+    /// <summary>
+    /// 페이지 왼쪽 이동
+    /// </summary>
+    public void MoveLeftPage(GameObject pageObj, string pageCategoty)
+    {
+        switch (pageCategoty)
+        {
+            case "Weapon":
+                if(GameManager.Instance.CurrentWeaponPageNum >= 1)
+                {
+                    GameManager.Instance.CurrentWeaponPageNum -= 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentWeaponPageNum + 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentWeaponPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Throw":
+                if (GameManager.Instance.CurrentThrowPageNum >= 1)
+                {
+                    GameManager.Instance.CurrentThrowPageNum -= 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentThrowPageNum + 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentThrowPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Supporter":
+                if (GameManager.Instance.CurrentSupportPageNum >= 1)
+                {
+                    GameManager.Instance.CurrentSupportPageNum -= 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum + 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Skill":
+                if (GameManager.Instance.CurrentSkillPageNum >= 1)
+                {
+                    GameManager.Instance.CurrentSkillPageNum -= 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum + 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum).gameObject.SetActive(true);
+                }
+                break;
+            default:
+                break;
+        }
+       
+    }
+
+    /// <summary>
+    /// 페이지 오른쪽 이동
+    /// </summary>
+    public void MoveRightPage(GameObject pageObj, string pageCategoty)
+    {
+        switch (pageCategoty)
+        {
+            case "Weapon":
+                if (GameManager.Instance.CurrentWeaponPageNum < maxPageNum-1)
+                {
+                    GameManager.Instance.CurrentWeaponPageNum += 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentWeaponPageNum - 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentWeaponPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Throw":
+                if (GameManager.Instance.CurrentThrowPageNum < maxPageNum - 1)
+                {
+                    GameManager.Instance.CurrentThrowPageNum += 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentThrowPageNum - 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentThrowPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Supporter":
+                if (GameManager.Instance.CurrentSupportPageNum < maxPageNum - 1)
+                {
+                    GameManager.Instance.CurrentSupportPageNum += 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum - 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum).gameObject.SetActive(true);
+                }
+                break;
+            case "Skill":
+                if (GameManager.Instance.CurrentSkillPageNum < maxPageNum - 1)
+                {
+                    GameManager.Instance.CurrentSkillPageNum += 1;
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum - 1).gameObject.SetActive(false);
+                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum).gameObject.SetActive(true);
+                }
+                break;
+            default:
+                break;
+        }
+        
+    }
+
     #region 무기 구매
     /// <summary>
     /// 기능 : 무기 구매 버튼 클릭
