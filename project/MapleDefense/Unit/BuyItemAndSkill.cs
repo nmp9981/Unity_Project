@@ -9,12 +9,18 @@ public class BuyItemAndSkill : MonoBehaviour
     [SerializeField]
     GameObject buyThrowPopUP;
     [SerializeField]
+    GameObject buySkillUPPopUP;
+    [SerializeField]
     GameObject castleObj;
 
     [SerializeField]
     TextMeshProUGUI weaponBuyCommentText;
     [SerializeField]
     TextMeshProUGUI throwBuyCommentText;
+    [SerializeField]
+    TextMeshProUGUI skillUPBuyCommentText;
+    [SerializeField]
+    TextMeshProUGUI skillUPCommentText;
 
     Image curWeaponImage;
     uint curWeaponPrice;
@@ -35,7 +41,7 @@ public class BuyItemAndSkill : MonoBehaviour
     /// </summary>
     void UpgradeButtonBinding()
     {
-        foreach(Button btn in gameObject.GetComponentsInChildren<Button>())
+        foreach(Button btn in gameObject.GetComponentsInChildren<Button>(true))
         {
             //페이지 이동
             if(btn.gameObject.name== "MoveLeft")
@@ -65,11 +71,13 @@ public class BuyItemAndSkill : MonoBehaviour
                 else if (btnName.Contains("Throw") && btnName != "Throw")
                 {
                     uint weaponPrice = uint.Parse(btn.gameObject.transform.parent.GetChild(3).GetComponent<TextMeshProUGUI>().text);
-                    //string weaponAttackText = btn.gameObject.transform.parent.GetChild(5).GetComponent<TextMeshProUGUI>().text;
-                    //int weaponAttack = int.Parse(weaponAttackText.Substring(6));
                     string throwIndexText = btn.gameObject.transform.parent.GetChild(6).GetComponent<TextMeshProUGUI>().text;
                     int throwIndex = int.Parse(throwIndexText);
                     btn.onClick.AddListener(() => ClickThrowButton(weaponPrice, throwIndex));
+                }
+                else if (btnName.Contains("Skill") && btnName != "Skill")
+                {
+                    btn.onClick.AddListener(() => ClickSkillUPButton(btn.gameObject));
                 }
             }
         }
@@ -188,7 +196,6 @@ public class BuyItemAndSkill : MonoBehaviour
     /// </summary>
     public void OkWeaponButton(int num)
     {
-        Debug.Log(curWeaponPrice + " " + curWeaponAttack);
         //현재 터렛수 검사
         if(num+1 > GameManager.Instance.MaxTurretCount)
         {
@@ -280,6 +287,85 @@ public class BuyItemAndSkill : MonoBehaviour
     public void CancleThrowButton()
     {
         buyThrowPopUP.SetActive(false);
+    }
+    #endregion
+
+    #region 스킬 업글
+    /// <summary>
+    /// 기능 : 스킬 업글 버튼 클릭
+    /// </summary>
+    /// <param name="weaponImage"></param>
+    /// <param name="weaponPrice"></param>
+    /// <param name="weaponAttack"></param>
+    void ClickSkillUPButton(GameObject skillButton)
+    {
+        //버튼 클릭 창 열림 및 초기화
+        buySkillUPPopUP.SetActive(true);
+        skillUPBuyCommentText.text = string.Empty;
+        DrawSkillUPButton();
+    }
+
+    /// <summary>
+    /// 기능 : 스킬 업 UI 정보 표시
+    /// </summary>
+    void DrawSkillUPButton()
+    {
+        skillUPCommentText.text = "";
+    }
+
+    /// <summary>
+    /// 구매 확정
+    /// castleAttack의 정보 바꿈
+    /// </summary>
+    public void OKSkillUPButton()
+    {
+        //TODO : 구매 여부 검사
+
+        if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+        {
+            GameManager.Instance.CurrentMeso -= curThrowPrice;
+
+           
+            buySkillUPPopUP.SetActive(false);
+        }
+        else
+        {
+            skillUPBuyCommentText.text = "잔액 부족";
+        }
+    }
+
+    /// <summary>
+    /// 구매 취소
+    /// </summary>
+    public void CancleSkillUPButton()
+    {
+        buySkillUPPopUP.SetActive(false);
+    }
+
+    /// <summary>
+    /// 공격 속도 증가
+    /// </summary>
+    public void IncreaseAttackSpeed()
+    {
+        GameManager.Instance.AttackBetweenTime = Mathf.Max(GameManager.Instance.AttackBetweenTime-0.05f,0.2f);
+    }
+    /// <summary>
+    /// 최대 터렛 개수 증가
+    /// </summary>
+    public void IncreaseTurretCount()
+    {
+        if(GameManager.Instance.MaxTurretCount < 4)
+        {
+            GameManager.Instance.MaxTurretCount += 1;
+        }
+    }
+    /// <summary>
+    /// 성 최대 HP 증가
+    /// </summary>
+    public void IncreaseCastleHP()
+    {
+        GameManager.Instance.FullCastleHP += 800;
+        GameManager.Instance.CurrentCastleHP += 800;
     }
     #endregion
 }
