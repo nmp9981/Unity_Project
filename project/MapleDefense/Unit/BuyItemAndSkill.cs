@@ -30,6 +30,11 @@ public class BuyItemAndSkill : MonoBehaviour
     int curbuyThrowIndex;
     int curThrowAttack;
 
+    uint curSkillPrice;
+    int curSkillIndex;
+    int nextSkillLv;
+    GameObject curSkillObj;
+
     const int maxPageNum = 4;
 
     void Awake()
@@ -77,7 +82,7 @@ public class BuyItemAndSkill : MonoBehaviour
                 }
                 else if (btnName.Contains("Skill") && btnName != "Skill")
                 {
-                    btn.onClick.AddListener(() => ClickSkillUPButton(btn.gameObject));
+                    btn.onClick.AddListener(() => ClickSkillUPButton(btn.gameObject.transform.parent.gameObject));
                 }
             }
         }
@@ -111,14 +116,6 @@ public class BuyItemAndSkill : MonoBehaviour
                     GameManager.Instance.CurrentSupportPageNum -= 1;
                     pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum + 1).gameObject.SetActive(false);
                     pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum).gameObject.SetActive(true);
-                }
-                break;
-            case "Skill":
-                if (GameManager.Instance.CurrentSkillPageNum >= 1)
-                {
-                    GameManager.Instance.CurrentSkillPageNum -= 1;
-                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum + 1).gameObject.SetActive(false);
-                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum).gameObject.SetActive(true);
                 }
                 break;
             default:
@@ -156,14 +153,6 @@ public class BuyItemAndSkill : MonoBehaviour
                     GameManager.Instance.CurrentSupportPageNum += 1;
                     pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum - 1).gameObject.SetActive(false);
                     pageObj.transform.GetChild(GameManager.Instance.CurrentSupportPageNum).gameObject.SetActive(true);
-                }
-                break;
-            case "Skill":
-                if (GameManager.Instance.CurrentSkillPageNum < maxPageNum - 1)
-                {
-                    GameManager.Instance.CurrentSkillPageNum += 1;
-                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum - 1).gameObject.SetActive(false);
-                    pageObj.transform.GetChild(GameManager.Instance.CurrentSkillPageNum).gameObject.SetActive(true);
                 }
                 break;
             default:
@@ -302,15 +291,47 @@ public class BuyItemAndSkill : MonoBehaviour
         //버튼 클릭 창 열림 및 초기화
         buySkillUPPopUP.SetActive(true);
         skillUPBuyCommentText.text = string.Empty;
-        DrawSkillUPButton();
+        DrawSkillUPButton(skillButton);
     }
 
     /// <summary>
     /// 기능 : 스킬 업 UI 정보 표시
     /// </summary>
-    void DrawSkillUPButton()
+    void DrawSkillUPButton(GameObject skillButton)
     {
-        skillUPCommentText.text = "";
+        string skillName = skillButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text;
+        switch (skillName)
+        {
+            case "자벨린 부스터":
+                curSkillObj = skillButton;
+                curSkillIndex = 0;
+                curSkillPrice = uint.Parse(skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text);
+                nextSkillLv = Mathf.Min(GameManager.Instance.CurrentSkillLvArray[curSkillIndex] + 1,
+                    GameManager.Instance.MaxSkillLvArray[curSkillIndex]);
+                skillUPCommentText.text = $"{skillName}\n{GameManager.Instance.CurrentSkillLvArray[curSkillIndex]} " +
+                    $"-> {nextSkillLv} \n가격 : {curSkillPrice}";
+                break;
+            case "자벨린 증축":
+                curSkillObj = skillButton;
+                curSkillIndex = 1;
+                curSkillPrice = uint.Parse(skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text);
+                nextSkillLv = Mathf.Min(GameManager.Instance.CurrentSkillLvArray[curSkillIndex] + 1,
+                    GameManager.Instance.MaxSkillLvArray[curSkillIndex]);
+                skillUPCommentText.text = $"{skillName}\n{GameManager.Instance.CurrentSkillLvArray[curSkillIndex]} " +
+                    $"-> {nextSkillLv} \n가격 : {curSkillPrice}";
+                break;
+            case "체력 증가":
+                curSkillObj = skillButton;
+                curSkillIndex = 2;
+                curSkillPrice = uint.Parse(skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text);
+                nextSkillLv = Mathf.Min(GameManager.Instance.CurrentSkillLvArray[curSkillIndex] + 1,
+                    GameManager.Instance.MaxSkillLvArray[curSkillIndex]);
+                skillUPCommentText.text = $"{skillName}\n{GameManager.Instance.CurrentSkillLvArray[curSkillIndex]} " +
+                    $"-> {nextSkillLv} \n가격 : {curSkillPrice}";
+                break;
+            default:
+                break;
+        }
     }
 
     /// <summary>
@@ -321,16 +342,70 @@ public class BuyItemAndSkill : MonoBehaviour
     {
         //TODO : 구매 여부 검사
 
-        if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+        if (GameManager.Instance.CurrentSkillLvArray[curSkillIndex] < GameManager.Instance.MaxSkillLvArray[curSkillIndex])
         {
-            GameManager.Instance.CurrentMeso -= curThrowPrice;
+            if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+            {
+                GameManager.Instance.CurrentMeso -= curThrowPrice;
 
-           
-            buySkillUPPopUP.SetActive(false);
+                switch (curSkillIndex)
+                {
+                    case 0:
+                        IncreaseAttackSpeed();
+                        break;
+                    case 1:
+                        IncreaseTurretCount();
+                        break;
+                    case 2:
+                        IncreaseCastleHP(GameManager.Instance.CurrentSkillLvArray[curSkillIndex]);
+                        break;
+                    default:
+                        break;
+                }
+
+                ChangeSkillButtonInfo();
+                buySkillUPPopUP.SetActive(false);
+            }
+            else
+            {
+                skillUPBuyCommentText.text = "잔액 부족";
+            }
         }
         else
         {
-            skillUPBuyCommentText.text = "잔액 부족";
+            skillUPBuyCommentText.text = "최대 레벨";
+        }
+    }
+    /// <summary>
+    /// 기능 : 스킬창 정보 변경
+    /// 3:가격,5:효과
+    /// </summary>
+    void ChangeSkillButtonInfo()
+    {
+        GameManager.Instance.CurrentSkillLvArray[curSkillIndex] += 1;
+        int nextSkillLV= GameManager.Instance.CurrentSkillLvArray[curSkillIndex];
+        switch (curSkillIndex)
+        {
+            case 0:
+                ulong nextBoosterPrice = GameManager.Instance.BoosterPriceArray[nextSkillLV];
+                curSkillObj.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = nextBoosterPrice.ToString();
+                curSkillObj.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = 
+                    $"Lv.{GameManager.Instance.CurrentSkillLvArray[curSkillIndex]}";
+                break;
+            case 1:
+                ulong nextMasteryPrice = GameManager.Instance.MasteryPriceArray[nextSkillLV];
+                curSkillObj.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = nextMasteryPrice.ToString();
+                curSkillObj.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text =
+                    $"{GameManager.Instance.CurrentSkillLvArray[curSkillIndex]}개";
+                break;
+            case 2:
+                ulong nextHPPrice = GameManager.Instance.IncreaseCastleHPPrice[nextSkillLV];
+                curSkillObj.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = nextHPPrice.ToString();
+                curSkillObj.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text =
+                    $"HP +{GameManager.Instance.IncreaseCastleHP[GameManager.Instance.CurrentSkillLvArray[curSkillIndex]]}";
+                break;
+            default:
+                break;
         }
     }
 
@@ -348,6 +423,7 @@ public class BuyItemAndSkill : MonoBehaviour
     public void IncreaseAttackSpeed()
     {
         GameManager.Instance.AttackBetweenTime = Mathf.Max(GameManager.Instance.AttackBetweenTime-0.05f,0.2f);
+
     }
     /// <summary>
     /// 최대 터렛 개수 증가
@@ -362,10 +438,10 @@ public class BuyItemAndSkill : MonoBehaviour
     /// <summary>
     /// 성 최대 HP 증가
     /// </summary>
-    public void IncreaseCastleHP()
+    public void IncreaseCastleHP(int lv)
     {
-        GameManager.Instance.FullCastleHP += 800;
-        GameManager.Instance.CurrentCastleHP += 800;
+        GameManager.Instance.FullCastleHP += GameManager.Instance.IncreaseCastleHP[lv];
+        GameManager.Instance.CurrentCastleHP += GameManager.Instance.IncreaseCastleHP[lv];
     }
     #endregion
 }
