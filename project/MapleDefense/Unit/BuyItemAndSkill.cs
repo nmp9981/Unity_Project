@@ -344,9 +344,9 @@ public class BuyItemAndSkill : MonoBehaviour
 
         if (GameManager.Instance.CurrentSkillLvArray[curSkillIndex] < GameManager.Instance.MaxSkillLvArray[curSkillIndex])
         {
-            if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+            if (GameManager.Instance.CurrentMeso >= curSkillPrice)
             {
-                GameManager.Instance.CurrentMeso -= curThrowPrice;
+                GameManager.Instance.CurrentMeso -= curSkillPrice;
 
                 switch (curSkillIndex)
                 {
