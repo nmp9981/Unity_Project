@@ -30,6 +30,7 @@ public class CastleManager : MonoBehaviour
         TextBinding();
         ImageBinding();
         ButtonBinding();
+
     }
     private void Start()
     {
@@ -139,6 +140,12 @@ public class CastleManager : MonoBehaviour
 
         hpBarImage.fillAmount = 1;
         expBarImage.fillAmount = 0;
+
+        //터렛 개수는 1개
+        for(int turretIdx=1; turretIdx< GameManager.Instance.CurrentTurretList.Count;turretIdx++)
+        {
+            GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(false);
+        }
     }
     /// <summary>
     /// 기능 : 메인메뉴로 돌아가기
