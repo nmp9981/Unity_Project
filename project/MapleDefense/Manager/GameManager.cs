@@ -4,6 +4,12 @@ using System.Collections.Generic;
 using Unity.Burst.Intrinsics;
 using UnityEngine;
 
+public enum CastleSkill
+{
+    Booster,
+    Mastery,
+    HPUP
+}
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +18,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get { Init(); return _instance; } }
 
     static CastleManager castleManager;
+    static BackGroundManager backGroundManager;
     static public Dictionary<string, int> mapDictoinaty;
     static public List<Vector3> startPosList = new List<Vector3>();
     static void Init()
@@ -29,12 +36,14 @@ public class GameManager : MonoBehaviour
             _instance = gm.GetComponent<GameManager>();
         }
         castleManager = GameObject.Find("Castle").GetComponent<CastleManager>();
+        backGroundManager = GameObject.Find("GameBackGround").GetComponent<BackGroundManager>();
     }
 
     void Awake()
     {
         Init();
         SettingRequireEXP();
+        SkillLevelSetting();
     }
     /// <summary>
     /// 요구 경험치 세팅
@@ -49,6 +58,51 @@ public class GameManager : MonoBehaviour
             RequireStageUPExp[i] = (uint)(i * i * 10);
         }
     }
+    void SkillLevelSetting()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            CurrentSkillLvArray[i] = 1;
+        }
+        MaxSkillLvArray[(int)CastleSkill.Booster] = 7;
+        MaxSkillLvArray[(int)CastleSkill.Mastery] = 4;
+        MaxSkillLvArray[(int)CastleSkill.HPUP] = 9;
+
+        IncreaseCastleHP[0] = 0;
+        IncreaseCastleHP[1] = 500;
+        IncreaseCastleHP[2] = 1500;
+        IncreaseCastleHP[3] = 5000;
+        IncreaseCastleHP[4] = 14000;
+        IncreaseCastleHP[5] = 40000;
+        IncreaseCastleHP[6] = 100000;
+        IncreaseCastleHP[7] = 320000;
+        IncreaseCastleHP[8] = 1100000;
+        IncreaseCastleHP[9] = 3100000;
+
+        MasteryPriceArray[1] = 3000;
+        MasteryPriceArray[2] = 3000;
+        MasteryPriceArray[3] = 3000;
+        MasteryPriceArray[4] = 3000;
+
+        IncreaseCastleHPPrice[1] = 1000;
+        IncreaseCastleHPPrice[2] = 1000;
+        IncreaseCastleHPPrice[3] = 1000;
+        IncreaseCastleHPPrice[4] = 1000;
+        IncreaseCastleHPPrice[5] = 1000;
+        IncreaseCastleHPPrice[6] = 1000;
+        IncreaseCastleHPPrice[7] = 1000;
+        IncreaseCastleHPPrice[8] = 1000;
+        IncreaseCastleHPPrice[9] = 1000;
+
+
+        BoosterPriceArray[1] = 500;
+        BoosterPriceArray[2] = 500;
+        BoosterPriceArray[3] = 500;
+        BoosterPriceArray[4] = 500;
+        BoosterPriceArray[5] = 500;
+        BoosterPriceArray[6] = 500;
+        BoosterPriceArray[7] = 500;
+    }
 
     /// <summary>
     /// 레벨업
@@ -62,6 +116,7 @@ public class GameManager : MonoBehaviour
             CurrentCastleHP = FullCastleHP;
             CurrentStage += 1;
             castleManager.ShowCastleHP();
+            backGroundManager.ChangeBackground();
         }
     }
     #region 데이터
@@ -74,10 +129,31 @@ public class GameManager : MonoBehaviour
     int _curTurretCount = 1;//현재 터렛 개수
     int _maxTurretCount = 1;//최대 터렛 개수
 
+    int _curThrowIndex = 0;//현재 투사체 인덱스
+
     int _spawnTime = 1500;//스폰 시간
     public uint[] RequireStageUPExp;//스테이지 업을 위한 누적 경험치
 
-    public List<GameObject> ActiveUnitList = new List<GameObject>();//필드에 활성화된 유닛
+    float _attackBetweenTime = 0.5f;//공격 간격 시간
+
+    bool _isDie = false;//사망 여부
+
+    //현재 페이지
+    int _currentWeaponPageNum = 0;
+    int _currentThrowPageNum = 0;
+    int _currentSupportPageNum = 0;
+    int _currentSkillPageNum = 0;
+
+    public List<GameObject> ActiveUnitList = new List<GameObject>();//필드에 활성화된 몬스터
+    public List<CastleAttack> CurrentTurretList = new List<CastleAttack>();//필드에 활성화된 설치기
+
+    //스킬레벨 관리
+    public int[] CurrentSkillLvArray = new int[3];
+    public int[] MaxSkillLvArray = new int[3];
+    public int[] IncreaseCastleHP = new int[10];
+    public ulong[] IncreaseCastleHPPrice = new ulong[10];
+    public ulong[] MasteryPriceArray = new ulong[5];
+    public ulong[] BoosterPriceArray = new ulong[8];
 
     public int CurrentStage { get { return _currentStage; } set { _currentStage = value; } }
     public uint CurrentExp { get { return _currentExp; } set { _currentExp = value; } }
@@ -85,9 +161,21 @@ public class GameManager : MonoBehaviour
     public int CurrentCastleHP { get { return _currentCastleHP; } set { _currentCastleHP = value; } }
     public int FullCastleHP { get { return _fullCastleHP; } set { _fullCastleHP = value; } }
 
-    public int CurrentTurretCount { get { return _curTurretCount; } set { _curTurretCount = value; } }
+    public int CurrentTurretIndex { get { return _curTurretCount; } set { _curTurretCount = value; } }
     public int MaxTurretCount { get { return _maxTurretCount; } set { _maxTurretCount = value; } }
     
+    public int CurrentThrowIndex { get { return _curThrowIndex; } set { _curThrowIndex = value; } }
+
     public int SpawnTime { get { return _spawnTime; } set { _spawnTime = value; } }
+
+    public float AttackBetweenTime { get { return _attackBetweenTime; } set { _attackBetweenTime = value; } }
+
+    public int CurrentWeaponPageNum { get { return _currentWeaponPageNum; } set { _currentWeaponPageNum = value; } }
+    public int CurrentThrowPageNum { get { return _currentThrowPageNum; } set { _currentThrowPageNum = value; } }
+    public int CurrentSupportPageNum { get { return _currentSupportPageNum; } set { _currentSupportPageNum = value; } }
+    public int CurrentSkillPageNum { get { return _currentSkillPageNum; } set { _currentSkillPageNum = value; } }
+
+    public bool IsDie { get { return _isDie; } set { _isDie = value; } }
+
     #endregion 데이터
 }
