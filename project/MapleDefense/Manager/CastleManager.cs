@@ -186,9 +186,10 @@ public class CastleManager : MonoBehaviour
     {
         if (upgradeUI.activeSelf)
         {
-            foreach (Transform building in this.gameObject.GetComponentInChildren<Transform>())
+            transform.GetChild(0).gameObject.SetActive(true);
+            for(int turretIdx=0; turretIdx< GameManager.Instance.MaxTurretCount;turretIdx++)
             {
-                building.gameObject.SetActive(true);
+                GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(true);
             }
             monsterEntranceObj.SetActive(true);
             upgradeUI.SetActive(false);
