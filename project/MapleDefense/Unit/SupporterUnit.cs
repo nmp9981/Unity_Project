@@ -8,8 +8,6 @@ public class SupporterUnit : MonoBehaviour
     [SerializeField]
     float rayInspectDist;//ray 인식 거리
 
-    public bool IsFighting { get; set; } = false;//전투중인가?
-    
     GameObject attackTarget;
     const float maxInspectDist = 15;
 
@@ -29,10 +27,11 @@ public class SupporterUnit : MonoBehaviour
     }
     /// <summary>
     /// 소환수 이동
+    /// 전투중이 아닐때만 이동
     /// </summary>
     void MoveSupportUnit()
     {
-        if (IsFighting)
+        if (!GameManager.Instance.IsFighting)
         {
             transform.position += Vector3.right * Time.deltaTime * unitSpeed;
         }
@@ -51,7 +50,7 @@ public class SupporterUnit : MonoBehaviour
             if (rayHitObj.collider.gameObject.CompareTag("Enemy"))
             {
                 Debug.Log("몬스터 인식");
-                IsFighting = true;
+                GameManager.Instance.IsFighting = true;
             }
         }
     }
