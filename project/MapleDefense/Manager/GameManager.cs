@@ -58,6 +58,9 @@ public class GameManager : MonoBehaviour
             RequireStageUPExp[i] = (uint)(i * i * 10);
         }
     }
+    /// <summary>
+    /// 기능 : 스킬 레벨 초기화
+    /// </summary>
     void SkillLevelSetting()
     {
         for (int i = 0; i < 3; i++)
@@ -80,28 +83,27 @@ public class GameManager : MonoBehaviour
         IncreaseCastleHP[9] = 3100000;
 
         MasteryPriceArray[1] = 3000;
-        MasteryPriceArray[2] = 3000;
-        MasteryPriceArray[3] = 3000;
-        MasteryPriceArray[4] = 3000;
+        MasteryPriceArray[2] = 80000;
+        MasteryPriceArray[3] = 1000000;
+        MasteryPriceArray[4] = 30000000;
 
         IncreaseCastleHPPrice[1] = 1000;
-        IncreaseCastleHPPrice[2] = 1000;
-        IncreaseCastleHPPrice[3] = 1000;
-        IncreaseCastleHPPrice[4] = 1000;
-        IncreaseCastleHPPrice[5] = 1000;
-        IncreaseCastleHPPrice[6] = 1000;
-        IncreaseCastleHPPrice[7] = 1000;
-        IncreaseCastleHPPrice[8] = 1000;
-        IncreaseCastleHPPrice[9] = 1000;
-
+        IncreaseCastleHPPrice[2] = 2000;
+        IncreaseCastleHPPrice[3] = 4000;
+        IncreaseCastleHPPrice[4] = 12000;
+        IncreaseCastleHPPrice[5] = 36000;
+        IncreaseCastleHPPrice[6] = 144000;
+        IncreaseCastleHPPrice[7] = 576000;
+        IncreaseCastleHPPrice[8] = 2880000;
+        IncreaseCastleHPPrice[9] = 14400000;
 
         BoosterPriceArray[1] = 500;
-        BoosterPriceArray[2] = 500;
-        BoosterPriceArray[3] = 500;
-        BoosterPriceArray[4] = 500;
-        BoosterPriceArray[5] = 500;
-        BoosterPriceArray[6] = 500;
-        BoosterPriceArray[7] = 500;
+        BoosterPriceArray[2] = 1500;
+        BoosterPriceArray[3] = 5000;
+        BoosterPriceArray[4] = 25000;
+        BoosterPriceArray[5] = 125000;
+        BoosterPriceArray[6] = 750000;
+        BoosterPriceArray[7] = 4500000;
     }
 
     /// <summary>
@@ -115,6 +117,7 @@ public class GameManager : MonoBehaviour
             FullCastleHP += 50;
             CurrentCastleHP = FullCastleHP;
             CurrentStage += 1;
+            AttackBetweenTime -= 0.01f;
             castleManager.ShowCastleHP();
             backGroundManager.ChangeBackground();
         }
