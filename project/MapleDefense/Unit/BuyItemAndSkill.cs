@@ -84,6 +84,11 @@ public class BuyItemAndSkill : MonoBehaviour
                 {
                     btn.onClick.AddListener(() => ClickSkillUPButton(btn.gameObject.transform.parent.gameObject));
                 }
+                else if (btnName.Contains("Supporter") && btnName != "Supporter")
+                {
+                    uint supportPrice = uint.Parse(btn.gameObject.transform.parent.GetChild(3).GetComponent<TextMeshProUGUI>().text);
+                    btn.onClick.AddListener(() => ClickSupportButton(supportPrice, btn.gameObject.transform.parent.gameObject));
+                }
             }
         }
     }
@@ -432,6 +437,7 @@ public class BuyItemAndSkill : MonoBehaviour
     {
         if(GameManager.Instance.MaxTurretCount < 4)
         {
+            GameManager.Instance.CurrentTurretList[GameManager.Instance.MaxTurretCount].gameObject.SetActive(true);
             GameManager.Instance.MaxTurretCount += 1;
         }
     }
@@ -444,4 +450,53 @@ public class BuyItemAndSkill : MonoBehaviour
         GameManager.Instance.CurrentCastleHP += GameManager.Instance.IncreaseCastleHP[lv];
     }
     #endregion
+
+    #region 소환수 구매
+    /// <summary>
+    /// 기능 : 무기 구매 버튼 클릭
+    /// </summary>
+    /// <param name="weaponImage"></param>
+    /// <param name="weaponPrice"></param>
+    /// <param name="weaponAttack"></param>
+    void ClickSupportButton(uint weaponPrice, GameObject supportObj)
+    {
+        curThrowPrice = weaponPrice;
+        
+        //버튼 클릭 창 열림 및 초기화
+        buyThrowPopUP.SetActive(true);
+        throwBuyCommentText.text = string.Empty;
+    }
+
+    /// <summary>
+    /// 구매 확정
+    /// castleAttack의 정보 바꿈
+    /// </summary>
+    public void OKSupportButton()
+    {
+        //TODO : 구매 여부 검사
+
+        if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+        {
+            GameManager.Instance.CurrentMeso -= curThrowPrice;
+
+            //투사체 변경
+            GameManager.Instance.CurrentThrowIndex = curbuyThrowIndex;
+            buyThrowPopUP.SetActive(false);
+        }
+        else
+        {
+            throwBuyCommentText.text = "잔액 부족";
+        }
+    }
+
+    /// <summary>
+    /// 구매 취소
+    /// </summary>
+    public void CancleSupportButton()
+    {
+        buyThrowPopUP.SetActive(false);
+    }
+
+
+    #endregion 소환수 구매
 }
