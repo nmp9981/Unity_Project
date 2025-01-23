@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks.Triggers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,13 +6,20 @@ using UnityEngine.UI;
 public class BuyItemAndSkill : MonoBehaviour
 {
     [SerializeField]
+    ObjectFulling objectFulling;
+
+    [SerializeField]
     GameObject buyWeaponPopUP;
     [SerializeField]
     GameObject buyThrowPopUP;
     [SerializeField]
     GameObject buySkillUPPopUP;
     [SerializeField]
+    GameObject buySupportPopUP;
+    [SerializeField]
     GameObject castleObj;
+    [SerializeField]
+    Transform castleEntrancePosition;
 
     [SerializeField]
     TextMeshProUGUI weaponBuyCommentText;
@@ -21,6 +29,8 @@ public class BuyItemAndSkill : MonoBehaviour
     TextMeshProUGUI skillUPBuyCommentText;
     [SerializeField]
     TextMeshProUGUI skillUPCommentText;
+    [SerializeField]
+    TextMeshProUGUI supportBuyComment;
 
     Image curWeaponImage;
     uint curWeaponPrice;
@@ -34,6 +44,10 @@ public class BuyItemAndSkill : MonoBehaviour
     int curSkillIndex;
     int nextSkillLv;
     GameObject curSkillObj;
+
+    uint curSupportPrice;
+    int curSupportIndex;
+    GameObject curSupportObj;
 
     const int maxPageNum = 4;
 
@@ -458,13 +472,15 @@ public class BuyItemAndSkill : MonoBehaviour
     /// <param name="weaponImage"></param>
     /// <param name="weaponPrice"></param>
     /// <param name="weaponAttack"></param>
-    void ClickSupportButton(uint weaponPrice, GameObject supportObj)
+    void ClickSupportButton(uint supportPrice, GameObject supportObj)
     {
-        curThrowPrice = weaponPrice;
-        
+        curSupportPrice = supportPrice;
+        curSupportIndex = int.Parse(supportObj.transform.GetChild(8).GetComponent<TextMeshProUGUI>().text);
+        curSupportObj = supportObj;
+
         //버튼 클릭 창 열림 및 초기화
-        buyThrowPopUP.SetActive(true);
-        throwBuyCommentText.text = string.Empty;
+        buySupportPopUP.SetActive(true);
+        supportBuyComment.text = string.Empty;
     }
 
     /// <summary>
@@ -475,12 +491,14 @@ public class BuyItemAndSkill : MonoBehaviour
     {
         //TODO : 구매 여부 검사
 
-        if (GameManager.Instance.CurrentMeso >= curThrowPrice)
+        if (GameManager.Instance.CurrentMeso >= curSupportPrice)
         {
-            GameManager.Instance.CurrentMeso -= curThrowPrice;
+            GameManager.Instance.CurrentMeso -= curSupportPrice;
 
-            //투사체 변경
-            GameManager.Instance.CurrentThrowIndex = curbuyThrowIndex;
+            //몬스터 소환
+            GameManager.Instance.CurrentSupportIndex = curSupportIndex;
+            GameObject supportObject = objectFulling.MakeObj(GameManager.Instance.CurrentSupportIndex);
+            supportObject.transform.position = castleEntrancePosition.position;
             buyThrowPopUP.SetActive(false);
         }
         else
