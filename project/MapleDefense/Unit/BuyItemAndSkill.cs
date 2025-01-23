@@ -499,11 +499,11 @@ public class BuyItemAndSkill : MonoBehaviour
             GameManager.Instance.CurrentSupportIndex = curSupportIndex;
             GameObject supportObject = objectFulling.MakeObj(GameManager.Instance.CurrentSupportIndex);
             supportObject.transform.position = castleEntrancePosition.position;
-            buyThrowPopUP.SetActive(false);
+            buySupportPopUP.SetActive(false);
         }
         else
         {
-            throwBuyCommentText.text = "잔액 부족";
+            supportBuyComment.text = "잔액 부족";
         }
     }
 
@@ -512,7 +512,7 @@ public class BuyItemAndSkill : MonoBehaviour
     /// </summary>
     public void CancleSupportButton()
     {
-        buyThrowPopUP.SetActive(false);
+        buySupportPopUP.SetActive(false);
     }
 
 
