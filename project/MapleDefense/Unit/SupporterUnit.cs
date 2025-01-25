@@ -17,6 +17,8 @@ public class SupporterUnit : MonoBehaviour
     [SerializeField]
     float currentSupportHP;
     [SerializeField]
+    int supportAttack;
+    [SerializeField]
     Image hpBarBack;
     [SerializeField]
     Image hpBar;
@@ -25,7 +27,7 @@ public class SupporterUnit : MonoBehaviour
 
     const float maxInspectDist = 15;
 
-    void Awake()
+    private void OnEnable()
     {
         currentSupportHP = fullSupportHP;
         hpBar.fillAmount = 1f;
@@ -34,20 +36,21 @@ public class SupporterUnit : MonoBehaviour
     void Update()
     {
         MoveSupportUnit();
-        HPBarMove();
         InspectEnemy();
         SupporterAttack();
     }
     /// <summary>
     /// 소환수 이동
-    /// 전투중이 아닐때만 이동
+    /// 전투중이, UI업그레이드 활성화가 아닐때만 이동
+    /// HPBar도 이동
     /// </summary>
     void MoveSupportUnit()
     {
-        if (!GameManager.Instance.IsFighting)
+        if (!GameManager.Instance.IsFighting && !GameManager.Instance.IsOpenUpgradeUI)
         {
             transform.position += Vector3.right * Time.deltaTime * unitSpeed;
         }
+        HPBarMove();
     }
     /// <summary>
     /// 기능 : HPBar 이동
@@ -95,7 +98,8 @@ public class SupporterUnit : MonoBehaviour
         {
             //HP감소
             EnemyUnit enemyUnit = collision.gameObject.GetComponent<EnemyUnit>();
-           
+
+            enemyUnit.HP -= supportAttack;
             currentSupportHP -= enemyUnit.Attack;
             float hpRate = (float)currentSupportHP / fullSupportHP;
             hpBar.fillAmount = hpRate;
