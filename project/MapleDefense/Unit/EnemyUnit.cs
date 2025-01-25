@@ -35,7 +35,7 @@ public class EnemyUnit : MonoBehaviour
     Image hpBar;
 
     public int FullHP;
-    int HP;
+    public int HP;
     public uint Exp;
     public int Attack;
     public ulong Meso;
@@ -60,7 +60,6 @@ public class EnemyUnit : MonoBehaviour
     private void Update()
     {
         MoveEnemy();
-        HPBarMove();
         AttackEnemy();
     }
     /// <summary>
@@ -69,6 +68,14 @@ public class EnemyUnit : MonoBehaviour
     /// </summary>
     void MoveEnemy()
     {
+        //업그레이드 UI가 활성화일때는 이동 금지
+        if (!GameManager.Instance.IsOpenUpgradeUI)
+        {
+            return;
+        }
+        //TODO : 공격 당하면 안움직임
+       
+
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
         anim.Play("Move");
         //공격 대상에서 벗어남
@@ -82,6 +89,8 @@ public class EnemyUnit : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
+        //HP Bar이동
+        HPBarMove();
     }
     /// <summary>
     /// 기능 : HPBar 이동
