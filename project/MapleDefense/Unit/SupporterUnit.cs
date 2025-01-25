@@ -49,8 +49,8 @@ public class SupporterUnit : MonoBehaviour
         if (!GameManager.Instance.IsFighting && !GameManager.Instance.IsOpenUpgradeUI)
         {
             transform.position += Vector3.right * Time.deltaTime * unitSpeed;
+            HPBarMove();
         }
-        HPBarMove();
     }
     /// <summary>
     /// 기능 : HPBar 이동
