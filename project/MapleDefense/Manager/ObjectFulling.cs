@@ -1,84 +1,157 @@
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 
 public class ObjectFulling : MonoBehaviour
 {
     //프리팹 준비
-    const int blockMaxCount = 70;//각 오브젝트 개수
-    const int blockKinds = 27;//종류 개수
-    public GameObject[] blockPrefabs;
+    const int monsterMaxCount = 25;//각 오브젝트 개수
+    const int monsterKinds = 12;//종류 개수
+    
+    const int throwMaxCount = 35;
+    const int throwKinds = 12;
+    
+    const int supportMaxCount = 20;
+    const int supportKinds = 4;
+    //몬스터 프리팹
+    public GameObject[] monsterPrefabs;
+    //투사체 프리팹
+    public GameObject[] throwPrefabs;
+    //소환수 프리팹
+    public GameObject[] supportPrefabs;
 
     //오브젝트 배열
-    GameObject[][] blocks;
-    GameObject[] targetPool;
+    GameObject[][] monsters;
+    GameObject[] monsterTargetPool;
+
+    GameObject[][] throws;
+    GameObject[] throwTargetPool;
+
+    GameObject[][] supports;
+    GameObject[] supportsTargetPool;
 
     void Awake()
     {
-        blocks = new GameObject[blockKinds][]
+        monsters = new GameObject[monsterKinds][]
         {
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-              new GameObject[blockMaxCount],
-               new GameObject[blockMaxCount],
-               new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-              new GameObject[blockMaxCount],
-               new GameObject[blockMaxCount],
-               new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-             new GameObject[blockMaxCount],
-              new GameObject[blockMaxCount],
-               new GameObject[blockMaxCount]
+             new GameObject[monsterMaxCount],
+             new GameObject[monsterMaxCount],
+             new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
+               new GameObject[monsterMaxCount],
+               new GameObject[monsterMaxCount],
+             new GameObject[monsterMaxCount],
+             new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
+               new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount]
         };
+
+        throws = new GameObject[throwKinds][]
+        {
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount],
+            new GameObject[throwMaxCount]
+        };
+
+        supports = new GameObject[supportKinds][]
+        {
+            new GameObject[supportMaxCount],
+             new GameObject[supportMaxCount],
+              new GameObject[supportMaxCount],
+               new GameObject[supportMaxCount]
+        };
+
         Generate();
     }
     void Generate()
     {
-        //블록
-        for (int i = 0; i < blockKinds; i++)
+        //몬스터
+        for (int i = 0; i < monsterKinds; i++)
         {
             if (i >= 23 && i <= 25)
             {
                 for (int j = 0; j < 1; j++)
                 {
-                    blocks[i][j] = Instantiate(blockPrefabs[i]);
-                    blocks[i][j].SetActive(false);
+                    monsters[i][j] = Instantiate(monsterPrefabs[i]);
+                    monsters[i][j].SetActive(false);
                 }
             }
             else
             {
-                for (int j = 0; j < blockMaxCount; j++)
+                for (int j = 0; j < monsterMaxCount; j++)
                 {
-                    blocks[i][j] = Instantiate(blockPrefabs[i]);
-                    blocks[i][j].SetActive(false);
+                    monsters[i][j] = Instantiate(monsterPrefabs[i]);
+                    monsters[i][j].SetActive(false);
                 }
+            }
+        }
+
+        for (int i = 0; i < throwKinds; i++)
+        {
+            for (int j = 0; j < throwMaxCount; j++)
+            {
+                throws[i][j] = Instantiate(throwPrefabs[i]);
+                throws[i][j].SetActive(false);
+            }
+        }
+
+        for (int i = 0; i < supportKinds; i++)
+        {
+            for (int j = 0; j < supportMaxCount; j++)
+            {
+                supports[i][j] = Instantiate(supportPrefabs[i]);
+                supports[i][j].SetActive(false);
             }
         }
     }
     //오브젝트 생성
-    public GameObject MakeObj(int num)
+    public GameObject MakeMonsterObj(int num)
     {
-        targetPool = blocks[num];
-
-        for (int i = 0; i < targetPool.Length; i++)
+        monsterTargetPool = monsters[num];
+        for (int i = 0; i < monsterTargetPool.Length; i++)
         {
-            if (!targetPool[i].activeSelf)
+            if (!monsterTargetPool[i].activeSelf)
             {
-                targetPool[i].SetActive(true);//활성화 후 넘김
-                return targetPool[i];
+                monsterTargetPool[i].SetActive(true);//활성화 후 넘김
+                return monsterTargetPool[i];
+            }
+        }
+        return null;//없으면 빈 객체
+    }
+
+    public GameObject MakeThrowObj(int num)
+    {
+        throwTargetPool = throws[num];
+        for (int i = 0; i < throwTargetPool.Length; i++)
+        {
+            if (!throwTargetPool[i].activeSelf)
+            {
+                throwTargetPool[i].SetActive(true);//활성화 후 넘김
+                return throwTargetPool[i];
+            }
+        }
+        return null;//없으면 빈 객체
+    }
+
+    public GameObject MakeSupportsObj(int num)
+    {
+        supportsTargetPool = supports[num];
+        for (int i = 0; i < supportsTargetPool.Length; i++)
+        {
+            if (!supportsTargetPool[i].activeSelf)
+            {
+                supportsTargetPool[i].SetActive(true);//활성화 후 넘김
+                return supportsTargetPool[i];
             }
         }
         return null;//없으면 빈 객체
@@ -86,39 +159,39 @@ public class ObjectFulling : MonoBehaviour
     //오브젝트 존재여부 확인
     public bool IsActiveObj(int num)
     {
-        targetPool = blocks[num];
+        monsterTargetPool = monsters[num];
 
-        for (int i = 0; i < targetPool.Length; i++)
+        for (int i = 0; i < monsterTargetPool.Length; i++)
         {
-            if (targetPool[i].activeSelf) return true;//활성화된게 있으면
+            if (monsterTargetPool[i].activeSelf) return true;//활성화된게 있으면
         }
         return false;//없으면 빈 객체
     }
     //오브젝트 존재하면 가져오기
     public GameObject GetObj(int num)
     {
-        targetPool = blocks[num];
+        monsterTargetPool = monsters[num];
 
-        for (int i = 0; i < targetPool.Length; i++)
+        for (int i = 0; i < monsterTargetPool.Length; i++)
         {
-            if (targetPool[i].activeSelf) return targetPool[i];//활성화된게 있으면
+            if (monsterTargetPool[i].activeSelf) return monsterTargetPool[i];//활성화된게 있으면
         }
         return null;//없으면 빈 객체
     }
     //오브젝트 배열 가져오기
     public GameObject[] GetPool(int num)//지정한 오브젝트 풀 가져오기
     {
-        targetPool = blocks[num];
-        return targetPool;
+        monsterTargetPool = monsters[num];
+        return monsterTargetPool;
     }
     //오브젝트들 비활성화
     public void OffObj()
     {
-        for (int i = 0; i < blockKinds; i++)
+        for (int i = 0; i < monsterKinds; i++)
         {
-            for (int j = 0; j < blockMaxCount; j++)
+            for (int j = 0; j < monsterMaxCount; j++)
             {
-                if (blocks[i][j].activeSelf) blocks[i][j].SetActive(false);
+                if (monsters[i][j].activeSelf) monsters[i][j].SetActive(false);
             }
         }
     }
