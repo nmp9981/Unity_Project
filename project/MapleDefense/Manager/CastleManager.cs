@@ -24,6 +24,7 @@ public class CastleManager : MonoBehaviour
 
     Image expBarImage;
     Image hpBarImage;
+    SpriteRenderer castleSprite;
     
     void Awake()
     {
@@ -49,6 +50,7 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     void ImageBinding()
     {
+        castleSprite = GetComponent<SpriteRenderer>();
         foreach(Image img in castleUI.GetComponentsInChildren<Image>(true))
         {
             string imgName = img.gameObject.name;
@@ -81,7 +83,7 @@ public class CastleManager : MonoBehaviour
                 case "MesoText":
                     mesoText = txt;
                     break;
-                case "HPText":
+                case "CastleHPText":
                     hpRateText = txt;
                     break;
                 case "ExpText":
@@ -132,12 +134,12 @@ public class CastleManager : MonoBehaviour
     {
         //처음엔 풀피
         GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
-
+        
         stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
         mesoText.text = $"{GameManager.Instance.CurrentMeso }";
         hpRateText.text = $"HP. {GameManager.Instance.CurrentCastleHP} / {GameManager.Instance.FullCastleHP}";
         expRateText.text = $"Exp. {GameManager.Instance.CurrentExp} / {GameManager.Instance.RequireStageUPExp[GameManager.Instance.CurrentStage]} [{0.00}%]";
-
+       
         hpBarImage.fillAmount = 1;
         expBarImage.fillAmount = 0;
 
@@ -174,8 +176,9 @@ public class CastleManager : MonoBehaviour
                 building.gameObject.SetActive(false);
             }
             monsterEntranceObj.SetActive(false);
+            castleSprite.enabled = false;
             upgradeUI.SetActive(true);
-            
+            GameManager.Instance.IsOpenUpgradeUI = true;
         }
     }
     /// <summary>
@@ -192,7 +195,9 @@ public class CastleManager : MonoBehaviour
                 GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(true);
             }
             monsterEntranceObj.SetActive(true);
+            castleSprite.enabled = true;
             upgradeUI.SetActive(false);
+            GameManager.Instance.IsOpenUpgradeUI = false;
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)
