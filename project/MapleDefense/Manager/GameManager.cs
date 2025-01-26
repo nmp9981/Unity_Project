@@ -133,6 +133,7 @@ public class GameManager : MonoBehaviour
     int _maxTurretCount = 1;//최대 터렛 개수
 
     int _curThrowIndex = 0;//현재 투사체 인덱스
+    int _curSupportIndex = 0;//현재 소환수 인덱스
 
     int _spawnTime = 1500;//스폰 시간
     public uint[] RequireStageUPExp;//스테이지 업을 위한 누적 경험치
@@ -140,6 +141,7 @@ public class GameManager : MonoBehaviour
     float _attackBetweenTime = 0.5f;//공격 간격 시간
 
     bool _isDie = false;//사망 여부
+    bool _isOpenUpgradeUI = false;//업그레이드 UI가 열려있는가?
 
     //현재 페이지
     int _currentWeaponPageNum = 0;
@@ -168,6 +170,7 @@ public class GameManager : MonoBehaviour
     public int MaxTurretCount { get { return _maxTurretCount; } set { _maxTurretCount = value; } }
     
     public int CurrentThrowIndex { get { return _curThrowIndex; } set { _curThrowIndex = value; } }
+    public int CurrentSupportIndex { get { return _curSupportIndex; } set { _curSupportIndex = value; } }
 
     public int SpawnTime { get { return _spawnTime; } set { _spawnTime = value; } }
 
@@ -179,6 +182,11 @@ public class GameManager : MonoBehaviour
     public int CurrentSkillPageNum { get { return _currentSkillPageNum; } set { _currentSkillPageNum = value; } }
 
     public bool IsDie { get { return _isDie; } set { _isDie = value; } }
+    public bool IsFighting { get; set; } = false;//전투중인가?
+    public bool IsOpenUpgradeUI { get; set; } = false;//업그레이드 UI활성화 여부
 
+    //소리 관련
+    public float BGMVolume { get; set; } = 0.7f;
+    public float SFXVolume { get; set; } = 0.7f;
     #endregion 데이터
 }
