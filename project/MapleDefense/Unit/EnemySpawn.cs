@@ -29,9 +29,8 @@ public class EnemySpawn : MonoBehaviour
                 mob.transform.position = spawnPoint.position;
                 //활성화 몬스터에 추가
                 GameManager.Instance.ActiveUnitList.Add(mob);
-
-                await UniTask.Delay(GameManager.Instance.SpawnTime);
             }
+            await UniTask.Delay(GameManager.Instance.SpawnTime);
         }
     }
     /// <summary>
