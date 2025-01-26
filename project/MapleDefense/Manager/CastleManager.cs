@@ -15,6 +15,8 @@ public class CastleManager : MonoBehaviour
     GameObject monsterEntranceObj;
     [SerializeField]
     GameObject gameOverUI;
+    [SerializeField]
+    GameObject soundSettingUI;
 
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
@@ -25,13 +27,15 @@ public class CastleManager : MonoBehaviour
     Image expBarImage;
     Image hpBarImage;
     SpriteRenderer castleSprite;
+
+    SoundManager soundManager;
     
     void Awake()
     {
         TextBinding();
         ImageBinding();
         ButtonBinding();
-
+        SliderBinding();
     }
     private void Start()
     {
@@ -122,11 +126,37 @@ public class CastleManager : MonoBehaviour
                 case "CloseGameOverUI":
                     btn.onClick.AddListener(CloseGameOverUI);
                     break;
+                case "SettingClose":
+                    btn.onClick.AddListener(CloseSettingButton);
+                    break;
                 default:
                     break;
             }
         }
     }
+
+    /// <summary>
+    /// 기능 : 슬라이더 바인딩
+    /// </summary>
+    void SliderBinding()
+    {
+        foreach (Slider sl in soundSettingUI.GetComponentsInChildren<Slider>(true))
+        {
+            string sliderName = sl.gameObject.name;
+            switch (sliderName)
+            {
+                case "BGMSlider":
+                    sl.onValueChanged.AddListener(delegate { SettingBGMVolume(sl); });
+                    break;
+                case "SFXSlider":
+                    sl.onValueChanged.AddListener(delegate { SettingSFXVolume(sl); });
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     /// <summary>
     /// 기능 : 초기 세팅
     /// </summary>
@@ -161,7 +191,14 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     void OpenSettingButton()
     {
-
+        soundSettingUI.SetActive(true);
+    }
+    /// <summary>
+    /// 기능 : 세팅창 닫기
+    /// </summary>
+    void CloseSettingButton()
+    {
+        soundSettingUI.SetActive(false);
     }
     /// <summary>
     /// 기능 : 유닛 업그레이드 창 열기
@@ -262,5 +299,14 @@ public class CastleManager : MonoBehaviour
     public void CloseGameOverUI()
     {
         gameOverUI.gameObject.SetActive(false);
+    }
+
+    public void SettingBGMVolume(Slider sl)
+    {
+        GameManager.Instance.BGMVolume = sl.value;
+    }
+    public void SettingSFXVolume(Slider sl)
+    {
+        GameManager.Instance.SFXVolume = sl.value;
     }
 }
