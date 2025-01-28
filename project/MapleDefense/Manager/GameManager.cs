@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
     {
         Init();
         SettingRequireEXP();
+        PlayInitBGM();
         SkillLevelSetting();
     }
     /// <summary>
@@ -57,6 +58,13 @@ public class GameManager : MonoBehaviour
         {
             RequireStageUPExp[i] = (uint)(i * i * 10);
         }
+    }
+    /// <summary>
+    /// 초기 BGM재생
+    /// </summary>
+    void PlayInitBGM()
+    {
+        SoundManager._sound.PlayBGM(0);
     }
     /// <summary>
     /// 기능 : 스킬 레벨 초기화
@@ -120,6 +128,8 @@ public class GameManager : MonoBehaviour
             AttackBetweenTime -= 0.01f;
             castleManager.ShowCastleHP();
             backGroundManager.ChangeBackground();
+            //새 BGM 재생
+            SoundManager._sound.PlayBGM(CurrentStage/3);
         }
     }
     #region 데이터
