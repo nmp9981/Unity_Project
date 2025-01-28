@@ -56,6 +56,7 @@ public class EnemyUnit : MonoBehaviour
         //EnemyInfo enemy = new EnemyInfo(dp,10,10,10);
         HP = FullHP;
         hpBar.fillAmount = 1f;
+        anim.Play("Move");
     }
     private void Update()
     {
@@ -77,7 +78,6 @@ public class EnemyUnit : MonoBehaviour
        
 
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
-        anim.Play("Move");
         //공격 대상에서 벗어남
         if (transform.position.x < -5f)
         {
@@ -107,21 +107,25 @@ public class EnemyUnit : MonoBehaviour
     {
         //마공안하는 몹
         if (!IsAttack)
-        {
+        { 
             return;
         }
         // TODO : 마공 로직 추가, 마공은 몸박의 1.5배
+
+        //anim.SetBool("isAttack", true);
     }
     /// <summary>
     /// 기능 : 몬스터 사망 처리
     /// </summary>
     void DieMonster()
     {
+        anim.SetBool("isDie", true);
+
         GameManager.Instance.CurrentMeso += Meso;
         GameManager.Instance.CurrentExp += Exp;
         GameManager.Instance.CastleLevelUP();
         GameManager.Instance.ActiveUnitList.Remove(gameObject);
-        gameObject.SetActive(false);
+        Invoke("EraseDieMonster", 0.5f);
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -143,6 +147,10 @@ public class EnemyUnit : MonoBehaviour
             //공격 효과음
             SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
 
+            //피격 모션
+            anim.SetBool("isHit", true);
+            Invoke("ReturnMoveMotion", 0.5f);
+
             //사망처리
             if (HP <= 0)
             {
@@ -151,4 +159,15 @@ public class EnemyUnit : MonoBehaviour
         }
     }
 
+    void ReturnMoveMotion()
+    {
+        anim.SetBool("isHit", false);
+    }
+    /// <summary>
+    /// 기능 : 몬스터 사라짐
+    /// </summary>
+    void EraseDieMonster()
+    {
+        gameObject.SetActive(false);
+    }
 }
