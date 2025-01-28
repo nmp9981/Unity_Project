@@ -69,7 +69,7 @@ public class EnemyUnit : MonoBehaviour
     void MoveEnemy()
     {
         //업그레이드 UI가 활성화일때는 이동 금지
-        if (!GameManager.Instance.IsOpenUpgradeUI)
+        if (GameManager.Instance.IsOpenUpgradeUI)
         {
             return;
         }
@@ -128,6 +128,8 @@ public class EnemyUnit : MonoBehaviour
         if (collision.tag.Contains("CastleEnter"))
         {
             moveSpeed = 0;
+            //피격 효과음
+            SoundManager._sound.PlaySfx((int)SFXSound.CastleHit);
         }
         if (collision.tag.Contains("Bullet"))
         {
@@ -137,6 +139,9 @@ public class EnemyUnit : MonoBehaviour
             HP -= hitDamage;
             float hpRate = (float)HP / FullHP;
             hpBar.fillAmount = hpRate;
+
+            //공격 효과음
+            SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
 
             //사망처리
             if (HP <= 0)
