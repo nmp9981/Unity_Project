@@ -18,6 +18,8 @@ public class CastleManager : MonoBehaviour
     GameObject gameOverUI;
     [SerializeField]
     GameObject soundSettingUI;
+    [SerializeField]
+    GameObject mainUI;
 
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
@@ -188,7 +190,10 @@ public class CastleManager : MonoBehaviour
     void ReturnMainMenu()
     {
         InitGameInfomation();
-        SceneManager.LoadScene("Main");
+        SoundManager._sound.PlayBGM(GameManager.Instance.MainBGMIndex);
+        mainUI.SetActive(true);
+        GameManager.Instance.IsGamePlaying = false;
+
     }
     /// <summary>
     /// 게임 정보 초기화
