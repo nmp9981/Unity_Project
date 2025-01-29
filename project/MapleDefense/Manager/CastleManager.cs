@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CastleManager : MonoBehaviour
@@ -146,9 +147,11 @@ public class CastleManager : MonoBehaviour
             switch (sliderName)
             {
                 case "BGMSlider":
+                    sl.value = 0.7f;
                     sl.onValueChanged.AddListener(delegate { SettingBGMVolume(sl); });
                     break;
                 case "SFXSlider":
+                    sl.value = 0.7f;
                     sl.onValueChanged.AddListener(delegate { SettingSFXVolume(sl); });
                     break;
                 default:
@@ -184,8 +187,33 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     void ReturnMainMenu()
     {
-
+        InitGameInfomation();
+        SceneManager.LoadScene("Main");
     }
+    /// <summary>
+    /// 게임 정보 초기화
+    /// 테렛 개수, 돈, 스테이지 등 초기화
+    /// </summary>
+    void InitGameInfomation()
+    {
+        GameManager.Instance.CurrentStage = 1;
+        GameManager.Instance.CurrentMeso = 0;
+        GameManager.Instance.CurrentExp = 0;
+
+        GameManager.Instance.FullCastleHP = 900;
+        GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
+
+        GameManager.Instance.CurrentTurretIndex = 1;
+        GameManager.Instance.MaxTurretCount = 1;
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameManager.Instance.CurrentSkillLvArray[i] = 1;
+        }
+        GameManager.Instance.ActiveUnitList.Clear();
+        GameManager.Instance.CurrentTurretList.Clear();
+    }
+
     /// <summary>
     /// 기능 : 세팅창 열기
     /// </summary>
