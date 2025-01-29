@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -44,7 +45,10 @@ public class EnemyUnit : MonoBehaviour
     Animator anim;
 
     float moveSpeed = 2f;
-   
+
+    //공격 관련 변수
+    float attackCollTime;
+
     private void Awake()
     {
         anim = gameObject.GetComponent<Animator>();
@@ -56,13 +60,16 @@ public class EnemyUnit : MonoBehaviour
         //EnemyInfo enemy = new EnemyInfo(dp,10,10,10);
         HP = FullHP;
         hpBar.fillAmount = 1f;
+        attackCollTime = Random.Range(250, 400)*0.01f;//쿨타임 설정
         anim.Play("Move");
+
+        StartCoroutine(AttackEnemy());
     }
     private void Update()
     {
         MoveEnemy();
-        AttackEnemy();
     }
+
     /// <summary>
     /// 기능 : 적 이동
     /// 성 넘어가면 오브젝트 비활성화
@@ -74,8 +81,6 @@ public class EnemyUnit : MonoBehaviour
         {
             return;
         }
-        //TODO : 공격 당하면 안움직임
-       
 
         transform.position += Vector3.left * moveSpeed * Time.deltaTime;
         //공격 대상에서 벗어남
@@ -103,16 +108,21 @@ public class EnemyUnit : MonoBehaviour
     /// <summary>
     /// 기능 : 적 공격
     /// </summary>
-    void AttackEnemy()
+    IEnumerator AttackEnemy()
     {
         //마공안하는 몹
         if (!IsAttack)
         { 
-            return;
+            yield break;
         }
-        // TODO : 마공 로직 추가, 마공은 몸박의 1.5배
 
-        //anim.SetBool("isAttack", true);
+        while (true)
+        {
+            yield return new WaitForSeconds(attackCollTime);
+            //공격 쿨타임이 됨
+            //마공은 몸박의 1.5배
+            anim.SetBool("isAttack", true);
+        }
     }
     /// <summary>
     /// 기능 : 몬스터 사망 처리
@@ -121,7 +131,7 @@ public class EnemyUnit : MonoBehaviour
     {
         anim.SetBool("isDie", true);
 
-        GameManager.Instance.CurrentMeso += Meso;
+        GameManager.Instance.CurrentMeso += (Meso*200);
         GameManager.Instance.CurrentExp += Exp;
         GameManager.Instance.CastleLevelUP();
         GameManager.Instance.ActiveUnitList.Remove(gameObject);
@@ -149,7 +159,8 @@ public class EnemyUnit : MonoBehaviour
 
             //피격 모션
             anim.SetBool("isHit", true);
-            Invoke("ReturnMoveMotion", 0.5f);
+            moveSpeed = 0;
+            Invoke("ReturnMoveMotion", 0.2f);
 
             //사망처리
             if (HP <= 0)
@@ -162,6 +173,7 @@ public class EnemyUnit : MonoBehaviour
     void ReturnMoveMotion()
     {
         anim.SetBool("isHit", false);
+        moveSpeed = 2;
     }
     /// <summary>
     /// 기능 : 몬스터 사라짐
