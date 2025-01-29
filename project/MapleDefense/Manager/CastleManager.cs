@@ -332,6 +332,9 @@ public class CastleManager : MonoBehaviour
     public void CloseGameOverUI()
     {
         gameOverUI.gameObject.SetActive(false);
+        GameManager.Instance.IsGamePlaying = false;
+        InitGameInfomation();
+        mainUI.SetActive(true);
     }
 
     public void SettingBGMVolume(Slider sl)
