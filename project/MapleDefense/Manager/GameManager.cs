@@ -43,8 +43,11 @@ public class GameManager : MonoBehaviour
     {
         Init();
         SettingRequireEXP();
-        PlayInitBGM();
         SkillLevelSetting();
+    }
+    private void Start()
+    {
+        PlayInitBGM();
     }
     /// <summary>
     /// 요구 경험치 세팅
@@ -64,7 +67,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void PlayInitBGM()
     {
-        SoundManager._sound.PlayBGM(0);
+        SoundManager._sound.PlayBGM(MainBGMIndex);
     }
     /// <summary>
     /// 기능 : 스킬 레벨 초기화
@@ -127,12 +130,20 @@ public class GameManager : MonoBehaviour
             CurrentStage += 1;
             AttackBetweenTime -= 0.01f;
             castleManager.ShowCastleHP();
-            backGroundManager.ChangeBackground();
-            //새 BGM 재생
-            SoundManager._sound.PlayBGM(CurrentStage/3);
+
+            //맵, BGM변화
+            if (CurrentStage % 4 == 0)
+            {
+                //맵 변경
+                backGroundManager.ChangeBackground();
+                //새 BGM 재생
+                SoundManager._sound.PlayBGM((CurrentStage-1) / 4);
+            }
         }
     }
     #region 데이터
+    const int _mainBGMIndex = 6;
+
     int _currentStage = 1;//현재 스테이지
     uint _currentExp = 0;//현재 경험치
     ulong _currentMeso = 0;//현재 메소
@@ -170,6 +181,7 @@ public class GameManager : MonoBehaviour
     public ulong[] MasteryPriceArray = new ulong[5];
     public ulong[] BoosterPriceArray = new ulong[8];
 
+    public int MainBGMIndex { get { return _mainBGMIndex; } }
     public int CurrentStage { get { return _currentStage; } set { _currentStage = value; } }
     public uint CurrentExp { get { return _currentExp; } set { _currentExp = value; } }
     public ulong CurrentMeso { get { return _currentMeso; } set { _currentMeso = value; } }
@@ -194,7 +206,7 @@ public class GameManager : MonoBehaviour
     public bool IsDie { get { return _isDie; } set { _isDie = value; } }
     public bool IsFighting { get; set; } = false;//전투중인가?
     public bool IsOpenUpgradeUI { get; set; } = false;//업그레이드 UI활성화 여부
-
+    public bool IsGamePlaying { get; set; } = false;//게임 진행 여부
     //소리 관련
     public float BGMVolume { get; set; } = 0.7f;
     public float SFXVolume { get; set; } = 0.7f;
