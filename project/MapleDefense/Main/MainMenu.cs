@@ -4,8 +4,12 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField]
+    CastleManager castleManager;
+
     void Awake()
     {
+        castleManager = GetComponent<CastleManager>();
         BindingButton();
     }
     /// <summary>
@@ -45,7 +49,14 @@ public class MainMenu : MonoBehaviour
     /// </summary>
     void GoGameStart()
     {
+        if(castleManager != null)
+        {
+            castleManager.InitSettingCastleValue();
+        }
+        
         GameManager.Instance.IsGamePlaying = true;
+        GameManager.Instance.IsDie = false;
+        GameManager.Instance.CurrentTurretList[0].gameObject.SetActive(true);
         SoundManager._sound.PlayBGM(0);
         this.gameObject.SetActive(false);
     }
