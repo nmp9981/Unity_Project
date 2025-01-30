@@ -165,7 +165,7 @@ public class CastleManager : MonoBehaviour
     /// <summary>
     /// 기능 : 초기 세팅
     /// </summary>
-    void InitSettingCastleValue()
+    public void InitSettingCastleValue()
     {
         //처음엔 풀피
         GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
@@ -179,7 +179,8 @@ public class CastleManager : MonoBehaviour
         expBarImage.fillAmount = 0;
 
         //터렛 개수는 1개
-        for(int turretIdx=1; turretIdx< GameManager.Instance.CurrentTurretList.Count;turretIdx++)
+        GameManager.Instance.CurrentTurretList[0].gameObject.SetActive(true);
+        for (int turretIdx=1; turretIdx< GameManager.Instance.CurrentTurretList.Count;turretIdx++)
         {
             GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(false);
         }
@@ -199,7 +200,7 @@ public class CastleManager : MonoBehaviour
     /// 게임 정보 초기화
     /// 테렛 개수, 돈, 스테이지 등 초기화
     /// </summary>
-    void InitGameInfomation()
+    public void InitGameInfomation()
     {
         GameManager.Instance.CurrentStage = 1;
         GameManager.Instance.CurrentMeso = 0;
@@ -215,8 +216,19 @@ public class CastleManager : MonoBehaviour
         {
             GameManager.Instance.CurrentSkillLvArray[i] = 1;
         }
+        foreach(var unit in GameManager.Instance.ActiveUnitList)
+        {
+            unit.gameObject.SetActive(false);
+        }
+        for (int turretIdx = 0; turretIdx < GameManager.Instance.CurrentTurretList.Count; turretIdx++)
+        {
+            GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(false);
+        }
+
         GameManager.Instance.ActiveUnitList.Clear();
-        GameManager.Instance.CurrentTurretList.Clear();
+
+        //성 정보 초기화 UI
+        InitSettingCastleValue();
     }
 
     /// <summary>
@@ -329,12 +341,16 @@ public class CastleManager : MonoBehaviour
             gameOverStageText.text = $"스테이지 : {GameManager.Instance.CurrentStage}";
         }
     }
+    /// <summary>
+    /// 게임 오버 후 메인으로 이동
+    /// </summary>
     public void CloseGameOverUI()
     {
+        InitGameInfomation();
+        SoundManager._sound.PlayBGM(GameManager.Instance.MainBGMIndex);
+        mainUI.SetActive(true);
         gameOverUI.gameObject.SetActive(false);
         GameManager.Instance.IsGamePlaying = false;
-        InitGameInfomation();
-        mainUI.SetActive(true);
     }
 
     public void SettingBGMVolume(Slider sl)
