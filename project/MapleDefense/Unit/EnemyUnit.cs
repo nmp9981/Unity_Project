@@ -35,6 +35,9 @@ public class EnemyUnit : MonoBehaviour
     [SerializeField]
     Image hpBar;
 
+    [SerializeField]
+    GameObject monsterBullet;
+
     public int FullHP;
     public int HP;
     public uint Exp;
@@ -116,12 +119,22 @@ public class EnemyUnit : MonoBehaviour
             yield break;
         }
 
+        yield return new WaitForSeconds(attackCollTime);
+        int attackDamage = Attack * 3 / 2;
+        int originDamage = Attack;
         while (true)
         {
-            yield return new WaitForSeconds(attackCollTime);
             //공격 쿨타임이 됨
             //마공은 몸박의 1.5배
             anim.SetBool("isAttack", true);
+            Attack = attackDamage;
+            //투사체 날리기
+            MonsterAttackThrowObject();
+
+            yield return new WaitForSeconds(attackCollTime*0.1f);
+            anim.SetBool("isAttack", false);
+            Attack = originDamage;
+            yield return new WaitForSeconds(attackCollTime);
         }
     }
     /// <summary>
@@ -160,7 +173,7 @@ public class EnemyUnit : MonoBehaviour
             //피격 모션
             anim.SetBool("isHit", true);
             moveSpeed = 0;
-            Invoke("ReturnMoveMotion", 0.2f);
+            Invoke("ReturnMoveMotion", 0.5f);
 
             //사망처리
             if (HP <= 0)
@@ -181,5 +194,18 @@ public class EnemyUnit : MonoBehaviour
     void EraseDieMonster()
     {
         gameObject.SetActive(false);
+    }
+    /// <summary>
+    /// 투사체 날리기
+    /// </summary>
+    void MonsterAttackThrowObject()
+    {
+        //투사체가 없음
+        if (monsterBullet == null)
+        {
+            return;
+        }
+
+
     }
 }
