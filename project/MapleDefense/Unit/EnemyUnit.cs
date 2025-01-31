@@ -154,7 +154,7 @@ public class EnemyUnit : MonoBehaviour
     {
         if (collision.tag.Contains("CastleEnter"))
         {
-            moveSpeed = 0;
+            //moveSpeed = 0;
             //피격 효과음
             SoundManager._sound.PlaySfx((int)SFXSound.CastleHit);
         }
@@ -205,7 +205,9 @@ public class EnemyUnit : MonoBehaviour
         {
             return;
         }
-
-
+        //투사체 발사 및 공격력 설정
+        GameObject monsterBulletObj = Instantiate(monsterBullet);
+        monsterBulletObj.transform.position = this.gameObject.transform.position;
+        monsterBulletObj.GetComponent<EnemyThrowObjectClass>().monsterBasicAttack = Attack;
     }
 }
