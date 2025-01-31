@@ -26,7 +26,7 @@ public class EnemyThrowObjectClass : MonoBehaviour
     }
     void MoveToCastle()
     {
-        transform.position = Vector3.MoveTowards(transform.position, targetCastle.position, Time.deltaTime * moveSpeed);
+        transform.position = Vector3.MoveTowards(transform.position, (targetCastle.position + 2*Vector3.down), Time.deltaTime * moveSpeed);
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
