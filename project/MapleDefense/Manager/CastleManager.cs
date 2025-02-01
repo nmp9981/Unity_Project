@@ -20,6 +20,10 @@ public class CastleManager : MonoBehaviour
     GameObject soundSettingUI;
     [SerializeField]
     GameObject mainUI;
+    [SerializeField]
+    BackGroundManager backGroundManager;
+    [SerializeField]
+    BuyItemAndSkill buyItemAndSkill;
 
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
@@ -167,6 +171,8 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     public void InitSettingCastleValue()
     {
+        //맵 초기화
+        backGroundManager.ChangeBackground();
         //처음엔 풀피
         GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
         
@@ -212,10 +218,6 @@ public class CastleManager : MonoBehaviour
         GameManager.Instance.CurrentTurretIndex = 1;
         GameManager.Instance.MaxTurretCount = 1;
 
-        for (int i = 0; i < 3; i++)
-        {
-            GameManager.Instance.CurrentSkillLvArray[i] = 1;
-        }
         foreach(var unit in GameManager.Instance.ActiveUnitList)
         {
             unit.gameObject.SetActive(false);
@@ -229,6 +231,12 @@ public class CastleManager : MonoBehaviour
 
         //성 정보 초기화 UI
         InitSettingCastleValue();
+        //스킬 정보 초기화
+        for (int i = 0; i < 3; i++)
+        {
+            GameManager.Instance.CurrentSkillLvArray[i] = 1;
+        }
+        buyItemAndSkill.InitSkillInfo();
     }
 
     /// <summary>
@@ -289,7 +297,7 @@ public class CastleManager : MonoBehaviour
             StartCoroutine(DecreaseCastleHP(collision));
         }
     }
-     IEnumerator DecreaseCastleHP(Collider2D collision)
+    IEnumerator DecreaseCastleHP(Collider2D collision)
     {
         GameManager.Instance.CurrentCastleHP -= collision.gameObject.GetComponent<EnemyUnit>().Attack;
         ShowCastleHP();
