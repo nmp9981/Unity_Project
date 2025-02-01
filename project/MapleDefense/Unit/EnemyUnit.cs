@@ -37,6 +37,8 @@ public class EnemyUnit : MonoBehaviour
 
     [SerializeField]
     GameObject monsterBullet;
+    [SerializeField]
+    Transform startShootPos;
 
     public int FullHP;
     public int HP;
@@ -128,7 +130,11 @@ public class EnemyUnit : MonoBehaviour
             //마공은 몸박의 1.5배
             anim.SetBool("isAttack", true);
             Attack = attackDamage;
-            //투사체 날리기
+
+            //투사체 날리기(anim 실행시간)
+            yield return new WaitForSeconds(0.1f);
+            float readyTime = anim.GetCurrentAnimatorStateInfo(0).length;
+            yield return new WaitForSeconds(readyTime);
             MonsterAttackThrowObject();
 
             yield return new WaitForSeconds(attackCollTime*0.1f);
@@ -162,18 +168,21 @@ public class EnemyUnit : MonoBehaviour
         {
             //HP감소
             ThrowObject throwObj = collision.gameObject.GetComponent<ThrowObject>();
-            int hitDamage = throwObj.Attack + throwObj.fromWeapon.weaponAttack;//무기+총알
-            HP -= hitDamage;
-            float hpRate = (float)HP / FullHP;
-            hpBar.fillAmount = hpRate;
+            if(throwObj != null)
+            {
+                int hitDamage = throwObj.Attack + throwObj.fromWeapon.weaponAttack;//무기+총알
+                HP -= hitDamage;
+                float hpRate = (float)HP / FullHP;
+                hpBar.fillAmount = hpRate;
 
-            //공격 효과음
-            SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
+                //공격 효과음
+                SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
 
-            //피격 모션
-            anim.SetBool("isHit", true);
-            moveSpeed = 0;
-            Invoke("ReturnMoveMotion", 0.5f);
+                //피격 모션
+                anim.SetBool("isHit", true);
+                moveSpeed = 0;
+                Invoke("ReturnMoveMotion", 0.5f);
+            }
 
             //사망처리
             if (HP <= 0)
@@ -207,7 +216,7 @@ public class EnemyUnit : MonoBehaviour
         }
         //투사체 발사 및 공격력 설정
         GameObject monsterBulletObj = Instantiate(monsterBullet);
-        monsterBulletObj.transform.position = this.gameObject.transform.position;
+        monsterBulletObj.transform.position = startShootPos.position;
         monsterBulletObj.GetComponent<EnemyThrowObjectClass>().monsterBasicAttack = Attack;
     }
 }
