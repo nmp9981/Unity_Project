@@ -32,6 +32,8 @@ public class BuyItemAndSkill : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI supportBuyComment;
 
+    CastleManager castleManager;
+
     Image curWeaponImage;
     uint curWeaponPrice;
     int curWeaponAttack;
@@ -53,8 +55,43 @@ public class BuyItemAndSkill : MonoBehaviour
 
     void Awake()
     {
+        castleManager = castleObj.GetComponent<CastleManager>();
         UpgradeButtonBinding();
     }
+    /// <summary>
+    /// 스킬 정보 초기화
+    /// </summary>
+    public void InitSkillInfo()
+    {
+        Debug.Log("여기는 간다");
+        foreach (Button btn in gameObject.GetComponentsInChildren<Button>(true))
+        {
+            string btnName = btn.gameObject.transform.parent.name;
+            if (btnName.Contains("Skill") && btnName != "Skill")
+            {
+                GameObject skillButton = btn.gameObject.transform.parent.gameObject;
+                string skillName = skillButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text;
+                switch (skillName)
+                {
+                    case "자벨린 부스터":
+                        skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = "500";
+                        skillButton.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = "Lv 1";
+                        break;
+                    case "자벨린 증축":
+                        skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = "3000";
+                        skillButton.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = "1개";
+                        break;
+                    case "체력 증가":
+                        skillButton.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = "1000";
+                        skillButton.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = "HP +500";
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// 모든 버튼 바인딩
     /// </summary>
@@ -315,6 +352,7 @@ public class BuyItemAndSkill : MonoBehaviour
 
     /// <summary>
     /// 기능 : 스킬 업 UI 정보 표시
+    /// 버튼을 눌렀을 때 반영되는 로직
     /// </summary>
     void DrawSkillUPButton(GameObject skillButton)
     {
@@ -462,6 +500,9 @@ public class BuyItemAndSkill : MonoBehaviour
     {
         GameManager.Instance.FullCastleHP += GameManager.Instance.IncreaseCastleHP[lv];
         GameManager.Instance.CurrentCastleHP += GameManager.Instance.IncreaseCastleHP[lv];
+
+        //HP 표시
+        castleManager.ShowCastleHP();
     }
     #endregion
 
@@ -494,11 +535,12 @@ public class BuyItemAndSkill : MonoBehaviour
         if (GameManager.Instance.CurrentMeso >= curSupportPrice)
         {
             GameManager.Instance.CurrentMeso -= curSupportPrice;
-
+            //소환 효과음
+            SoundManager._sound.PlaySfx((int)SFXSound.SupporterSpawn);
             //몬스터 소환
             GameManager.Instance.CurrentSupportIndex = curSupportIndex;
-            GameObject supportObject = objectFulling.MakeObj(GameManager.Instance.CurrentSupportIndex);
-            supportObject.transform.position = castleEntrancePosition.position;
+            GameObject supportObject = objectFulling.MakeSupportsObj(GameManager.Instance.CurrentSupportIndex);
+            supportObject.transform.position = castleEntrancePosition.position - Vector3.up;
             buySupportPopUP.SetActive(false);
         }
         else
