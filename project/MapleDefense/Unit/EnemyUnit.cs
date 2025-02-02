@@ -171,24 +171,32 @@ public class EnemyUnit : MonoBehaviour
             if(throwObj != null)
             {
                 int hitDamage = throwObj.Attack + throwObj.fromWeapon.weaponAttack;//무기+총알
-                HP -= hitDamage;
-                float hpRate = (float)HP / FullHP;
-                hpBar.fillAmount = hpRate;
-
-                //공격 효과음
-                SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
-
-                //피격 모션
-                anim.SetBool("isHit", true);
-                moveSpeed = 0;
-                Invoke("ReturnMoveMotion", 0.5f);
+                DecreaseEnemyUnitHP(hitDamage);
             }
+        }
+    }
+    /// <summary>
+    /// HP 감소
+    /// </summary>
+    /// <param name="hitDamage">피격 데미지</param>
+    public void DecreaseEnemyUnitHP(int hitDamage)
+    {
+        HP -= hitDamage;
+        float hpRate = (float)HP / FullHP;
+        hpBar.fillAmount = hpRate;
 
-            //사망처리
-            if (HP <= 0)
-            {
-                DieMonster();
-            }
+        //공격 효과음
+        SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
+
+        //피격 모션
+        anim.SetBool("isHit", true);
+        moveSpeed = 0;
+        Invoke("ReturnMoveMotion", 0.5f);
+
+        //사망처리
+        if (HP <= 0)
+        {
+            DieMonster();
         }
     }
 
