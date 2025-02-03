@@ -4,14 +4,14 @@ using UnityEngine;
 public class ObjectFulling : MonoBehaviour
 {
     //프리팹 준비
-    const int monsterMaxCount = 25;//각 오브젝트 개수
-    const int monsterKinds = 12;//종류 개수
+    const int monsterMaxCount = 35;//각 오브젝트 개수
+    const int monsterKinds = 21;//종류 개수
     
-    const int throwMaxCount = 35;
+    const int throwMaxCount = 45;
     const int throwKinds = 12;
     
     const int supportMaxCount = 20;
-    const int supportKinds = 4;
+    const int supportKinds = 12;
     //몬스터 프리팹
     public GameObject[] monsterPrefabs;
     //투사체 프리팹
@@ -44,6 +44,12 @@ public class ObjectFulling : MonoBehaviour
               new GameObject[monsterMaxCount],
                new GameObject[monsterMaxCount],
               new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount], new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount], new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount], new GameObject[monsterMaxCount],
+              new GameObject[monsterMaxCount],
               new GameObject[monsterMaxCount]
         };
 
@@ -66,6 +72,12 @@ public class ObjectFulling : MonoBehaviour
         supports = new GameObject[supportKinds][]
         {
             new GameObject[supportMaxCount],
+             new GameObject[supportMaxCount],
+              new GameObject[supportMaxCount],
+               new GameObject[supportMaxCount],new GameObject[supportMaxCount],
+             new GameObject[supportMaxCount],
+              new GameObject[supportMaxCount],
+               new GameObject[supportMaxCount],new GameObject[supportMaxCount],
              new GameObject[supportMaxCount],
               new GameObject[supportMaxCount],
                new GameObject[supportMaxCount]
