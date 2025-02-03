@@ -541,6 +541,8 @@ public class BuyItemAndSkill : MonoBehaviour
             GameManager.Instance.CurrentSupportIndex = curSupportIndex;
             GameObject supportObject = objectFulling.MakeSupportsObj(GameManager.Instance.CurrentSupportIndex);
             supportObject.transform.position = castleEntrancePosition.position - Vector3.up;
+            //z좌표 0으로
+            supportObject.transform.position = new Vector3(supportObject.transform.position.x, supportObject.transform.position.y, 0);
             buySupportPopUP.SetActive(false);
         }
         else
