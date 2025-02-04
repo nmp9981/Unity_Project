@@ -41,7 +41,7 @@ public class SupporterThrowObjectClass : MonoBehaviour
     /// <param name="throwAttack">투사체 공격력</param>
     void DecreaseCastleHP(int throwAttack, EnemyUnit enemy)
     {
-        enemy.HP -= throwAttack;
+        enemy.DecreaseEnemyUnitHP(throwAttack);
         Destroy(this.gameObject);
     }
 }
