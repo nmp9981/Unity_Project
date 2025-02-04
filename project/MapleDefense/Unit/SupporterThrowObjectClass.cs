@@ -20,6 +20,10 @@ public class SupporterThrowObjectClass : MonoBehaviour
     void MoveToCastle()
     {
         transform.position += Vector3.right*moveSpeed*Time.deltaTime;
+        if (transform.position.x > 10)
+        {
+            Destroy(this.gameObject);
+        }
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
