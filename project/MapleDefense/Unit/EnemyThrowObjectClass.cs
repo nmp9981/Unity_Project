@@ -36,15 +36,32 @@ public class EnemyThrowObjectClass : MonoBehaviour
             SoundManager._sound.PlaySfx((int)SFXSound.CastleHit);
             DecreaseCastleHP(monsterBasicAttack);
         }
+        if (collision.tag.Contains("Support"))
+        {
+            //피격 효과음
+            SoundManager._sound.PlaySfx((int)SFXSound.CastleHit);
+            SupporterUnit supporterUnit = collision.GetComponent<SupporterUnit>();
+            DecreaseSupporterHP(monsterBasicAttack, supporterUnit);
+        }
     }
     /// <summary>
-    /// HP 감소
+    /// 성 HP 감소
     /// </summary>
     /// <param name="monsterAttack">몬스터 공격력</param>
     void DecreaseCastleHP(int monsterAttack)
     {
         GameManager.Instance.CurrentCastleHP -= (monsterAttack * 3 / 2);
         castleManager.ShowCastleHP();
+        Destroy(this.gameObject);
+    }
+    /// <summary>
+    /// 소환수 HP 감소
+    /// </summary>
+    /// <param name="monsterAttack">몬스터 공격력</param>
+    void DecreaseSupporterHP(int monsterAttack,SupporterUnit supporterUnit)
+    {
+        int monsterMagicAttack = (monsterAttack * 3 / 2);
+        supporterUnit.DecreaseSupportHP(monsterMagicAttack);
         Destroy(this.gameObject);
     }
 }
