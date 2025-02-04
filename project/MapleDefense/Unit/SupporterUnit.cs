@@ -24,7 +24,7 @@ public class SupporterUnit : MonoBehaviour
     [SerializeField]
     float fullSupportHP;
     [SerializeField]
-    float currentSupportHP;
+    public float currentSupportHP;
 
     [SerializeField]
     public int supportAttack;
@@ -182,18 +182,12 @@ public class SupporterUnit : MonoBehaviour
             {
                 DecreaseEnemyHP(enemyUnit);
             }
-            
-            //소환수 HP감소
-            DecreaseSupportHP(enemyUnit);
 
-            //사망처리
-            if (currentSupportHP <= 0)
-            {
-                gameObject.SetActive(false);
-            }
+            //소환수 HP감소
+            int enemtHitDamage = enemyUnit.Attack;
+            DecreaseSupportHP(enemtHitDamage);
         }
     }
-
     
     /// <summary>
     /// 적 HP감소
@@ -209,14 +203,27 @@ public class SupporterUnit : MonoBehaviour
     /// <summary>
     /// 소환수 HP감소
     /// </summary>
-    void DecreaseSupportHP(EnemyUnit enemyUnit)
+    public void DecreaseSupportHP(int enemtHitDamage)
     {
         if(noHitDamageCurrentTime >= notHitDamageTime)
         {
-            currentSupportHP -= enemyUnit.Attack;
+            currentSupportHP -= enemtHitDamage;
             float hpRate = (float)currentSupportHP / fullSupportHP;
             hpBar.fillAmount = hpRate;
             noHitDamageCurrentTime = 0;
+
+            //사망 처리
+            DieSupporter();
+        }
+    }
+    /// <summary>
+    /// 소환수 사망
+    /// </summary>
+    public void DieSupporter()
+    {
+        if (currentSupportHP <= 0)
+        {
+            gameObject.SetActive(false);
         }
     }
     /// <summary>
