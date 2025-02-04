@@ -62,7 +62,6 @@ public class SupporterUnit : MonoBehaviour
     void Update()
     {
         MoveSupportUnit();
-        InspectEnemy();
         TimeFlow();
     }
     /// <summary>
@@ -117,25 +116,17 @@ public class SupporterUnit : MonoBehaviour
     /// </summary>
     void InspectEnemy()
     {
-        //RayCast로 물체 인식
-        RaycastHit2D rayHitObj = Physics2D.Raycast(transform.position, transform.right, rayInspectDist);
-        Debug.DrawRay(transform.position, transform.right * rayInspectDist, Color.red, 10);
-        if (rayHitObj)
+        foreach(var mob in GameManager.Instance.ActiveUnitList)
         {
-            //적일 경우
-            if (rayHitObj.collider.gameObject.CompareTag("Enemy"))
+            float dist = (mob.transform.position - gameObject.transform.position).sqrMagnitude;
+
+            if(dist < rayInspectDist* rayInspectDist)
             {
                 isFighting = true;
-            }
-            else
-            {
-                isFighting = false;
+                return;
             }
         }
-        else
-        {
-            isFighting = false;
-        }
+        isFighting = false;
     }
    
     /// <summary>
@@ -143,28 +134,25 @@ public class SupporterUnit : MonoBehaviour
     /// </summary>
     IEnumerator SupporterAttack()
     {
-        //전투중이 아님
-        if (!isFighting)
-        {
-            yield break;
-        }
-
-        yield return new WaitForSeconds(supportAttackSpeed);
-       
         while (true)
         {
-            //공격 쿨타임이 됨
-            anim.SetBool("isAttack", true);
-            
-            //투사체 날리기(anim 실행시간)
-            yield return new WaitForSeconds(0.1f);
-            float readyTime = anim.GetCurrentAnimatorStateInfo(0).length;
-            yield return new WaitForSeconds(readyTime);
-            SupporterAttackThrowObject();
+            //적 인식
+            InspectEnemy();
+            //전투중일때
+            if (isFighting)
+            {
+                //공격 쿨타임이 됨
+                anim.SetBool("isAttack", true);
 
-            yield return new WaitForSeconds(supportAttackSpeed * 0.1f);
-            anim.SetBool("isAttack", false);
-            yield return new WaitForSeconds(supportAttackSpeed);
+                //투사체 날리기(anim 실행시간)
+                float readyTime = anim.GetCurrentAnimatorStateInfo(0).length;
+                yield return new WaitForSeconds(readyTime);
+                SupporterAttackThrowObject();
+
+                yield return new WaitForSeconds(supportAttackSpeed * 0.1f);
+                anim.SetBool("isAttack", false);
+            }
+            yield return new WaitForSeconds(supportAttackSpeed*0.1f);
         }
     }
     /// <summary>
