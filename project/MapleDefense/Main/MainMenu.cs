@@ -7,6 +7,9 @@ public class MainMenu : MonoBehaviour
     [SerializeField]
     CastleManager castleManager;
 
+    [SerializeField]
+    LoadingManager loadingManager;
+
     void Awake()
     {
         castleManager = GetComponent<CastleManager>();
@@ -51,9 +54,14 @@ public class MainMenu : MonoBehaviour
     {
         if(castleManager != null)
         {
-            castleManager.InitSettingCastleValue();
+            loadingManager.LoadingPrograssBar();//로딩창
+            castleManager.InitGameInfomation();
         }
-        
+
+        //활성화
+        castleManager.monsterEntranceObj.SetActive(true);
+        castleManager.gameObject.SetActive(true);
+
         GameManager.Instance.IsGamePlaying = true;
         GameManager.Instance.IsDie = false;
         GameManager.Instance.CurrentTurretList[0].gameObject.SetActive(true);
