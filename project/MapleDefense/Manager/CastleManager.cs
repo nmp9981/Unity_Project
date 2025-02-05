@@ -204,10 +204,11 @@ public class CastleManager : MonoBehaviour
     }
     /// <summary>
     /// 게임 정보 초기화
-    /// 테렛 개수, 돈, 스테이지 등 초기화
+    /// 테렛 개수, 돈, 스테이지, 소환수 등 초기화
     /// </summary>
     public void InitGameInfomation()
     {
+        //성 정보 초기화
         GameManager.Instance.CurrentStage = 1;
         GameManager.Instance.CurrentMeso = 0;
         GameManager.Instance.CurrentExp = 0;
@@ -215,10 +216,14 @@ public class CastleManager : MonoBehaviour
         GameManager.Instance.FullCastleHP = 900;
         GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
 
+        //터렛 초기화
         GameManager.Instance.CurrentTurretIndex = 1;
         GameManager.Instance.MaxTurretCount = 1;
 
-        foreach(var unit in GameManager.Instance.ActiveUnitList)
+        //표창 초기화
+        GameManager.Instance.CurrentThrowIndex = 0;
+
+        foreach (var unit in GameManager.Instance.ActiveUnitList)
         {
             unit.gameObject.SetActive(false);
         }
@@ -228,6 +233,13 @@ public class CastleManager : MonoBehaviour
         }
 
         GameManager.Instance.ActiveUnitList.Clear();
+
+        //소환수 정보 초기화
+        foreach(var unit in GameManager.Instance.ActiveSupportUnitList)
+        {
+            unit.gameObject.SetActive(false);
+        }
+        GameManager.Instance.ActiveSupportUnitList.Clear();
 
         //성 정보 초기화 UI
         InitSettingCastleValue();
