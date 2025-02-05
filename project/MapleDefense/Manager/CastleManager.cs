@@ -25,6 +25,9 @@ public class CastleManager : MonoBehaviour
     [SerializeField]
     BuyItemAndSkill buyItemAndSkill;
 
+    [SerializeField]
+    LoadingManager loadingManager;
+
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
     TextMeshProUGUI mesoText;
@@ -197,6 +200,7 @@ public class CastleManager : MonoBehaviour
     void ReturnMainMenu()
     {
         InitGameInfomation();
+        loadingManager.LoadingPrograssBar();//로딩창
         SoundManager._sound.PlayBGM(GameManager.Instance.MainBGMIndex);
         mainUI.SetActive(true);
         GameManager.Instance.IsGamePlaying = false;
@@ -367,6 +371,7 @@ public class CastleManager : MonoBehaviour
     public void CloseGameOverUI()
     {
         InitGameInfomation();
+        loadingManager.LoadingPrograssBar();//로딩창
         SoundManager._sound.PlayBGM(GameManager.Instance.MainBGMIndex);
         mainUI.SetActive(true);
         gameOverUI.gameObject.SetActive(false);
