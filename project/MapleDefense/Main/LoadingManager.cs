@@ -18,13 +18,9 @@ public class LoadingManager : MonoBehaviour
         loadingObj.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (loadingObj.activeSelf)
-        {
-            loadingTime += Time.deltaTime;
-        }
+        GageFill();
     }
     /// <summary>
     /// 로딩창 On
@@ -35,14 +31,22 @@ public class LoadingManager : MonoBehaviour
         loadingText.text = "0%";
         loadingBar.fillAmount = 0;
         loadingObj.SetActive(true);
-
-        //로딩바 채우기
-        float loadingRate = Mathf.Min(1,loadingTime/ 5f);
-        loadingBar.fillAmount = loadingRate;
-        loadingText.text = $"{Mathf.Round(loadingRate*100)}%";
-
+        Debug.Log(loadingTime);
+       
         Invoke("LoadingUIOff", 5f);
     }
+    /// <summary>
+    /// 게이지 채우기
+    /// </summary>
+    void GageFill()
+    {
+        loadingTime += Time.deltaTime;
+        //로딩바 채우기
+        float loadingRate = Mathf.Min(1, loadingTime / 4.5f);
+        loadingBar.fillAmount = loadingRate;
+        loadingText.text = $"{Mathf.Round(loadingRate * 100)}%";
+    }
+
     /// <summary>
     /// 로딩창 Off
     /// </summary>
