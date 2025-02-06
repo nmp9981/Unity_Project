@@ -47,6 +47,9 @@ public class EnemyUnit : MonoBehaviour
     public ulong Meso;
     public bool IsAttack;//마공 여부
 
+    private int notAttackDamage;
+    private int AttackDamage;
+
     Animator anim;
 
     float moveSpeed = 2f;
@@ -57,6 +60,8 @@ public class EnemyUnit : MonoBehaviour
     private void Awake()
     {
         anim = gameObject.GetComponent<Animator>();
+        notAttackDamage = Attack;
+        AttackDamage = (Attack * 3) / 2;
         anim.SetBool("isDie", false);
         anim.SetBool("isHit", false);
     }
@@ -122,8 +127,8 @@ public class EnemyUnit : MonoBehaviour
         }
 
         yield return new WaitForSeconds(attackCollTime);
-        int attackDamage = Attack * 3 / 2;
-        int originDamage = Attack;
+        int attackDamage = AttackDamage;
+        int originDamage = notAttackDamage;
         while (true)
         {
             //공격 쿨타임이 됨
@@ -135,9 +140,9 @@ public class EnemyUnit : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             float readyTime = anim.GetCurrentAnimatorStateInfo(0).length;
             yield return new WaitForSeconds(readyTime);
-            MonsterAttackThrowObject();
+            MonsterAttackThrowObject(originDamage);
 
-            yield return new WaitForSeconds(attackCollTime*0.1f);
+            yield return new WaitForSeconds(attackCollTime*0.5f);
             anim.SetBool("isAttack", false);
             Attack = originDamage;
             yield return new WaitForSeconds(attackCollTime);
@@ -150,7 +155,7 @@ public class EnemyUnit : MonoBehaviour
     {
         anim.SetBool("isDie", true);
 
-        GameManager.Instance.CurrentMeso += (Meso*200);
+        GameManager.Instance.CurrentMeso += Meso;
         GameManager.Instance.CurrentExp += Exp;
         GameManager.Instance.CastleLevelUP();
         GameManager.Instance.ActiveUnitList.Remove(gameObject);
@@ -215,7 +220,7 @@ public class EnemyUnit : MonoBehaviour
     /// <summary>
     /// 투사체 날리기
     /// </summary>
-    void MonsterAttackThrowObject()
+    void MonsterAttackThrowObject(int originDamage)
     {
         //투사체가 없음
         if (monsterBullet == null)
@@ -225,6 +230,6 @@ public class EnemyUnit : MonoBehaviour
         //투사체 발사 및 공격력 설정
         GameObject monsterBulletObj = Instantiate(monsterBullet);
         monsterBulletObj.transform.position = startShootPos.position;
-        monsterBulletObj.GetComponent<EnemyThrowObjectClass>().monsterBasicAttack = Attack;
+        monsterBulletObj.GetComponent<EnemyThrowObjectClass>().monsterBasicAttack = originDamage;
     }
 }
