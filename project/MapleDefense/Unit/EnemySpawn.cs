@@ -20,8 +20,8 @@ public class EnemySpawn : MonoBehaviour
     {
         while (true)
         {
-            //업그레이드 UI창 비활성화 일때
-            if (!GameManager.Instance.IsOpenUpgradeUI)
+            //업그레이드 UI창 비활성화, 게임중
+            if (!GameManager.Instance.IsOpenUpgradeUI && GameManager.Instance.IsGamePlaying)
             {
                 //어떤 적을 소환할지
                 int mobNum = SetSpawnEnemy();
@@ -39,7 +39,8 @@ public class EnemySpawn : MonoBehaviour
     /// <returns></returns>
     int SetSpawnEnemy()
     {
-        int mobNum = Random.Range(GameManager.Instance.CurrentStage-1, GameManager.Instance.CurrentStage + 1);
+        int mobNum = (GameManager.Instance.CurrentStage+ Random.Range(1,6))/4;
+        mobNum = Mathf.Min(20, mobNum);
         return mobNum;
     }
 }
