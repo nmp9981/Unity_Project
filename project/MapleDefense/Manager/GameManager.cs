@@ -54,12 +54,22 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void SettingRequireEXP()
     {
-        RequireStageUPExp = new uint[33];
+        RequireStageUPExp = new uint[201];
         RequireStageUPExp[0] = 0;
+        RequireStageUPExp[1] = 5;
+        RequireStageUPExp[2] = 10;
 
-        for(int i = 1; i < 32; i++)
+        for (int i = 3; i < RequireStageUPExp.Length; i++)
         {
-            RequireStageUPExp[i] = (uint)(i * i * 10);
+            if (i < 35)
+            {
+                RequireStageUPExp[i] = (uint)(i * (i - 2) * 5);
+            }
+            else
+            {
+                RequireStageUPExp[i] = (uint)(RequireStageUPExp[i-1]*108/100);
+            }
+            
         }
     }
     /// <summary>
@@ -69,6 +79,7 @@ public class GameManager : MonoBehaviour
     {
         SoundManager._sound.PlayBGM(MainBGMIndex);
     }
+    
     /// <summary>
     /// 기능 : 스킬 레벨 초기화
     /// </summary>
@@ -128,27 +139,26 @@ public class GameManager : MonoBehaviour
             FullCastleHP += 50;
             CurrentCastleHP = FullCastleHP;
             CurrentStage += 1;
-            AttackBetweenTime -= 0.01f;
             castleManager.ShowCastleHP();
 
             //맵, BGM변화
-            if (CurrentStage % 4 == 0)
+            if (CurrentStage % 7 == 0 && CurrentStage<=80)
             {
                 //맵 변경
                 backGroundManager.ChangeBackground();
                 //새 BGM 재생
-                SoundManager._sound.PlayBGM((CurrentStage-1) / 4);
+                SoundManager._sound.PlayBGM(Mathf.Min(6,(CurrentStage-1) / 7));
             }
         }
     }
     #region 데이터
     const int _mainBGMIndex = 6;
 
-    int _currentStage = 1;//현재 스테이지
+    int _currentStage = 34;//현재 스테이지
     uint _currentExp = 0;//현재 경험치
-    ulong _currentMeso = 0;//현재 메소
+    ulong _currentMeso = 100000000;//현재 메소
     int _currentCastleHP = 900;//현재 성의 체력
-    int _fullCastleHP = 900;//성의 최대 HP
+    int _fullCastleHP = 9000000;//성의 최대 HP
 
     int _curTurretCount = 1;//현재 터렛 개수
     int _maxTurretCount = 1;//최대 터렛 개수
@@ -172,6 +182,7 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> ActiveUnitList = new List<GameObject>();//필드에 활성화된 몬스터
     public List<CastleAttack> CurrentTurretList = new List<CastleAttack>();//필드에 활성화된 설치기
+    public List<GameObject> ActiveSupportUnitList = new List<GameObject>();//필드에 활성화된 소환수
 
     //스킬레벨 관리
     public int[] CurrentSkillLvArray = new int[3];
