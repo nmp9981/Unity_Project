@@ -1,0 +1,126 @@
+public Mesh mesh;
+
+MeshFilter meshFilter;
+MeshRenderer meshRenderer;
+
+List<Vector3> vertices = new List<Vector3>();
+List<Vector2> uvs = new List<Vector2>();
+List<Vector3> normals = new List<Vector3>();
+List<int> triangles = new List<int>();
+
+private void Awake()
+{
+    meshFilter = GetComponent<MeshFilter>();
+    meshRenderer = GetComponent<MeshRenderer>();
+}
+void Start()
+{
+    MakeCylinder();
+}
+   
+
+void MakeCylinder()
+{
+    mesh = new Mesh();
+    //실린더 크기
+    int radius = 2;
+    int height = 8;
+    int segments = 8;
+
+    //높이
+    float top = height * 0.5f;
+    float bottom = -height * 0.5f;
+
+    //측면 정점 설정
+    GenerateCap(segments + 1, top, bottom, radius, vertices, uvs, normals, true);
+
+    //위와 아래를 이어서 측면 구성
+    int len = 2 * (segments + 1);
+    for (int i = 0; i < segments+1; i++)
+    {
+        //측면은 직사각형의 집합
+        //각 정점 인덱스 설정
+        int index = 2 * i;
+        int a = index;
+        int b = index + 1;
+        int c = (index + 2)%len;
+        int d = (index + 3)%len;
+
+        //삼각형 1
+        triangles.Add(b);
+        triangles.Add(a);
+        triangles.Add(c);
+        //삼각형2
+        triangles.Add(b);
+        triangles.Add(c);
+        triangles.Add(d);
+    }
+
+    //메시 인스턴스 설정
+    mesh.vertices = vertices.ToArray();
+    mesh.uv = uvs.ToArray();
+    mesh.normals = normals.ToArray();
+    mesh.triangles = triangles.ToArray();
+
+    //만들어진 메시의 경계영역 계산(culling에 필요)
+    mesh.RecalculateBounds();
+    //삼각면과 정점으로부터 메쉬 노멀 재계산
+    mesh.RecalculateNormals();
+
+    //메시필터로 만든 메시 그리기
+    meshFilter.mesh = mesh;
+}
+
+/// <summary>
+/// 측면 정점 데이터 생성
+/// </summary>
+/// <param name="segments"></param>
+/// <param name="top"></param>
+/// <param name="bottom"></param>
+/// <param name="radius"></param>
+/// <param name="vertices"></param>
+/// <param name="uvs"></param>
+/// <param name="normals"></param>
+/// <param name="side"></param>
+void GenerateCap(int segments, float top, float bottom, float radius,
+        List<Vector3> vertices, List<Vector2> uvs, List<Vector3> normals, bool side)
+{
+    //n각형 구성
+    for (int i = 0; i < segments; i++)
+    {
+        //각도 비율(0~2PI)
+        float ratio = (float)i / (segments - 1);
+        float rad = 2*Mathf.PI * ratio;//2PI
+
+        //정점 위치
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        float x = radius * cos;
+        float z = radius * sin;
+        Vector3 tp = new Vector3(x, top, z);
+        Vector3 bp = new Vector3(x, bottom, z);
+
+        //정점 등록
+        vertices.Add(tp);
+        uvs.Add(new Vector2(ratio, 1));
+
+        vertices.Add(bp);
+        uvs.Add(new Vector2(ratio, 0));
+
+        //뚜껑여부에 따른 법선 벡터
+        if (side)
+        {
+            //측면
+            //층면의 바깥쪽을 향하는 법선
+            var normal = new Vector3(cos, 0f, sin);
+            normals.Add(normal);
+            normals.Add(normal);
+        }
+        else
+        {
+            //뚜껑
+            normals.Add(new Vector3(0, 1, 0));//위 방향
+            normals.Add(new Vector3(0, -1, 0));//아래 방향
+        }
+    }
+}
