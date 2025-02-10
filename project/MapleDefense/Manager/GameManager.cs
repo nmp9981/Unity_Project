@@ -69,7 +69,6 @@ public class GameManager : MonoBehaviour
             {
                 RequireStageUPExp[i] = (uint)(RequireStageUPExp[i-1]*108/100);
             }
-            
         }
     }
     /// <summary>
@@ -135,6 +134,12 @@ public class GameManager : MonoBehaviour
     {
         if(CurrentExp >= RequireStageUPExp[CurrentStage])
         {
+            //최고 스테이지 클리어
+            if (CurrentStage + 1 > MaxStage)
+            {
+                castleManager.OpenVictoryUI();
+                return;
+            }
             CurrentExp -= RequireStageUPExp[CurrentStage];
             FullCastleHP += 50;
             CurrentCastleHP = FullCastleHP;
@@ -142,23 +147,24 @@ public class GameManager : MonoBehaviour
             castleManager.ShowCastleHP();
 
             //맵, BGM변화
-            if (CurrentStage % 7 == 0 && CurrentStage<=80)
+            if (CurrentStage % 7 == 0 && CurrentStage<=MaxStage)
             {
                 //맵 변경
                 backGroundManager.ChangeBackground();
                 //새 BGM 재생
-                SoundManager._sound.PlayBGM(Mathf.Min(6,(CurrentStage-1) / 7));
+                SoundManager._sound.PlayBGM(Mathf.Min(14,(CurrentStage-1) / 7));
             }
         }
     }
     #region 데이터
     const int _mainBGMIndex = 6;
+    const int _maxStage = 100;
 
-    int _currentStage = 34;//현재 스테이지
+    int _currentStage = 90;//현재 스테이지
     uint _currentExp = 0;//현재 경험치
-    ulong _currentMeso = 100000000;//현재 메소
+    ulong _currentMeso = 223267748;//현재 메소
     int _currentCastleHP = 900;//현재 성의 체력
-    int _fullCastleHP = 9000000;//성의 최대 HP
+    int _fullCastleHP = 3000000;//성의 최대 HP
 
     int _curTurretCount = 1;//현재 터렛 개수
     int _maxTurretCount = 1;//최대 터렛 개수
@@ -193,6 +199,8 @@ public class GameManager : MonoBehaviour
     public ulong[] BoosterPriceArray = new ulong[8];
 
     public int MainBGMIndex { get { return _mainBGMIndex; } }
+    public int MaxStage {  get { return _maxStage; } }
+
     public int CurrentStage { get { return _currentStage; } set { _currentStage = value; } }
     public uint CurrentExp { get { return _currentExp; } set { _currentExp = value; } }
     public ulong CurrentMeso { get { return _currentMeso; } set { _currentMeso = value; } }
