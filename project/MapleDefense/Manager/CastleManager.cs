@@ -13,9 +13,11 @@ public class CastleManager : MonoBehaviour
     [SerializeField]
     GameObject upgradeUI;
     [SerializeField]
-    GameObject monsterEntranceObj;
+    public GameObject monsterEntranceObj;
     [SerializeField]
     GameObject gameOverUI;
+    [SerializeField]
+    GameObject victoryUI;
     [SerializeField]
     GameObject soundSettingUI;
     [SerializeField]
@@ -130,6 +132,9 @@ public class CastleManager : MonoBehaviour
                 case "ReturnMenu":
                     btn.onClick.AddListener(ReturnMainMenu);
                     break;
+                case "CloseVictoryUI":
+                    btn.onClick.AddListener(ReturnMainMenu);
+                    break;
                 case "CloseUnitUpgrade":
                     btn.onClick.AddListener(CloseUnitUpgradeButton);
                     break;
@@ -199,12 +204,15 @@ public class CastleManager : MonoBehaviour
     /// </summary>
     void ReturnMainMenu()
     {
-        InitGameInfomation();
         loadingManager.LoadingPrograssBar();//로딩창
+        InitGameInfomation();
         SoundManager._sound.PlayBGM(GameManager.Instance.MainBGMIndex);
         mainUI.SetActive(true);
         GameManager.Instance.IsGamePlaying = false;
-
+        //비활성화
+        //gameObject.SetActive(false);
+        monsterEntranceObj.SetActive(false);
+        victoryUI.SetActive(false);
     }
     /// <summary>
     /// 게임 정보 초기화
@@ -350,7 +358,7 @@ public class CastleManager : MonoBehaviour
     {
         stageText.text = $"Stage {GameManager.Instance.CurrentStage}";
     }
-
+    
     /// <summary>
     /// 기능 : 사망 판정
     /// </summary>
@@ -362,9 +370,75 @@ public class CastleManager : MonoBehaviour
             GameManager.Instance.IsDie = true;
             gameOverUI.gameObject.SetActive(true);
             //기록 처리
-            gameOverStageText.text = $"스테이지 : {GameManager.Instance.CurrentStage}";
+            float score = Mathf.Round(100*(float)GameManager.Instance.CurrentStage / GameManager.Instance.MaxStage);
+            gameOverStageText.text = $"스테이지 : {GameManager.Instance.CurrentStage}\n성취도 : {score}\n등급 : {Grade(score)}";
         }
     }
+    /// <summary>
+    /// 등급 판정
+    /// </summary>
+    /// <param name="score">점수</param>
+    /// <returns></returns>
+    string Grade(float score)
+    {
+        if (score >= 96)
+        {
+            return "Challenger";
+        }
+        if (score >= 88)
+        {
+            return "Master";
+        }
+        if (score >= 82)
+        {
+            return "Ruby";
+        }
+        if (score >= 77)
+        {
+            return "Diamond";
+        }
+        if (score >= 67)
+        {
+            return "Emerald";
+        }
+        if (score >= 60)
+        {
+            return "Platinum";
+        }
+        if (score >= 50)
+        {
+            return "Gold";
+        }
+        if (score >= 40)
+        {
+            return "Silver";
+        }
+        if (score >= 32)
+        {
+            return "Bronze";
+        }
+        if (score >= 25)
+        {
+            return "Iron";
+        }
+        if (score >= 18)
+        {
+            return "Stone";
+        }
+        if (score >= 9)
+        {
+            return "Wood";
+        }
+        return "Unrank";
+    }
+    /// <summary>
+    /// 승리 UI열기
+    /// </summary>
+    public void OpenVictoryUI()
+    {
+        victoryUI.gameObject.SetActive(true);
+    }
+
     /// <summary>
     /// 게임 오버 후 메인으로 이동
     /// </summary>
@@ -376,6 +450,9 @@ public class CastleManager : MonoBehaviour
         mainUI.SetActive(true);
         gameOverUI.gameObject.SetActive(false);
         GameManager.Instance.IsGamePlaying = false;
+        //비활성화
+        //gameObject.SetActive(false);
+        monsterEntranceObj.SetActive(false);
     }
 
     public void SettingBGMVolume(Slider sl)
