@@ -57,6 +57,9 @@ public class EnemyUnit : MonoBehaviour
     //공격 관련 변수
     float attackCollTime;
 
+    //사망 변수
+    int monsterDieCount = 0;
+
     private void Awake()
     {
         anim = gameObject.GetComponent<Animator>();
@@ -68,9 +71,12 @@ public class EnemyUnit : MonoBehaviour
     private void OnEnable()
     {
         //EnemyInfo enemy = new EnemyInfo(dp,10,10,10);
+        monsterDieCount = 0;
         HP = FullHP;
         hpBar.fillAmount = 1f;
         attackCollTime = Random.Range(250, 400)*0.01f;//쿨타임 설정
+        anim.SetBool("isDie", false);
+        anim.SetBool("isHit", false);
         anim.Play("Move");
 
         StartCoroutine(AttackEnemy());
@@ -154,11 +160,14 @@ public class EnemyUnit : MonoBehaviour
     void DieMonster()
     {
         anim.SetBool("isDie", true);
-
-        GameManager.Instance.CurrentMeso += Meso;
-        GameManager.Instance.CurrentExp += Exp;
-        GameManager.Instance.CastleLevelUP();
-        GameManager.Instance.ActiveUnitList.Remove(gameObject);
+        monsterDieCount+=1;
+        if (monsterDieCount==1)
+        {
+            GameManager.Instance.CurrentMeso += Meso;
+            GameManager.Instance.CurrentExp += Exp;
+            GameManager.Instance.CastleLevelUP();
+            GameManager.Instance.ActiveUnitList.Remove(gameObject);
+        }
         Invoke("EraseDieMonster", 0.5f);
     }
     private void OnTriggerEnter2D(Collider2D collision)
@@ -193,16 +202,17 @@ public class EnemyUnit : MonoBehaviour
         //공격 효과음
         SoundManager._sound.PlaySfx((int)SFXSound.MobHit);
 
-        //피격 모션
-        anim.SetBool("isHit", true);
-        moveSpeed = 0;
-        Invoke("ReturnMoveMotion", 0.5f);
-
         //사망처리
         if (HP <= 0)
         {
             DieMonster();
+            return;
         }
+
+        //피격 모션
+        anim.SetBool("isHit", true);
+        moveSpeed = 0;
+        Invoke("ReturnMoveMotion", 0.5f);
     }
 
     void ReturnMoveMotion()
