@@ -31,7 +31,6 @@ public class LoadingManager : MonoBehaviour
         loadingText.text = "0%";
         loadingBar.fillAmount = 0;
         loadingObj.SetActive(true);
-        Debug.Log(loadingTime);
        
         Invoke("LoadingUIOff", 5f);
     }
@@ -52,6 +51,15 @@ public class LoadingManager : MonoBehaviour
     /// </summary>
     void LoadingUIOff()
     {
+        InitCastleHP();
         loadingObj.SetActive(false);
+    }
+    /// <summary>
+    /// 성 HP 초기화
+    /// </summary>
+    void InitCastleHP()
+    {
+        GameManager.Instance.FullCastleHP = 900;
+        GameManager.Instance.CurrentCastleHP = GameManager.Instance.FullCastleHP;
     }
 }
