@@ -30,6 +30,9 @@ public class CastleManager : MonoBehaviour
     [SerializeField]
     LoadingManager loadingManager;
 
+    [SerializeField]
+    Sprite initWeaponSprite;
+
     TextMeshProUGUI expRateText;
     TextMeshProUGUI hpRateText;
     TextMeshProUGUI mesoText;
@@ -193,11 +196,14 @@ public class CastleManager : MonoBehaviour
         expBarImage.fillAmount = 0;
 
         //터렛 개수는 1개
-        GameManager.Instance.CurrentTurretList[0].gameObject.SetActive(true);
-        for (int turretIdx=1; turretIdx< GameManager.Instance.CurrentTurretList.Count;turretIdx++)
+        for (int turretIdx=0; turretIdx< GameManager.Instance.CurrentTurretList.Count;turretIdx++)
         {
-            GameManager.Instance.CurrentTurretList[turretIdx].gameObject.SetActive(false);
+            GameObject turretObj = GameManager.Instance.CurrentTurretList[turretIdx].gameObject;
+            turretObj.GetComponent<CastleAttack>().weaponAttack = 3;
+            turretObj.GetComponent<SpriteRenderer>().sprite = initWeaponSprite;
+            turretObj.SetActive(false);
         }
+        GameManager.Instance.CurrentTurretList[0].gameObject.SetActive(true);
     }
     /// <summary>
     /// 기능 : 메인메뉴로 돌아가기
