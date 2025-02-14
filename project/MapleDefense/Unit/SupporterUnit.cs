@@ -134,6 +134,7 @@ public class SupporterUnit : MonoBehaviour
     /// </summary>
     IEnumerator SupporterAttack()
     {
+        yield return new WaitForSeconds(1);//1초 지나고 공격
         while (true)
         {
             //적 인식
@@ -149,10 +150,10 @@ public class SupporterUnit : MonoBehaviour
                 yield return new WaitForSeconds(readyTime);
                 SupporterAttackThrowObject();
 
-                yield return new WaitForSeconds(supportAttackSpeed * 0.1f);
+                yield return new WaitForSeconds(supportAttackSpeed * 0.2f);
                 anim.SetBool("isAttack", false);
             }
-            yield return new WaitForSeconds(supportAttackSpeed*0.1f);
+            yield return new WaitForSeconds(supportAttackSpeed*0.3f);
         }
     }
     /// <summary>
@@ -223,6 +224,7 @@ public class SupporterUnit : MonoBehaviour
     {
         if (currentSupportHP <= 0)
         {
+            GameManager.Instance.ActiveSupportUnitList.Remove(gameObject);
             gameObject.SetActive(false);
         }
     }
