@@ -184,7 +184,7 @@ public class EnemyUnit : MonoBehaviour
             ThrowObject throwObj = collision.gameObject.GetComponent<ThrowObject>();
             if(throwObj != null)
             {
-                int hitDamage = throwObj.Attack + throwObj.fromWeapon.weaponAttack;//무기+총알
+                int hitDamage = (throwObj.Attack * throwObj.fromWeapon.weaponAttack)/10;//무기*총알
                 DecreaseEnemyUnitHP(hitDamage);
             }
         }
