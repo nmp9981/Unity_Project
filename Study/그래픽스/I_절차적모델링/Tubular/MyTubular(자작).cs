@@ -77,6 +77,21 @@ public class MyTubular : MonoBehaviour
             }
         }
 
+        //폐곡선이면 시자과 끝이 이어지도록 마지막 정점을 곡선 시작부분에 배치
+        if (closed)
+        {
+            for (int i = 0; i < radialSegments; i++)//각 실린더의 n각형
+            {
+                int a = (tubularSegments - 1) * (radialSegments + 1) + i;
+                int b = (tubularSegments - 1) * (radialSegments + 1) + i + 1;
+                int c = i;
+                int d = i + 1;
+
+                triangles.Add(a); triangles.Add(b); triangles.Add(c);
+                triangles.Add(c); triangles.Add(b); triangles.Add(d);
+            }
+        }
+
         //메시 인스턴스 설정
         mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
