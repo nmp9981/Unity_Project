@@ -15,15 +15,10 @@ public class CastleAttack : MonoBehaviour
 
     GameObject finalTarget;
     float maxDist = 99999999;
-    void Start()
-    {
-        //3번째 인자가 공격 속도
-        //InvokeRepeating("SearchNearTarget", 0.5f, attackBetween);
-    }
-
+   
     private void Update()
     {
-        if(curTime >= GameManager.Instance.AttackBetweenTime)
+        if(curTime >= GameManager.Instance.AttackBetweenTime && !GameManager.Instance.IsOpenUpgradeUI)
         {
             SearchNearTarget();
             curTime = 0f;
@@ -37,13 +32,15 @@ public class CastleAttack : MonoBehaviour
     /// </summary>
     void CreateThrowObject()
     {
-        GameObject throwObject = objectFulling.MakeObj(GameManager.Instance.CurrentThrowIndex);
+        GameObject throwObject = objectFulling.MakeThrowObj(GameManager.Instance.CurrentThrowIndex);
         throwObject.transform.position = this.gameObject.transform.position;
         throwObject.GetComponent<ThrowObject>().TargetSetting(finalTarget);
         //어느 무기에서 발사했는가?
         throwObject.GetComponent<ThrowObject>().fromWeapon = this;
         //무기도 타겟을 향하게
         gameObject.transform.LookAt(finalTarget.transform.position);
+        //발사 효과음
+        SoundManager._sound.PlaySfx((int)SFXSound.Shoot);
     }
     /// <summary>
     /// 가장 가까운 타겟 찾기
@@ -51,6 +48,12 @@ public class CastleAttack : MonoBehaviour
     void SearchNearTarget()
     {
         finalTarget = null;
+        //이미 사망
+        if(GameManager.Instance.IsDie)
+        {
+            return;
+        }
+
         //대상 없음
         if (GameManager.Instance.ActiveUnitList.Count == 0)
         {
