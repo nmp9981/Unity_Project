@@ -70,28 +70,35 @@ namespace ProceduralModeling
             //재귀적으로 모든 가지를 접근하여 각각의 가지에 대응하는 메쉬를 생성한다 
             Traverse(root, (branch) =>
             {
+                //현재까지의 정점 개수
+                //각 가지마다 삼각형 번호 부여시 필요
                 var offset = vertices.Count;
-                var vOffset = branch.Offset / maxLength;
-                var vLength = branch.Length / maxLength;
+
+                var vOffset = branch.Offset / maxLength;//순서
+                var vLength = branch.Length / maxLength;//길이 비율
                 //가지 하나의 정점데이터를 생성
-                for (int i = 0, n = branch.Segments.Count; i < n; i++)
+                //각 가지는 Tubular의 집합
+                for (int i = 0, n = branch.Segments.Count; i < n; i++)//몇번 실린더
                 {
                     var t = 1f * i / (n - 1);
                     var v = vOffset + vLength * t;
 
+                    //법선벡터, 종법선벡터 구하기
                     var segment = branch.Segments[i];
                     var N = segment.Frame.Normal;
                     var B = segment.Frame.Binormal;
-                    for (int j = 0; j <= data.radialSegments; j++)
+                    for (int j = 0; j <= data.radialSegments; j++)//N각형
                     {
                         // 0.0 ~ 2PI
                         var u = 1f * j / data.radialSegments;
                         float rad = u * PI2;
                         float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
+                        //방향벡터 구하기
                         var normal = (cos * N + sin * B).normalized;
                         //정점 위치 = 현위치+r*N
                         vertices.Add(segment.Position + segment.Radius * normal);
 
+                        //노말, 탄젠트, uv 좌표 추가
                         normals.Add(normal);
                         var tangent = segment.Frame.Tangent;
                         tangents.Add(new Vector4(tangent.x, tangent.y, tangent.z, 0f));
@@ -99,7 +106,7 @@ namespace ProceduralModeling
                     }
                 }
                 //가지 모델의 삼각형들을 만든다
-                for (int j = 1; j <= data.heightSegments; j++)
+                for (int j = 1; j <= data.heightSegments; j++)//몇번 실린더
                 {
                     for (int i = 1; i <= data.radialSegments; i++)//n각형
                     {
