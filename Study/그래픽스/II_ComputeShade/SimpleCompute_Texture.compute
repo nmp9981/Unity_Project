@@ -1,0 +1,21 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel KernelFunctionC
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> textureBuffer;
+
+[numthreads(8,8,1)]
+void KernelFunctionC(uint3 dispatchTreadID : SV_DispatchThreadID)
+{
+    float width, height;//512*512
+    textureBuffer.GetDimensions(width, height);//width*height크기 공간 가져오기
+    
+    //값은 0~1, RGBA
+    textureBuffer[dispatchTreadID.xy] =
+    float4(dispatchTreadID.x / width
+    , dispatchTreadID.x / width
+    , dispatchTreadID.x / width
+    , 1);
+}
+ 
