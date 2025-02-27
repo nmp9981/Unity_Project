@@ -1,0 +1,220 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel AddSourceVelocity
+#pragma kernel DiffuseVelocity
+#pragma kernel SetBoundaryVelocity
+
+#define THREAD_X 32
+#define THREAD_Y 32
+#define THREAD_Z 1
+#define GS_ITERATE 2 
+
+float visc;//동점성계수
+float dt;//시간 변화량
+float velocityCoef;//속도장 외력계수
+float densityCoef;//밀도장 외압계수
+
+// xy = velocity, z = density, 쉐이더에 전달할 유체 솔버 (solver) 
+RWTexture2D<float4> solver;
+ //density field, 밀도장
+RWTexture2D<float> density;
+ // velocity field, 속도장
+RWTexture2D<float2> velocity;
+ // xy = pre vel, z = pre dens. when project, x = p, y = div
+ //1 단계 전의 버퍼 저장과 질량 저장을 위한 임시 버퍼 
+RWTexture2D<float3> prev;
+ // xy = velocity source, z = density source 외력 입력 버퍼 
+Texture2D source;
+
+void SetBoundaryVelocity(uint2 id, uint w, uint h)
+{
+    velocity[id] = (id.x == 0) ? float2(-velocity[id + uint2(1, 0)].x, velocity[id].y) : velocity[id];
+    velocity[id] = (id.x == w - 1) ? float2(-velocity[uint2(w - 2, id.y)].x, velocity[id].y) : velocity[id];
+    velocity[id] = (id.y == 0) ? float2(velocity[id].x, -velocity[id + uint2(0, 1)].y) : velocity[id];
+    velocity[id] = (id.y == h - 1) ? float2(velocity[id].x, -velocity[uint2(id.x, h - 2)].y) : velocity[id];
+
+    velocity[id] = (id.x == 0 && id.y == 0) ? 0.5 * (velocity[uint2(1, 0)] + velocity[uint2(0, 1)]) : velocity[id];
+    velocity[id] = (id.x == 0 && id.y == h - 1) ? 0.5 * (velocity[uint2(1, h - 1)] + velocity[uint2(0, h - 2)]) : velocity[id];
+    velocity[id] = (id.x == w - 1 && id.y == 0) ? 0.5 * (velocity[uint2(w - 2, 0)] + velocity[uint2(w - 1, 1)]) : velocity[id];
+    velocity[id] = (id.x == w - 1 && id.y == h - 1) ? 0.5 * (velocity[uint2(w - 2, h - 1)] + velocity[uint2(w - 1, h - 2)]) : velocity[id];
+}
+void SetBoundaryDivergence(uint2 id, uint w, uint h)
+{
+    prev[id] = (id.x == 0) ? float3(prev[id].x, prev[id + uint2(1, 0)].y, prev[id].z) : prev[id];
+    prev[id] = (id.x == w - 1) ? float3(prev[id].x, prev[uint2(w - 2, id.y)].y, prev[id].z) : prev[id];
+    prev[id] = (id.y == 0) ? float3(prev[id].x, prev[id + uint2(0, 1)].y, prev[id].z) : prev[id];
+    prev[id] = (id.y == h - 1) ? float3(prev[id].x, prev[uint2(id.x, h - 2)].y, prev[id].z) : prev[id];
+
+    prev[id] = (id.x == 0 && id.y == 0) ? float3(prev[id].x, 0.5 * (prev[uint2(1, 0)].y + prev[uint2(0, 1)].y), prev[id].z) : prev[id];
+    prev[id] = (id.x == 0 && id.y == h - 1) ? float3(prev[id].x, 0.5 * (prev[uint2(1, h - 2)].y + prev[uint2(0, h - 2)].y), prev[id].z) : prev[id];
+    prev[id] = (id.x == w - 1 && id.y == 0) ? float3(prev[id].x, 0.5 * (prev[uint2(w - 2, 0)].y + prev[uint2(w - 1, 1)].y), prev[id].z) : prev[id];
+    prev[id] = (id.x == w - 1 && id.y == h - 1) ? float3(prev[id].x, 0.5 * (prev[uint2(w - 2, h - 1)].y + prev[uint2(w - 1, h - 2)].y), prev[id].z) : prev[id];
+}
+
+void SetBoundaryDivPositive(uint2 id, uint w, uint h)
+{
+    prev[id] = (id.x == 0) ? float3(prev[id + uint2(1, 0)].x, prev[id].yz) : prev[id];
+    prev[id] = (id.x == w - 1) ? float3(prev[uint2(w - 2, id.y)].x, prev[id].yz) : prev[id];
+    prev[id] = (id.y == 0) ? float3(prev[id + uint2(0, 1)].x, prev[id].yz) : prev[id];
+    prev[id] = (id.y == h - 1) ? float3(prev[uint2(id.x, h - 2)].x, prev[id].yz) : prev[id];
+
+    prev[id] = (id.x == 0 && id.y == 0) ? float3(0.5 * (prev[uint2(1, 0)].x + prev[uint2(0, 1)].x), prev[id].yz) : prev[id];
+    prev[id] = (id.x == 0 && id.y == h - 1) ? float3(0.5 * (prev[uint2(1, h - 1)].x + prev[uint2(0, h - 2)].x), prev[id].yz) : prev[id];
+    prev[id] = (id.x == w - 1 && id.y == 0) ? float3(0.5 * (prev[uint2(w - 2, 0)].x + prev[uint2(w - 1, 1)].x), prev[id].yz) : prev[id];
+    prev[id] = (id.x == w - 1 && id.y == h - 1) ? float3(0.5 * (prev[uint2(w - 2, h - 1)].x + prev[uint2(w - 1, h - 2)].x), prev[id].yz) : prev[id];
+}
+
+//속도장 외력항
+[numthreads(8,8,1)]
+void AddSourceVelocity(uint2 id : SV_DispatchThreadID)
+{
+    //속도장 영역
+    uint w, h;//너비, 높이
+    velocity.GetDimensions(w, h);
+    
+    if (id.x < w && id.y < h)//장 범위내
+    {
+        velocity[id] += source[id].xy * velocityCoef * dt;//외력을 더해줌, 속도장에 더해줌
+        prev[id] = float3(source[id].xy * velocityCoef * dt, prev[id].z);
+    }
+}
+//속도항. 점성항 함수 경계 설정
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+ void DiffuseVelocity(uint2 id : SV_DispatchThreadID)
+{
+    //속도장 영역
+    uint w, h;
+    velocity.GetDimensions(w, h);
+    
+    if (id.x < w && id.y < h)
+    {
+        float a = dt * visc * w * h;
+        
+        [unroll]
+        for (int k = 0; k < GS_ITERATE; k++)
+        {
+            //인접 4방향 모두 더하고 4로 나눔, 편미분
+            velocity[id] = (prev[id].xy + a * (
+             velocity[int2(id.x - 1, id.y)]+
+             velocity[int2(id.x + 1, id.y)]+
+             velocity[int2(id.x, id.y-1)]+
+             velocity[int2(id.x, id.y+1)]
+            )) / (1 + 4 * a);
+            SetBoundaryVelocity(id, w, h);
+        }
+    }
+}
+
+//질량 보존
+//step1에서는 속도장에서 발산을 계산
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+ void ProjectStep1(uint2 id : SV_DispatchThreadID)
+{
+    //속도장 영역
+    uint w, h;
+    velocity.GetDimensions(w, h);
+    
+    if (id.x < w && id.y < h)
+    {
+        float2 uvd;
+        uvd = float2(1 / w, 1 / h);
+        
+        //인접 4방향 모두 더하고 4로 나눔, 편미분
+        prev[id] = float3(0, -0.5 *
+        (uvd.x * (velocity[int2(id.x + 1, id.y)].x-  velocity[int2(id.x - 1, id.y)].x))
+        +(uvd.y * (velocity[int2(id.x, id.y + 1)].y-velocity[int2(id.x, id.y - 1)].y)),
+        prev[id].z);
+        
+        //장의 경계 검사
+        SetBoundaryDivergence(id, w, h);
+        SetBoundaryDivPositive(id, w, h);
+    }
+}
+//질량보존 Step 2.
+ //step2에서는 step1에서 구한 발산으로부터 Poisson 방정식을 가우스-자이델 방법으로 풀이
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+ void ProjectStep2(uint2 id : SV_DispatchThreadID)
+{
+    //속도장 영역
+    uint w, h;
+    velocity.GetDimensions(w, h);
+    
+    if (id.x < w && id.y < h)
+    {
+        for (int k = 0; k < GS_ITERATE; k++)
+        {
+            //인접 4방향 모두 더하고 4로 나눔, 편미분
+            prev[id] = float3(
+                        (prev[id].y + prev[uint2(id.x - 1, id.y)].x + prev[uint2(id.x + 1, id.y)].x +
+                                      prev[uint2(id.x, id.y - 1)].x + prev[uint2(id.x, id.y + 1)].x) / 4,
+                        prev[id].yz);
+            SetBoundaryDivPositive(id, w, h);
+        }
+    }
+}
+
+///질량보존 Step 3.
+ //step3에서  u = 0으로 만든다
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+void ProjectStep3(uint2 id : SV_DispatchThreadID)
+{
+    //속도장
+    uint w, h;
+    velocity.GetDimensions(w, h);
+
+    if (id.x < w && id.y < h)
+    {
+        float velX, velY;
+        float2 uvd;
+        uvd = float2(1.0 / w, 1.0 / h);
+
+        velX = velocity[id].x;
+        velY = velocity[id].y;
+        //편미분 진행, 미분의 정의 이용
+        velX -= 0.5 * (prev[uint2(id.x + 1, id.y)].x - prev[uint2(id.x - 1, id.y)].x) / uvd.x;
+        velY -= 0.5 * (prev[uint2(id.x, id.y + 1)].x - prev[uint2(id.x, id.y - 1)].x) / uvd.y;
+
+        velocity[id] = float2(velX, velY);
+        SetBoundaryVelocity(id, w, h);
+    }
+}
+//이류항 계산
+//각 셀에 대해 이전 단계의 속도장을 역추적
+
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+void AdvectVelocity(uint2 id : SV_DispatchThreadID)
+{
+    //속도장
+    uint w, h;
+    density.GetDimensions(w, h);
+
+    if (id.x < w && id.y < h)
+    {
+        int ddx0, ddx1, ddy0, ddy1;
+        float x, y, s0, t0, s1, t1, dfdt;
+
+        dfdt = dt * (w + h) * 0.5;//그리드 평균
+
+        //역추적 지점, 이전 지점
+        x = (float) id.x - dfdt * prev[id].x;
+        y = (float) id.y - dfdt * prev[id].y;
+        //역추적 지점이 시뮬레이션 범위에 맞게 클램프.
+        clamp(x, 0.5, w + 0.5);
+        clamp(y, 0.5, h + 0.5);
+        //역추적지점 근처 4방향 셀 계산.
+        ddx0 = floor(x);
+        ddx1 = ddx0 + 1;
+        ddy0 = floor(y);
+        ddy1 = ddy0 + 1;
+        //근처 셀들의 값을 선형보간 -> 파라미터
+        s1 = x - ddx0;
+        s0 = 1.0 - s1;
+        t1 = y - ddy0;
+        t0 = 1.0 - t1;
+
+        //역추적 위치에서 이전 시간의 셀들이 가진 값들을 선형 보간 후 현재 속도장에 대입
+        //속도 벡터를 뺀 장소의 값을 현재 위치로 가져옴
+        velocity[id] = s0 * (t0 * prev[int2(ddx0, ddy0)].xy + t1 * prev[int2(ddx0, ddy1)].xy) +
+                       s1 * (t0 * prev[int2(ddx1, ddy0)].xy + t1 * prev[int2(ddx1, ddy1)].xy);
+        SetBoundaryVelocity(id, w, h);
+    }
+}
