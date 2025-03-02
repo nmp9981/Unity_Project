@@ -8,6 +8,7 @@
 #define THREAD_Z 1
 #define GS_ITERATE 2 
 
+float diff;//지점 차이
 float visc;//동점성계수
 float dt;//시간 변화량
 float velocityCoef;//속도장 외력계수
@@ -61,6 +62,19 @@ void SetBoundaryDivPositive(uint2 id, uint w, uint h)
     prev[id] = (id.x == 0 && id.y == h - 1) ? float3(0.5 * (prev[uint2(1, h - 1)].x + prev[uint2(0, h - 2)].x), prev[id].yz) : prev[id];
     prev[id] = (id.x == w - 1 && id.y == 0) ? float3(0.5 * (prev[uint2(w - 2, 0)].x + prev[uint2(w - 1, 1)].x), prev[id].yz) : prev[id];
     prev[id] = (id.x == w - 1 && id.y == h - 1) ? float3(0.5 * (prev[uint2(w - 2, h - 1)].x + prev[uint2(w - 1, h - 2)].x), prev[id].yz) : prev[id];
+}
+
+void SetBoundaryDensity(uint2 id, uint w, uint h)
+{
+    density[id] = (id.x == 0) ? density[id + uint2(1, 0)] : density[id];
+    density[id] = (id.x == w - 1) ? density[uint2(w - 2, id.y)] : density[id];
+    density[id] = (id.y == 0) ? density[id + uint2(0, 1)] : density[id];
+    density[id] = (id.y == h - 1) ? density[uint2(id.x, h - 2)] : density[id];
+
+    density[id] = (id.x == 0 && id.y == 0) ? 0.5 * (density[uint2(1, 0)] + density[uint2(0, 1)]) : density[id];
+    density[id] = (id.x == 0 && id.y == h - 1) ? 0.5 * (density[uint2(1, h - 1)] + density[uint2(0, h - 2)]) : density[id];
+    density[id] = (id.x == w - 1 && id.y == 0) ? 0.5 * (density[uint2(w - 2, 0)] + density[uint2(w - 1, 1)]) : density[id];
+    density[id] = (id.x == w - 1 && id.y == h - 1) ? 0.5 * (density[uint2(w - 2, h - 1)] + density[uint2(w - 1, h - 2)]) : density[id];
 }
 
 //속도장 외력항
@@ -118,7 +132,7 @@ void AddSourceVelocity(uint2 id : SV_DispatchThreadID)
         float2 uvd;
         uvd = float2(1 / w, 1 / h);
         
-        //인접 4방향 모두 더하고 4로 나눔, 편미분
+        //인접 4방향 모두 더하고 4로 나눔, 편미분, deltaX/X, deltaY/Y
         prev[id] = float3(0, -0.5 *
         (uvd.x * (velocity[int2(id.x + 1, id.y)].x-  velocity[int2(id.x - 1, id.y)].x))
         +(uvd.y * (velocity[int2(id.x, id.y + 1)].y-velocity[int2(id.x, id.y - 1)].y)),
@@ -179,7 +193,6 @@ void ProjectStep3(uint2 id : SV_DispatchThreadID)
 }
 //이류항 계산
 //각 셀에 대해 이전 단계의 속도장을 역추적
-
 [numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
 void AdvectVelocity(uint2 id : SV_DispatchThreadID)
 {
@@ -216,5 +229,86 @@ void AdvectVelocity(uint2 id : SV_DispatchThreadID)
         velocity[id] = s0 * (t0 * prev[int2(ddx0, ddy0)].xy + t1 * prev[int2(ddx0, ddy1)].xy) +
                        s1 * (t0 * prev[int2(ddx1, ddy0)].xy + t1 * prev[int2(ddx1, ddy1)].xy);
         SetBoundaryVelocity(id, w, h);
+    }
+}
+
+//외압 더하기
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+void AddSourceDensity(uint2 id : SV_DispatchThreadID)
+{
+    //밀도장
+    uint w, h;
+    density.GetDimensions(w, h);
+
+    if (id.x < w && id.y < h)
+    {
+        density[id] += source[id].z * densityCoef * dt;//외압 더하기
+        prev[id] = float3(prev[id].xy, source[id].z * densityCoef * dt);
+    }
+}
+
+//확산항
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+void DiffuseDensity(uint2 id : SV_DispatchThreadID)
+{
+    //밀도장
+    uint w, h;
+    density.GetDimensions(w, h);
+
+    if (id.x < w && id.y < h)
+    {
+        //확산계수
+        float a = dt * diff * w * h;
+
+        //편미분
+        [unroll]
+        for (int k = 0; k < GS_ITERATE; k++)
+        {
+            density[id] = (prev[id].z 
+            + a * (density[int2(id.x - 1, id.y)] + density[int2(id.x + 1, id.y)] + density[int2(id.x, id.y - 1)] + density[int2(id.x, id.y + 1)])) 
+            / (1 + 4 * a);
+            SetBoundaryDensity(id, w, h);
+        }
+    }
+}
+
+//이류항
+[numthreads(THREAD_X, THREAD_Y, THREAD_Z)]
+void AdvectDensity(uint2 id : SV_DispatchThreadID)
+{
+    //밀도장
+    uint w, h;
+    density.GetDimensions(w, h);
+
+    if (id.x < w && id.y < h)
+    {
+        int ddx0, ddx1, ddy0, ddy1;
+        float x, y, s0, t0, s1, t1, dfdt;
+
+        dfdt = dt * (w + h) * 0.5;
+
+        //이전 지점
+        x = (float) id.x - dfdt * velocity[id].x;
+        y = (float) id.y - dfdt * velocity[id].y;
+        //역추적 지점이 시뮬레이션 범위에 맞게 클램프.
+        clamp(x, 0.5, w + 0.5);
+        clamp(y, 0.5, h + 0.5);
+        //근처 4방향 셀 계산
+        ddx0 = floor(x);
+        ddx1 = ddx0 + 1;
+        ddy0 = floor(y);
+        ddy1 = ddy0 + 1;
+        //근처 셀들의 값을 선형보간 -> 파라미터
+        s1 = x - ddx0;
+        s0 = 1.0 - s1;
+        t1 = y - ddy0;
+        t0 = 1.0 - t1;
+
+        //역추적 위치에서 이전 시간의 셀들이 가진 값들을 선형 보간 후 현재 밀도장에 대입
+        //밀도 벡터를 뺀 장소의 값을 현재 위치로 가져옴
+        //내적 계산
+        density[id] = s0 * (t0 * prev[int2(ddx0, ddy0)].z + t1 * prev[int2(ddx0, ddy1)].z) +
+                      s1 * (t0 * prev[int2(ddx1, ddy0)].z + t1 * prev[int2(ddx1, ddy1)].z);
+        SetBoundaryDensity(id, w, h);
     }
 }
