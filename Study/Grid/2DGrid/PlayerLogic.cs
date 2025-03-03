@@ -11,7 +11,8 @@ public class PlayerLogic : MonoBehaviour
     bool isMoveFinish = true;
     float currentTime = 0f;
     float moveCoolTime = 0.02f;
-    const float upsilon = 0.01f;
+
+    public const float upsilon = 0.01f;
     Vector3 moveVec;
     Vector3 targetVec;
 
@@ -75,6 +76,12 @@ public class PlayerLogic : MonoBehaviour
     /// </summary>
     void KeyInput()
     {
+        //이동 버튼이 눌러져 잇음
+        if (Board.isPressMoveButton)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.A))
         {
             moveVec = Vector3.left;
