@@ -1,0 +1,248 @@
+#pragma kernel DensityCS
+#pragma kernel PressureCS
+#pragma kernel ForceCS
+#pragma kernel IntegrateCS
+
+#define THREAD_SIZE_X 1024
+
+RWTexture2D<float4> Result;
+
+struct Particle
+{
+    float2 position;
+    float2 velocity;
+};
+
+struct ParticlePressure
+{
+    float pressure;
+};
+
+struct ParticleForces
+{
+    float2 acceleration;
+};
+
+struct ParticleDensity
+{
+    float density;
+};
+
+// 粒子位置と速度を保持するバッファ
+StructuredBuffer<Particle> _ParticlesBufferRead;
+RWStructuredBuffer<Particle> _ParticlesBufferWrite;
+
+// 粒子密度を保持するバッファ
+StructuredBuffer<ParticleDensity> _ParticlesDensityBufferRead;
+RWStructuredBuffer<ParticleDensity> _ParticlesDensityBufferWrite;
+
+// 粒子圧力を保持するバッファ
+StructuredBuffer<ParticlePressure> _ParticlesPressureBufferRead;
+RWStructuredBuffer<ParticlePressure> _ParticlesPressureBufferWrite;
+
+// 粒子加速度(力)を保持するバッファ
+StructuredBuffer<ParticleForces> _ParticlesForceBufferRead;
+RWStructuredBuffer<ParticleForces> _ParticlesForceBufferWrite;
+// ▲ 構造化バッファの定義 ---------------------
+
+// ▼ シェーダ定数の定義 -----------------------
+cbuffer CB
+{
+    int _NumParticles; // 粒子数
+    float _TimeStep; // 時間刻み幅(dt)
+    float _Smoothlen; // 粒子半径
+    float _PressureStiffness; // Beckerの係数
+    float _RestDensity; // 静止密度
+    float _DensityCoef; // 密度算出時の係数
+    float _GradPressureCoef; // 圧力算出時の係数
+    float _LapViscosityCoef; // 粘性算出時の係数
+    float _WallStiffness; // ペナルティ法の押し返す力
+    float _Viscosity; // 粘性係数
+    float2 _Gravity; // 重力
+    float2 _Range; // シミュレーション空間
+
+    float3 _MousePos; // マウス位置
+    float _MouseRadius; // マウスインタラクションの半径
+    bool _MouseDown; // マウスが押されているか
+};
+
+//밀도 계산
+inline float CalculateDensity(float r_sq)
+{
+    const float h_sq = _Smoothlen * _Smoothlen;//반경 제곱
+    //계수*(반경^2의 차)^3
+    return _DensityCoef * (h_sq - r_sq) * (h_sq - r_sq) * (h_sq - r_sq);
+}
+//압력 계산, 밀도값을 입력으로 받음
+inline float CalculatePressure(float density)
+{
+    //밀도/정지 밀도, Tait 방정식
+    return _PressureStiffness * max(pow(density / _RestDensity, 7) - 1, 0);
+}
+//압력항 계산, diff는 거리차
+inline float2 CalculateGradPressure(float r, float P_pressure, float N_pressure, float N_density, float2 diff)
+{
+    const float h = _Smoothlen;//반경
+    float avg_pressure = 0.5f * (N_pressure + P_pressure);//두 입자 반경 평균
+    //가중치 함수 : (반경 차^2)*거리/거리차
+    float Wspiky = (h - r) * (h - r) / r * (diff);
+    //계수*가중치*평균 압력/밀도
+    return (_GradPressureCoef * avg_pressure * Wspiky) / N_density;
+}
+
+//점성항 계산
+inline float2 CalculateLapVelocity(float r, float2 P_velocity, float2 N_velocity, float N_density)
+{
+    //반경
+    const float h = _Smoothlen;
+    //속도차
+    float2 vel_diff = (N_velocity - P_velocity);
+    //반경차
+    float Wvisc = h - r;
+    //계수*속도차/밀도
+    return (_LapViscosityCoef * Wvisc * vel_diff) / N_density;
+}
+
+//밀도 계산
+[numthreads(THREAD_SIZE_X, 1, 1)]
+void DensityCS(uint3 DTid : SV_DispatchThreadID)
+{
+    uint P_ID = DTid.x; //현재 처리중인 입자 ID
+
+    float h_sq = _Smoothlen * _Smoothlen;//입자 반경
+    float2 P_position = _ParticlesBufferRead[P_ID].position;//입자 위치
+
+	// 근처 입자 탐색(O(n^2))
+    float density = 0;//밀도
+    for (uint N_ID = 0; N_ID < _NumParticles; N_ID++)
+    {
+        if (N_ID == P_ID)
+            continue; //자기 자신
+
+        float2 N_position = _ParticlesBufferRead[N_ID].position;
+
+        float2 diff = N_position - P_position; // 거리 차
+        float r_sq = dot(diff, diff); // 거리차 제곱
+
+		// 반경내 들어잇는 것만
+        if (r_sq < h_sq)
+        {
+            density += CalculateDensity(r_sq); // 밀도 합
+        }
+    }
+
+	//밀도 버퍼 업데이트
+    _ParticlesDensityBufferWrite[P_ID].density = density;
+}
+
+//압력 계산
+[numthreads(THREAD_SIZE_X, 1, 1)]
+void PressureCS(uint3 DTid : SV_DispatchThreadID)
+{
+    uint P_ID = DTid.x; //현재 처리중인 입자 ID
+
+    float P_density = _ParticlesDensityBufferRead[P_ID].density; //현재 밀도
+    float P_pressure = CalculatePressure(P_density); //현재 압력
+
+	//압력 버퍼 업데이트
+    _ParticlesPressureBufferWrite[P_ID].pressure = P_pressure;
+}
+
+//압력항, 점성항 계산
+[numthreads(THREAD_SIZE_X, 1, 1)]
+void ForceCS(uint3 DTid : SV_DispatchThreadID)
+{
+    uint P_ID = DTid.x; //현재 처리중인 입자 ID
+
+    float2 P_position = _ParticlesBufferRead[P_ID].position;//현 입자의 위치
+    float2 P_velocity = _ParticlesBufferRead[P_ID].velocity;//현 입자의 속도
+    float P_density = _ParticlesDensityBufferRead[P_ID].density; //현재 입자의 밀도
+    float P_pressure = _ParticlesPressureBufferRead[P_ID].pressure; //현재 입자의 압력
+
+    //반경
+    const float h_sq = _Smoothlen * _Smoothlen;
+
+	//이웃 입자 탐색(O(n^2))
+    float2 press = float2(0, 0);
+    float2 visco = float2(0, 0);
+    for (uint N_ID = 0; N_ID < _NumParticles; N_ID++)
+    {
+        if (N_ID == P_ID)
+            continue; //자기자신
+
+        float2 N_position = _ParticlesBufferRead[N_ID].position;//입자 위치
+
+        float2 diff = N_position - P_position;//거리차
+        float r_sq = dot(diff, diff);//거리차^2
+
+		// 반경내 들어잇는 것만
+        if (r_sq < h_sq)
+        {
+            float N_density = _ParticlesDensityBufferRead[N_ID].density;//대상 입자 밀도
+            float N_pressure = _ParticlesPressureBufferRead[N_ID].pressure;//대상 입자 압력
+            float2 N_velocity = _ParticlesBufferRead[N_ID].velocity;//대상 입자 속도
+            float r = sqrt(r_sq);
+
+			// 압력항
+            press += CalculateGradPressure(r, P_pressure, N_pressure, N_density, diff);
+
+			// 점성항
+            visco += CalculateLapVelocity(r, P_velocity, N_velocity, N_density);
+        }
+    }
+
+	//총힘 = 압력+점성항*점성계수
+    float2 force = press + _Viscosity * visco;
+
+	//가속도 버퍼 업데이트, 가속도 = 총 힘/밀도
+    _ParticlesForceBufferWrite[P_ID].acceleration = force / P_density;
+}
+
+//충돌 판정, 위치 업데이트
+[numthreads(THREAD_SIZE_X, 1, 1)]
+void IntegrateCS(uint3 DTid : SV_DispatchThreadID)
+{
+    const unsigned int P_ID = DTid.x; //현재 처리중인 입자 ID
+
+	//업데이트 이전의 위치, 속도
+    float2 position = _ParticlesBufferRead[P_ID].position;
+    float2 velocity = _ParticlesBufferRead[P_ID].velocity;
+    float2 acceleration = _ParticlesForceBufferRead[P_ID].acceleration; //가속도
+
+	//마우스 상호 작용
+    // 마우스 버튼이 눌려있으면 지정된 힘으로 마우스위치에서 멀어지게 한다
+    if (distance(position, _MousePos.xy) < _MouseRadius && _MouseDown)
+    {
+        float2 dir = position - _MousePos.xy;
+        float pushBack = _MouseRadius - length(dir);
+        acceleration += 100 * pushBack * normalize(dir);
+    }
+    
+	//충돌 판정 로직
+
+	//벽 경계(패널티 법)
+    //+x -> -x로 밀어냄
+    float dist = dot(float3(position, 1), float3(1, 0, 0));
+    acceleration += min(dist, 0) * -_WallStiffness * float2(1, 0);
+
+    //+y -> -y로 밀어냄
+    dist = dot(float3(position, 1), float3(0, 1, 0));
+    acceleration += min(dist, 0) * -_WallStiffness * float2(0, 1);
+
+    dist = dot(float3(position, 1), float3(-1, 0, _Range.x));
+    acceleration += min(dist, 0) * -_WallStiffness * float2(-1, 0);
+
+    dist = dot(float3(position, 1), float3(0, -1, _Range.y));
+    acceleration += min(dist, 0) * -_WallStiffness * float2(0, -1);
+
+	//중력 추가
+    acceleration += _Gravity;
+
+	//다음 프레임 위치 업데이트
+    velocity += _TimeStep * acceleration;
+    position += _TimeStep * velocity;
+
+	//위치, 속도 버퍼 기록
+    _ParticlesBufferWrite[P_ID].position = position;
+    _ParticlesBufferWrite[P_ID].velocity = velocity;
+}
