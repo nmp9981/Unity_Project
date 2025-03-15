@@ -218,26 +218,209 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 			//정점 좌표들을 연결하고 폴리곤 작성
 			int vindex = 0;
 			int findex = 0;
-			// 最大５つの三角形ができる
+			// 최대 5개 삼각형을 만들 수 있다.
 			for (i = 0; i < 5; i++) {
 				findex = flagIndex * 16 + 3 * i;
 				if (triangleConnectionTable[findex] < 0)
 					break;
 
-				// 三角形を作る
+				//삼각형 제작
 				for (j = 0; j < 3; j++) {
 					vindex = triangleConnectionTable[findex + j];
 
-					// Transform行列を掛けてワールド座標に変換
+					// Transform행렬 곱하여 월드좌표로 변환
 					float4 ppos = mul(_Matrix, float4(edgeVertices[vindex], 1));
+					//스크린 좌표로 변환
 					o.pos = UnityObjectToClipPos(ppos);
 
+					//법선 벡터를 월드 좌표로 변환 (프래그먼트 쉐이더에서 라이킹으로 사용)
 					float3 norm = UnityObjectToWorldNormal(normalize(edgeNormals[vindex]));
 					o.normal = normalize(mul(_Matrix, float4(norm,0)));
 
-					outStream.Append(o);	// ストリップに頂点を追加
+					outStream.Append(o);	//정점 추가
 				}
-				outStream.RestartStrip();	// 一旦区切って次のプリミティブストリップを開始
+				outStream.RestartStrip();	//다음 primitive스트립
+			}
+		}
+
+		//실제 fragment쉐이더
+		//라이팅 부분 반영 -> surfaceShader의 라이팅 처리부분을 이식
+		void frag_light(g2f_light IN,
+			out half4 outDiffuse		: SV_Target0,
+			out half4 outSpecSmoothness : SV_Target1,
+			out half4 outNormal			: SV_Target2,
+			out half4 outEmission		: SV_Target3)
+		{
+			fixed3 normal = IN.normal;
+
+			float3 worldPos = IN.worldPos;
+
+			fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
+
+			 //SurfaceOutputStandard 구조체 초기화 (색, 광택 세팅)
+#ifdef UNITY_COMPILER_HLSL
+			SurfaceOutputStandard o = (SurfaceOutputStandard)0;
+#else
+			SurfaceOutputStandard o;
+#endif
+			o.Albedo = _DiffuseColor.rgb;
+			o.Emission = _EmissionColor * _EmissionIntensity;
+			o.Metallic = _Metallic;
+			o.Smoothness = _Glossiness;
+			o.Alpha = 1.0;
+			o.Occlusion = 1.0;
+			o.Normal = normal;
+
+			//GI관계 처리
+			// Setup lighting environment
+			UnityGI gi;
+			UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
+			gi.indirect.diffuse = 0;
+			gi.indirect.specular = 0;
+			gi.light.color = 0;
+			gi.light.dir = half3(0, 1, 0);
+			gi.light.ndotl = LambertTerm(o.Normal, gi.light.dir);
+
+			// Call GI (lightmaps/SH/reflections) lighting function
+			UnityGIInput giInput;
+			UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);
+			giInput.light = gi.light;
+			giInput.worldPos = worldPos;
+			giInput.worldViewDir = worldViewDir;
+			giInput.atten = 1.0;
+
+			giInput.ambient = IN.sh;
+
+			giInput.probeHDR[0] = unity_SpecCube0_HDR;
+			giInput.probeHDR[1] = unity_SpecCube1_HDR;
+
+#if UNITY_SPECCUBE_BLENDING || UNITY_SPECCUBE_BOX_PROJECTION
+			giInput.boxMin[0] = unity_SpecCube0_BoxMin; // .w holds lerp value for blending
+#endif
+
+#if UNITY_SPECCUBE_BOX_PROJECTION
+			giInput.boxMax[0] = unity_SpecCube0_BoxMax;
+			giInput.probePosition[0] = unity_SpecCube0_ProbePosition;
+			giInput.boxMax[1] = unity_SpecCube1_BoxMax;
+			giInput.boxMin[1] = unity_SpecCube1_BoxMin;
+			giInput.probePosition[1] = unity_SpecCube1_ProbePosition;
+#endif
+
+			LightingStandard_GI(o, giInput, gi);
+
+			//빛의 반사량 계산(Emission)
+			outEmission = LightingStandard_Deferred(o, worldViewDir, gi, outDiffuse, outSpecSmoothness, outNormal);
+			outDiffuse.a = 1.0;
+
+			//HD의 경우에는 exp로 압축되는 부분를 끼워넣고 덮어씌움
+#ifndef UNITY_HDR_ON
+			outEmission.rgb = exp2(-outEmission.rgb);
+#endif
+		}
+
+
+		//그림자 Geometry Shader
+		[maxvertexcount(15)]
+		void geom_shadow(point v2g input[1], inout TriangleStream<g2f_shadow> outStream)
+		{
+			g2f_shadow o = (g2f_shadow)0;
+
+			int i, j;
+			float cubeValue[8];
+			float3 edgeVertices[12] = {
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0) };
+			float3 edgeNormals[12] = {
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0),
+				float3(0, 0, 0) };
+
+			float3 pos = input[0].pos.xyz;
+			float3 defpos = pos;
+
+			for (i = 0; i < 8; i++) {
+				cubeValue[i] = Sample(
+					pos.x + vertexOffset[i].x,
+					pos.y + vertexOffset[i].y,
+					pos.z + vertexOffset[i].z
+				);
+			}
+
+			pos *= _Scale;
+			pos -= _HalfSize;
+
+			int flagIndex = 0;
+
+			for (i = 0; i < 8; i++) {
+				if (cubeValue[i] <= _Threashold) {
+					flagIndex |= (1 << i);
+				}
+			}
+
+			int edgeFlags = cubeEdgeFlags[flagIndex];
+
+			if ((edgeFlags == 0) || (edgeFlags == 255)) {
+				return;
+			}
+
+			float offset = 0.5;
+			float3 vertex;
+			for (i = 0; i < 12; i++) {
+				if ((edgeFlags & (1 << i)) != 0) {
+					offset = getOffset(cubeValue[edgeConnection[i].x], cubeValue[edgeConnection[i].y], _Threashold);
+
+					vertex = (vertexOffset[edgeConnection[i].x] + offset * edgeDirection[i]);
+
+					edgeVertices[i].x = pos.x + vertex.x * _Scale;
+					edgeVertices[i].y = pos.y + vertex.y * _Scale;
+					edgeVertices[i].z = pos.z + vertex.z * _Scale;
+
+					edgeNormals[i] = getNormal(defpos.x + vertex.x, defpos.y + vertex.y, defpos.z + vertex.z);
+				}
+			}
+
+			int vindex = 0;
+			int findex = 0;
+			for (i = 0; i < 5; i++) {
+				findex = flagIndex * 16 + 3 * i;
+				if (triangleConnectionTable[findex] < 0)
+					break;
+
+				for (j = 0; j < 3; j++) {
+					vindex = triangleConnectionTable[findex + j];
+
+					float4 ppos = mul(_Matrix, float4(edgeVertices[vindex], 1));
+
+					float3 norm;
+					norm = UnityObjectToWorldNormal(normalize(edgeNormals[vindex]));
+
+					float4 lpos1 = mul(unity_WorldToObject, ppos);
+					o.pos = UnityClipSpaceShadowCasterPos(lpos1, normalize(mul(_Matrix, float4(norm, 0))));
+					o.pos = UnityApplyLinearShadowBias(o.pos);
+					o.hpos = o.pos;
+
+					outStream.Append(o);
+				}
+				outStream.RestartStrip();
 			}
 		}
 
