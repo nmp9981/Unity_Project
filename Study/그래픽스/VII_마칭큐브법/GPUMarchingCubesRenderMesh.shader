@@ -19,10 +19,8 @@ Shader "Custom/GPUMarchingCubes enderMesh"
     SubShader
     {
         Tags { "RenderType"="Opaque" }
-        LOD 200
-
-        CGPROGRAM
-
+        
+        CGINCLUDE
         #define UNITY_PASS_DEFERRED
 		#include "HLSLSupport.cginc"
 		#include "UnityShaderVariables.cginc"
@@ -32,16 +30,11 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 
 		#include "Libs/Primitives.cginc"
 		#include "Libs/Utils.cginc"
-        // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
-
-        // Use shader model 3.0 target, to get nicer looking lighting
-        #pragma target 3.0
 
         //메시에서 넘어오는 정점 데이터
 		struct appdata
 		{
-			float4 vertex	: POSITION;	//정점 좌표
+			float4 vertex : POSITION;	//정점 좌표
 		};
 
 		//정점 쉐이더에서 지오메츠리 쉐이더를 반환
@@ -89,7 +82,7 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 		StructuredBuffer<int> triangleConnectionTable;
 
 		//구체의 중심에서의 거리, 결과가 음수면 좌표가 구체 내에 있다
-		inline float sphere(float3 pos, float radius)
+		float sphere(float3 pos, float radius)
 		{
 			return length(pos)- radius;
 		}
@@ -117,17 +110,46 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 			float3 spPos;
 			float result = 0;
 
+			
 			//3개의 구의 거리함수 (거리 조건을 만족하는 함수)
 			for(int i=0;i<3;i++){
 				//pos : 격자의 각 꼭짓점, 구체 중심에서의 거리
-				float sp = -sphere(pos - float3(0.5, 0.25 + 0.25 * i, 0.5), 0.005 + (sin(_Time.y * 8.0 + i * 23.365) * 0.5 + 0.5) * 0.125) 
-				+ 0.5;
+				float sp = -sphere(pos - float3(0.5, 0.25 + 0.25 * i, 0.5), 0.005 + (sin(_Time.y * 8.0 + i * 23.365) * 0.5 + 0.5) * 0.125) + 0.5;
 				result = smoothMax(result, sp, 14);
 			}
 			return result;
 		}
 
+		//오프셋 계산
+		float getOffset(float val1, float val2, float desired){
+			float delta = val2-val1;
+			if(delta==0.0){
+				return 0.5;
+			}
+			return (desired-val1)/delta;
+		}
 
+		//노멀 계산
+		float3 getNormal(float fX, float fY, float fZ){
+			float3 normal;
+			float offset = 1.0;
+
+			normal.x = Sample(fX-offset,fY,fZ) - Sample(fX+offset, fY, fZ);
+			normal.y = Sample(fX,fY-offset,fZ) - Sample(fX, fY+offset, fZ);
+			normal.z = Sample(fX,fY,fZ-offset) - Sample(fX, fY, fZ+offset);
+
+			return normal;
+		}
+
+		//정점
+		v2g vert(appdata v){
+			v2g o = (v2g)0;
+			o.pos = v.vertex;
+			return o;
+		}
+
+
+		//실제 지오메트리
 		[maxvertexcount(15)]//최대 정점수, 1격자당 삼각폴리곤이 최대 5개
 		void geom_light(point v2g input[1], inout TriangleStream<g2f_light> outStreame){
 
@@ -136,7 +158,7 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 			
 			float cubeValue[8];//격자 8개 꼭짓점 스칼라 수치 배열
 
-			//모서리 배열
+			//정점 배열
 			float3 edgeVertices[12] = {
 				float3(0, 0, 0),
 				float3(0, 0, 0),
@@ -239,7 +261,7 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 
 					outStream.Append(o);	//정점 추가
 				}
-				outStream.RestartStrip();	//다음 primitive스트립
+				outStream.RestartStrip();	//일단 구분, 다음 primitive스트립
 			}
 		}
 
@@ -275,11 +297,11 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 			// Setup lighting environment
 			UnityGI gi;
 			UNITY_INITIALIZE_OUTPUT(UnityGI, gi);
-			gi.indirect.diffuse = 0;
-			gi.indirect.specular = 0;
-			gi.light.color = 0;
-			gi.light.dir = half3(0, 1, 0);
-			gi.light.ndotl = LambertTerm(o.Normal, gi.light.dir);
+			// gi.indirect.diffuse = 0;
+			// gi.indirect.specular = 0;
+			// gi.light.color = 0;
+			// gi.light.dir = half3(0, 1, 0);
+			// gi.light.ndotl = LambertTerm(o.Normal, gi.light.dir);
 
 			// Call GI (lightmaps/SH/reflections) lighting function
 			UnityGIInput giInput;
@@ -339,7 +361,8 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 				float3(0, 0, 0),
 				float3(0, 0, 0),
 				float3(0, 0, 0),
-				float3(0, 0, 0) };
+				float3(0, 0, 0) 
+			};
 			float3 edgeNormals[12] = {
 				float3(0, 0, 0),
 				float3(0, 0, 0),
@@ -352,7 +375,8 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 				float3(0, 0, 0),
 				float3(0, 0, 0),
 				float3(0, 0, 0),
-				float3(0, 0, 0) };
+				float3(0, 0, 0) 
+			};
 
 			float3 pos = input[0].pos.xyz;
 			float3 defpos = pos;
@@ -429,15 +453,34 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 		{
 			return i.hpos.z / i.hpos.w;
 		}
+        ENDCG
 
-		//정점 쉐이더
-		v2g vert(appdata v){
-			v2g o = (v2g)0;
-			o.pos = v.vertex;
-			return o;
+		//실제 렌더링
+		Pass{
+			Tags{"LightMode" = "Deferred"}
+
+			CGPROGRAM
+			#pragma target 5.0
+			#pragma vertex vert
+			#pragma geometry geom_light
+			#pragma fragment frag_light
+			#pragma exclude_renderers nomrt
+			#pragma multi_compile_prepassfinal noshadow
+			ENDCG
 		}
 
-        ENDCG
+		//그림자 렌더링
+		Pass{
+			Tags{"LightMode" = "ShadowCaster"}
+			ZWrite On ZTest LEqual
+			CGPROGRAM
+			#pragma target 5.0
+			#pragma vertex vert
+			#pragma geometry geom_shadow
+			#pragma fragment frag_shadow
+			#pragma multi_compile_shadowcaster
+			ENDCG
+		}
     }
     FallBack "Diffuse"
 }
