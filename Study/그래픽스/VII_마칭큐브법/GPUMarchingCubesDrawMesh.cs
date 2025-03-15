@@ -41,6 +41,17 @@ public class GPUMarchingCubesDrawMesh : MonoBehaviour
         RenderMesh();
     }
 
+    //버퍼 초기화
+    private void OnDestroy()
+    {
+        mcDefines.ReleaseBuffer();
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(transform.position, transform.localScale);
+    }
+
     //초기화 -> 쉐이더에서는 리터럴값이 4096개가 한계이므로 여기서 초기화
     void Initialize()
     {
