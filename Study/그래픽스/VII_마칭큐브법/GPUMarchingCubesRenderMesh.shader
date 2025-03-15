@@ -28,6 +28,7 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 		#include "Lighting.cginc"
 		#include "UnityPBSLighting.cginc"
 
+		//Libs폴더에 해당 cg파일이 있어야함
 		#include "Libs/Primitives.cginc"
 		#include "Libs/Utils.cginc"
 
@@ -87,12 +88,6 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 			return length(pos)- radius;
 		}
 		
-		//거리함수 결과 블렌드
-		float smoothMax(float d1, float d2, float k)
-		{
-			float h = exp(k * d1) + exp(k * d2);
-			return log(h) / k;
-		}
 
 		//샘플링 함수
 		//볼륨 데이터에서 지정한 좌표의 스칼라 수치
@@ -151,7 +146,7 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 
 		//실제 지오메트리
 		[maxvertexcount(15)]//최대 정점수, 1격자당 삼각폴리곤이 최대 5개
-		void geom_light(point v2g input[1], inout TriangleStream<g2f_light> outStreame){
+		void geom_light(point v2g input[1], inout TriangleStream<g2f_light> outStream){
 
 			g2f_light o = (g2f_light)0;
 			int i, j;
@@ -193,9 +188,9 @@ Shader "Custom/GPUMarchingCubes enderMesh"
 
 
 			//스칼라 수치
-			for(int i=0;i<8;i++){//i는 좌표 순번
+			for(int idx=0;idx<8;idx++){//i는 좌표 순번
 				//오프셋 좌표값을 더한다
-				cubeValue[i] = Sample(pos.x+vertexOffset[i].x, pos.y+vertexOffset[i].y, pos.z+vertexOffset[i].z);
+				cubeValue[idx] = Sample(pos.x+vertexOffset[idx].x, pos.y+vertexOffset[idx].y, pos.z+vertexOffset[idx].z);
 			}
 
 			pos *= _Scale;
