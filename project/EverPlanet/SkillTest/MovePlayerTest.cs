@@ -10,22 +10,21 @@ public class MovePlayerTest : MonoBehaviour
 
     float distance;
     public Vector3 moveVec;
+    const int maxJumpCountInTest = 2;
+
     [SerializeField] LayerMask layerMask = 0;
     [SerializeField] Animator anim;
 
     void Awake()
     {
         rigid = GetComponent<Rigidbody>();
+        distance = GetComponent<BoxCollider>().size.y * 0.6f;
     }
     void Update()
     {
-        if (!GameManager.Instance.IsCharacterDie)
-        {
-            Move();
-            TryJump();
-            CheckGround();
-            PlayerYPosCheck();
-        }
+        Move();
+        TryJump();
+        CheckGround();
     }
     private void Move()
     {
@@ -75,7 +74,7 @@ public class MovePlayerTest : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (curJumpCount < GameManager.Instance.MaxJumpCount)//점프 횟수 남음
+            if (curJumpCount < maxJumpCountInTest)//점프 횟수 남음
             {
                 curJumpCount++;
                 rigid.velocity = Vector3.up * GameManager.Instance.PlayerJumpSpeed;
@@ -84,7 +83,6 @@ public class MovePlayerTest : MonoBehaviour
     }
     void CheckGround()
     {
-        distance = GetComponent<BoxCollider>().size.y * 0.6f;
         if (rigid.velocity.y < 0)//낙하할때만
         {
             RaycastHit hit;
@@ -96,14 +94,6 @@ public class MovePlayerTest : MonoBehaviour
                     curJumpCount = 0;
                 }
             }
-        }
-    }
-    //낙하 처리
-    void PlayerYPosCheck()
-    {
-        if (gameObject.transform.position.y < -200)
-        {
-            gameObject.GetComponent<PlayerHit>().Resurrection();
         }
     }
 }
