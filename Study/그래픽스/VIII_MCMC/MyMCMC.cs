@@ -18,8 +18,9 @@ public class MyMCMC : MonoBehaviour
     //샘플 데이터
     Vector4[] data;
 
-
+    //현재 위치
     Vector3 _curr;
+    //현재 비율
     float _currDensity = 0f;
 
     int limitResetLoopCount = 100;
@@ -83,17 +84,19 @@ public class MyMCMC : MonoBehaviour
     //마코프 체인
     public IEnumerable<Vector3> Chain(int nInitialize, int limit, float threshold)
     {
-        //리셋
-        for (var i = 0; _currDensity <= 0f && i < limitResetLoopCount; i++)
+        //리셋 - 임의 시작포인트 선택
+        for (var i = 0; i < limitResetLoopCount; i++)
         {
             _curr = new Vector3(Scale.x * Random.value, Scale.y * Random.value, Scale.z * Random.value);
             _currDensity = Density(_curr);
         }
 
         //전이
+        //제안 분포로부터 다음 포인트 추천받기
         for (var i = 0; i < nInitialize; i++)
             Next(threshold);
 
+        //패자 부활전
         for (var i = 0; i < limit; i++)
         {
             yield return _curr;
@@ -107,11 +110,16 @@ public class MyMCMC : MonoBehaviour
         //다음 점 : 제안 분포 + 이전 분포
         Vector3 next = GenerateRandomPointStandard() + _curr;
 
-        //목표 분포상에서의 확률 비율 계산
+        //목표 분포상에서의 확률 밀도 계산, 0~1
         var densityNext = Density(next);
+        
         //균등분포 난수보다 큰가?
-        bool flag1 = _currDensity <= 0f || Mathf.Min(1f, densityNext / _currDensity) >= Random.value;
+        //p = min(a,1) => a=(다음 확률밀도/현재 확률밀도)
+        //무작위 값 u와 비교
+        bool flag1 = Mathf.Min(1f, densityNext / _currDensity) >= Random.value;
+        //역치보다 큰가?
         bool flag2 = densityNext > threshold;
+
         //전이 가능
         if (flag1 && flag2)
         {
@@ -133,11 +141,21 @@ public class MyMCMC : MonoBehaviour
         return weight;
     }
 
+    //제안 분포
     public Vector3 GenerateRandomPointStandard()
     {
-        var x = RandomGenerator.rand_gaussian(0f, 1f);
-        var y = RandomGenerator.rand_gaussian(0f, 1f);
-        var z = RandomGenerator.rand_gaussian(0f, 1f);
+        var x = rand_gaussian(0f, 1f);
+        var y = rand_gaussian(0f, 1f);
+        var z = rand_gaussian(0f, 1f);
         return new Vector3(x, y, z);
+    }
+    //표준 정규 분포
+    //sin(2*PI*x)*root(-2lnx)
+    float rand_gaussian(float mu, float sigma)
+    {
+        float x = Random.value;
+        
+        float z = Mathf.Sqrt(-2.0f * Mathf.Log(x)) * Mathf.Sin(2.0f * Mathf.PI * x);
+        return mu + sigma * z;
     }
 }
