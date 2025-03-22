@@ -11,7 +11,14 @@ public class KeyInputSystem : MonoBehaviour
     //스킬 쿨타임
     float coolTimeInHurricane = 0.2f;
     float curTimeInHurricane = 0;
-   
+
+    //데미지 UI순서
+    public static int orderSortNum { get; set; }
+    
+    private void Awake()
+    {
+        orderSortNum = 1;
+    }
     void Update()
     {
         if (Input.GetKey(KeyCode.Z))
