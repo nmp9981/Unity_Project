@@ -14,15 +14,19 @@ public class KeyInputSystem : MonoBehaviour
 
     //데미지 UI순서
     public static int orderSortNum { get; set; }
-    float curTimeNotAnyKey = 0;
-    float coolTimeNotAnyKey = 5;
-
+   
     private void Awake()
     {
         orderSortNum = 1;
     }
     void Update()
     {
+        //레이어 번호 초기화
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            orderSortNum = 1;
+        }
+
         if (Input.GetKey(KeyCode.Z))
         {
             if(CheckCooltime(curTimeInHurricane, coolTimeInHurricane))
@@ -31,12 +35,8 @@ public class KeyInputSystem : MonoBehaviour
                 hurricaneSkill.HurricaneFlow();
             }
         }
-        else
-        {
-            curTimeNotAnyKey = 0;
-        }
+
         TimeFlow();
-        InitSortInQueueNum();
     }
     /// <summary>
     /// 시간 흐름
@@ -44,18 +44,8 @@ public class KeyInputSystem : MonoBehaviour
     void TimeFlow()
     {
         curTimeInHurricane += Time.deltaTime;
-        curTimeNotAnyKey += Time.deltaTime;
     }
-    /// <summary>
-    /// 레이어 수 초기화
-    /// </summary>
-    void InitSortInQueueNum()
-    {
-        if(curTimeNotAnyKey >= coolTimeNotAnyKey)
-        {
-            orderSortNum = 1;
-        }
-    }
+  
     /// <summary>
     /// 쿨타임 지났는지 검사
     /// </summary>
