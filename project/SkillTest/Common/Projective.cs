@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,8 @@ public class Projective : MonoBehaviour
 
     public long maxAttackDamage;
     public long workmanship = 60;
+
+    public int criticalRate = 40;
 
     UIManager uiManager;
     ObjectFullingInTest objectFulling;
@@ -76,8 +79,23 @@ public class Projective : MonoBehaviour
             long maxDamage = maxAttackDamage;
             long minDamage = (maxAttackDamage * workmanship) / 100;
             long damage = (long)Random.Range(minDamage,maxDamage);
+
+            int criticalValue = Random.Range(0, 100);
+            if(criticalValue < criticalRate)//크리 터짐
+            {
+                damage *= 2;
+            }
+
             uiManager.ShowDamage(damage);
-            ShowDamageAsSkin(damage, other.gameObject);
+            if(criticalValue < criticalRate)//크리 터짐
+            {
+                ShowCriticalDamageAsSkin(damage, other.gameObject);
+            }
+            else
+            {
+                ShowDamageAsSkin(damage, other.gameObject);
+            }
+           
             gameObject.SetActive(false);
         }
     }
@@ -96,6 +114,25 @@ public class Projective : MonoBehaviour
         {
             GameObject damImg = objectFulling.MakeObj(damageString[i]-'0');
             damImg.transform.position = damageStartPos+Vector3.right * uiManager.damageImage[0].bounds.size.x*i*0.5f;
+        }
+        KeyInputSystem.orderSortNum += 1;
+    }
+
+    /// <summary>
+    /// 데미지 보이기
+    /// </summary>
+    /// <param name="Damage">데미지</param>
+    /// <param name="monsterPos">몬스터 위치</param>
+    void ShowCriticalDamageAsSkin(long Damage, GameObject monsterPos)
+    {
+        string damageString = Damage.ToString();
+        float damageLength = uiManager.criticalDamageImage[0].bounds.size.x * damageString.Length;
+        Vector3 damageStartPos = monsterPos.transform.position + Vector3.up * 4f + damageLength * Vector3.left * 0.25f;
+
+        for (int i = 0; i < damageString.Length; i++)
+        {
+            GameObject damImg = objectFulling.MakeObj((damageString[i] - '0')+10);
+            damImg.transform.position = damageStartPos + Vector3.right * uiManager.criticalDamageImage[0].bounds.size.x * i * 0.5f;
         }
         KeyInputSystem.orderSortNum += 1;
     }
