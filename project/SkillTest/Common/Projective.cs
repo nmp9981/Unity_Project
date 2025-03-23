@@ -1,10 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.ConstrainedExecution;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public class Projective : MonoBehaviour
 {
@@ -13,11 +8,6 @@ public class Projective : MonoBehaviour
     public float arrowMoveDistance { get; set; }
 
     private float arrowMaxMoveDistance = 15;
-
-    public long maxAttackDamage;
-    public long workmanship = 60;
-
-    public int criticalRate = 40;
 
     UIManager uiManager;
     ObjectFullingInTest objectFulling;
@@ -76,18 +66,18 @@ public class Projective : MonoBehaviour
     {
         if (other.gameObject.tag.Contains("Monster"))
         {
-            long maxDamage = maxAttackDamage;
-            long minDamage = (maxAttackDamage * workmanship) / 100;
+            long maxDamage = PlayerInfo.maxAttackDamage;
+            long minDamage = (maxDamage * PlayerInfo.workmanship) / 100;
             long damage = (long)Random.Range(minDamage,maxDamage);
 
             int criticalValue = Random.Range(0, 100);
-            if(criticalValue < criticalRate)//크리 터짐
+            if(criticalValue < PlayerInfo.criticalRate)//크리 터짐
             {
-                damage *= 2;
+                damage *= PlayerInfo.criticalDamageRate;
             }
 
             uiManager.ShowDamage(damage);
-            if(criticalValue < criticalRate)//크리 터짐
+            if(criticalValue < PlayerInfo.criticalRate)//크리 터짐
             {
                 ShowCriticalDamageAsSkin(damage, other.gameObject);
             }
@@ -108,7 +98,8 @@ public class Projective : MonoBehaviour
     {
         string damageString = Damage.ToString();
         float damageLength = uiManager.damageImage[0].bounds.size.x * damageString.Length;
-        Vector3 damageStartPos = monsterPos.transform.position + Vector3.up * 4f+damageLength*Vector3.left*0.25f;
+        Bounds bounds = monsterPos.GetComponent<MeshRenderer>().bounds;
+        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y*0.5f+1)+damageLength*Vector3.left*0.25f;
 
         for (int i = 0; i < damageString.Length; i++)
         {
@@ -127,7 +118,8 @@ public class Projective : MonoBehaviour
     {
         string damageString = Damage.ToString();
         float damageLength = uiManager.criticalDamageImage[0].bounds.size.x * damageString.Length;
-        Vector3 damageStartPos = monsterPos.transform.position + Vector3.up * 4f + damageLength * Vector3.left * 0.25f;
+        Bounds bounds = monsterPos.GetComponent<MeshRenderer>().bounds;
+        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y*0.5f + 1) + damageLength * Vector3.left * 0.25f;
 
         for (int i = 0; i < damageString.Length; i++)
         {
