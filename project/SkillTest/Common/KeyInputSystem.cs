@@ -7,10 +7,15 @@ public class KeyInputSystem : MonoBehaviour
     //스킬
     [SerializeField]
     HurricaneSkill hurricaneSkill;
+    [SerializeField]
+    StraipeSkill straipeSkill;
 
     //스킬 쿨타임
-    float coolTimeInHurricane = 0.2f;
+    float coolTimeInHurricane = 0.15f;
     float curTimeInHurricane = 0;
+
+    float coolTimeInStraipe = 0.55f;
+    float curTimeInStraipe = 0;
 
     //데미지 UI순서
     public static int orderSortNum { get; set; }
@@ -22,17 +27,27 @@ public class KeyInputSystem : MonoBehaviour
     void Update()
     {
         //레이어 번호 초기화
-        if (Input.GetKeyDown(KeyCode.Z))
+        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.X))
         {
             orderSortNum = 1;
         }
-
+        //폭풍의 시
         if (Input.GetKey(KeyCode.Z))
         {
             if(CheckCooltime(curTimeInHurricane, coolTimeInHurricane))
             {
                 curTimeInHurricane = 0;
                 hurricaneSkill.HurricaneFlow();
+            }
+        }
+        //스트레이프
+        if (Input.GetKey(KeyCode.X))
+        {
+            if (CheckCooltime(curTimeInStraipe, coolTimeInStraipe))
+            {
+                orderSortNum = 1;
+                curTimeInStraipe = 0;
+                StartCoroutine(straipeSkill.StraipeShot());
             }
         }
 
@@ -44,6 +59,7 @@ public class KeyInputSystem : MonoBehaviour
     void TimeFlow()
     {
         curTimeInHurricane += Time.deltaTime;
+        curTimeInStraipe += Time.deltaTime;
     }
   
     /// <summary>
