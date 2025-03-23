@@ -9,6 +9,11 @@ public class Projective : MonoBehaviour
 
     private float arrowMaxMoveDistance = 15;
 
+    //현재 타수
+    public float hitNumber = 0;
+    //스킬데미지
+    public long skillDamageRate;
+
     UIManager uiManager;
     ObjectFullingInTest objectFulling;
 
@@ -28,21 +33,25 @@ public class Projective : MonoBehaviour
     /// <summary>
     /// 화살 정보 초기화
     /// </summary>
-    public void InitArrowInfo(Vector3 targetPos, Vector3 moveDir, bool isRange)
+    public void InitArrowInfo(Vector3 targetPos, Vector3 moveDir, bool isRange, int hitNum, long skillDamage)
     {
         //시야 범위내에 들어가면 타겟을 향하게
         if (isRange)
         {
             transform.LookAt(targetPos);
             arrowMoveDir = targetPos - gameObject.transform.position;
+            arrowMoveSpeed = 3;
         }
         else//그렇지 않으면 직선으로
         {
             transform.LookAt(moveDir);
             arrowMoveDir = moveDir;
+            arrowMoveSpeed = 15;
         }
         
         arrowMoveDistance = 0;
+        hitNumber = hitNum;
+        skillDamageRate = skillDamage;
     }
     /// <summary>
     /// 화살 이동
@@ -66,7 +75,7 @@ public class Projective : MonoBehaviour
     {
         if (other.gameObject.tag.Contains("Monster"))
         {
-            long maxDamage = PlayerInfo.maxAttackDamage;
+            long maxDamage = (PlayerInfo.maxAttackDamage* skillDamageRate)/100;
             long minDamage = (maxDamage * PlayerInfo.workmanship) / 100;
             long damage = (long)Random.Range(minDamage,maxDamage);
 
@@ -90,7 +99,7 @@ public class Projective : MonoBehaviour
         }
     }
     /// <summary>
-    /// 데미지 보이기
+    /// 일반 데미지 보이기
     /// </summary>
     /// <param name="Damage">데미지</param>
     /// <param name="monsterPos">몬스터 위치</param>
@@ -99,7 +108,8 @@ public class Projective : MonoBehaviour
         string damageString = Damage.ToString();
         float damageLength = uiManager.damageImage[0].bounds.size.x * damageString.Length;
         Bounds bounds = monsterPos.GetComponent<MeshRenderer>().bounds;
-        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y*0.5f+1)+damageLength*Vector3.left*0.25f;
+        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y *0.5f + 1)+damageLength*Vector3.left*0.25f;
+        damageStartPos += Vector3.up * hitNumber* uiManager.damageImage[0].bounds.size.y*0.55f;
 
         for (int i = 0; i < damageString.Length; i++)
         {
@@ -110,7 +120,7 @@ public class Projective : MonoBehaviour
     }
 
     /// <summary>
-    /// 데미지 보이기
+    /// 크리 데미지 보이기
     /// </summary>
     /// <param name="Damage">데미지</param>
     /// <param name="monsterPos">몬스터 위치</param>
@@ -119,7 +129,8 @@ public class Projective : MonoBehaviour
         string damageString = Damage.ToString();
         float damageLength = uiManager.criticalDamageImage[0].bounds.size.x * damageString.Length;
         Bounds bounds = monsterPos.GetComponent<MeshRenderer>().bounds;
-        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y*0.5f + 1) + damageLength * Vector3.left * 0.25f;
+        Vector3 damageStartPos = bounds.center + Vector3.up * (bounds.size.y*0.5f+ 1) + damageLength * Vector3.left * 0.25f;
+        damageStartPos += Vector3.up * hitNumber * uiManager.criticalDamageImage[0].bounds.size.y*0.5f;
 
         for (int i = 0; i < damageString.Length; i++)
         {
