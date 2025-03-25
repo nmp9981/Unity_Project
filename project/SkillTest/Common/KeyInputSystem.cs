@@ -9,13 +9,18 @@ public class KeyInputSystem : MonoBehaviour
     HurricaneSkill hurricaneSkill;
     [SerializeField]
     StraipeSkill straipeSkill;
+    [SerializeField]
+    BumerangStepSkill bumerangStepSkill;
 
     //스킬 쿨타임
     float coolTimeInHurricane = 0.15f;
     float curTimeInHurricane = 0;
 
-    float coolTimeInStraipe = 0.55f;
+    float coolTimeInStraipe = 0.5f;
     float curTimeInStraipe = 0;
+
+    float coolTimeInBumerangStep = 1f;
+    float curTimeInBumerangStep = 0;
 
     //데미지 UI순서
     public static int orderSortNum { get; set; }
@@ -50,6 +55,16 @@ public class KeyInputSystem : MonoBehaviour
                 StartCoroutine(straipeSkill.StraipeShot());
             }
         }
+        //부메랑스텝
+        if (Input.GetKey(KeyCode.C))
+        {
+            if (CheckCooltime(curTimeInBumerangStep, coolTimeInBumerangStep))
+            {
+                orderSortNum = 1;
+                curTimeInBumerangStep = 0;
+                StartCoroutine(bumerangStepSkill.BumerangStep());
+            }
+        }
 
         TimeFlow();
     }
@@ -60,6 +75,7 @@ public class KeyInputSystem : MonoBehaviour
     {
         curTimeInHurricane += Time.deltaTime;
         curTimeInStraipe += Time.deltaTime;
+        curTimeInBumerangStep += Time.deltaTime;
     }
   
     /// <summary>
