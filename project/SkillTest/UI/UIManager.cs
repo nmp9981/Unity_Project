@@ -12,7 +12,8 @@ public class UIManager : MonoBehaviour
     public List<Sprite> criticalDamageImage = new List<Sprite>();
     //누적 데미지
     long accumulateDamage = 0;
-    
+
+    //데미지 보이기
     public void ShowDamage(long damage)
     {
         accumulateDamage += damage;
