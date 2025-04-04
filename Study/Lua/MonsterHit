@@ -1,0 +1,14 @@
+void playerHit(Entity TriggerBodyEntity, number hitMaxDamage){
+  local hitDamage = math.random(hitMaxDamage*0.8,hitMaxDamage)
+  TriggerBodyEntity.HitComponent:OnHit(self.Entity,hitDamage,false,"Monster",1)	
+}
+
+HandleTriggerEnterEvent(TriggerEnterEvent event){
+  local TriggerBodyEntity = event.TriggerBodyEntity
+
+  local hitMaxDamage = tonumber(_DataService:GetCell("MonsterDataBase",self.Entity.Monster.monsterIDIndex,7))
+
+  if isvalid(TriggerBodyEntity.PlayerComponent) then
+      self:PlayerHit(TriggerBodyEntity, hitMaxDamage)	
+  end
+}
