@@ -24,7 +24,33 @@ private void Window_Loaded(object sender, RoutedEventArgs e)
         }
     }
 }
- 
+
+
+/// <summary>
+/// 각 오브젝트 버튼을 눌렀을때 나오는 프로퍼티
+/// </summary>
+/// <param name="sender"></param>
+/// <param name="e"></param>
+void ObjectClik(object sender, RoutedEventArgs e)
+{
+    TreeViewItem item = sender as TreeViewItem;
+
+    textBlock.VerticalAlignment = VerticalAlignment.Top;
+    textBlock.FontSize = 20;
+    textBlock.Height = 450;
+
+    textBlock.Text = item.Header.ToString() + " \n프로퍼티 특성";
+
+    Canvas.SetLeft(textBlock, btnW);
+    Canvas.SetTop(textBlock, 20);
+    if (ListCanvas.Children.Contains(textBlock))
+    {
+        return;
+    }
+    ListCanvas.Children.Add(textBlock);
+}
+
+
 // 서브 디렉토리
 private void GetSubDirectories(TreeViewItem itemParent)
 {
@@ -42,6 +68,9 @@ private void GetSubDirectories(TreeViewItem itemParent)
             item.Tag = dInfo.FullName;
             item.Expanded += new RoutedEventHandler(item_Expanded);
             itemParent.Items.Add(item);
+
+            //버튼 기능 추가
+            item.PreviewMouseLeftButtonDown += ObjectClik;
         }
     }
  
