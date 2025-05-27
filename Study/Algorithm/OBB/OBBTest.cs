@@ -5,9 +5,6 @@ public class OBBTest : MonoBehaviour
 {
     OBBBoxClass obbBoxclass = new OBBBoxClass();
 
-    [SerializeField] 
-    List<MeshFilter>filters = new List<MeshFilter>();
-
     // 메시를 합칠 대상이 되는 부모 오브젝트를 여기에 할당합니다.
     public GameObject parentObjectToCombine;
 
@@ -16,22 +13,25 @@ public class OBBTest : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            Mesh newMesh = CombineMeshs(filters);
-            obbBoxclass.MakeOBBFlow(newMesh, this.gameObject);
-        }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            Mesh newMesh = CombineAllMeshes(parentObjectToCombine);
-            obbBoxclass.MakeOBBFlow(newMesh, this.gameObject);
+            MakeOBBAboutCombineMeshs(parentObjectToCombine, combinedMaterial);
         }
     }
+    /// <summary>
+    /// 합친 메시로 OBB박스 생성
+    /// </summary>
+    public void MakeOBBAboutCombineMeshs(GameObject parentObjectToCombine, Material combinedMaterial)
+    {
+        Mesh newMesh = CombineAllMeshes(parentObjectToCombine, combinedMaterial);
+        obbBoxclass.MakeOBBFlow(newMesh, this.gameObject);
+    }
+
     /// <summary>
     /// 지정된 부모 오브젝트의 모든 자식 메시를 하나로 합칩니다.
     /// </summary>
     /// <param name="parent">메시를 합칠 대상 부모 오브젝트.</param>
-    public Mesh CombineAllMeshes(GameObject parent)
+    public Mesh CombineAllMeshes(GameObject parent, Material combinedMaterial)
     {
         // 1. 합칠 MeshFilter 컴포넌트들을 수집합니다.
         MeshFilter[] meshFilters = parent.GetComponentsInChildren<MeshFilter>();
