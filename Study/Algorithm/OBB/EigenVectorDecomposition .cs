@@ -1,9 +1,5 @@
-using UnityEngine;
-using MathNet.Numerics.LinearAlgebra;
-using System;
 using System.Numerics;
-using Unity.VisualScripting;
-using NUnit.Framework.Constraints;
+using System;
 
 /// <summary>
 /// 3x3행렬 클래스
@@ -52,8 +48,7 @@ public class Matrix3x3
     }
 }
 
-
-public class EigenVectorDecomposition 
+public class EigenVectorDecomposition
 {
     /// <summary>
     /// 고윳값, 고유벡터 구하는 Flow
@@ -65,7 +60,7 @@ public class EigenVectorDecomposition
         Matrix3x3 mat = new Matrix3x3(changed3x3Matrix);
 
         var eigenvalues = GetEigenValue(mat);
-        var eigenvectors = GetEigenVector(eigenvalues,mat);
+        var eigenvectors = GetEigenVector(eigenvalues, mat);
 
         return (eigenvalues, eigenvectors);
     }
@@ -96,13 +91,13 @@ public class EigenVectorDecomposition
         //특성 방정식 구하기(3차 방정식) => x^3+bx^2+cx+d=0
         //고윳값 성질은 방정식의 근과 계수와의 관계와 연관
         double aCoeff = 1.0;
-        double bCoeff = -(m.Mat[0,0]+m.Mat[1,1]+m.Mat[2,2]);//trace(A), 세근의 합
-        
-        double M00 = m.Mat[1, 1] * m.Mat[2, 2] - m.Mat[1,2]*m.Mat[2,1];
-        double M11 = m.Mat[0, 0] * m.Mat[2, 2] - m.Mat[0, 2] * m.Mat[2, 0];
-        double M22 = m.Mat[0, 0] * m.Mat[1, 1] - m.Mat[0,1] * m.Mat[1,0];
+        double bCoeff = -(m.Mat[0, 0] + m.Mat[1, 1] + m.Mat[2, 2]);//trace(A), 세근의 합
 
-        double cCoeff = M00 + M11 + M22; 
+        double M00 = m.Mat[1, 1] * m.Mat[2, 2] - m.Mat[1, 2] * m.Mat[2, 1];
+        double M11 = m.Mat[0, 0] * m.Mat[2, 2] - m.Mat[0, 2] * m.Mat[2, 0];
+        double M22 = m.Mat[0, 0] * m.Mat[1, 1] - m.Mat[0, 1] * m.Mat[1, 0];
+
+        double cCoeff = M00 + M11 + M22;
         double dCoeff = -m.DeterminantBy3x3Matrix();//det(A), 세근의 곱
 
         //3차방정식의 해 구하기
@@ -116,7 +111,7 @@ public class EigenVectorDecomposition
     /// <returns></returns>
     public double[,] GetEigenVector(Complex[] eigenvalues, Matrix3x3 mat, double epcilon = 1e-9)
     {
-        double[,] eigenvectors = new double[3,3];
+        double[,] eigenvectors = new double[3, 3];
 
         //각 고윳값에 대한 고유벡터를 구한다.
         for (int i = 0; i < eigenvalues.Length; i++)
@@ -135,32 +130,49 @@ public class EigenVectorDecomposition
             // 목표: 행렬을 행 사다리꼴(Row Echelon Form)로 만듦
             Matrix3x3 gauseMat = RowEchelonFormMatrix(M);
 
-
-
             // 영공간(Null Space)에서 고유 벡터 찾기
             // (A - lambda*I)v = 0 에서 v = [x, y, z]
             // 행렬의 랭크가 2라고 가정 (하나의 자유 변수: z)
             // 만약 랭크가 1이라면, 더 많은 자유 변수와 다른 접근 방식이 필요합니다.
             Complex[] v = new Complex[3];
 
-            // z를 자유 변수로 설정 (예: z = 1)
-            // (v[2]는 z, v[1]은 y, v[0]은 x)
-            v[2] = new Complex(1.0, 0.0);
+            int rank = RankMatrix(gauseMat);
+            //랭크가 3일경우
+            if (rank==3)
+            {
+                v[2] = gauseMat.Mat[2, 2];
+            }
+            else if(rank==2)//랭크 2
+            {
+                // z를 자유 변수로 설정 (예: z = 1)
+                // (v[2]는 z, v[1]은 y, v[0]은 x)
+                v[2] = new Complex(1.0, 0.0);
+            }
+            else//랭크 1
+            {
+                // y, z를 자유 변수로 설정 (예: z = 1)
+                // (v[2]는 z, v[1]은 y, v[0]은 x)
+                v[2] = new Complex(1.0, 0.0);
+                v[1] = new Complex(1.0, 0.0);
+            }
 
             // 두 번째 행으로부터 y 계산: m_current[1,1]y + m_current[1,2]z = 0
-            if (Math.Abs(gauseMat.Mat[1, 1]) > epcilon)
+            if (rank >= 2)
             {
-                v[1] = -new Complex(gauseMat.Mat[1, 2], 0.0) * v[2] / new Complex(gauseMat.Mat[1, 1], 0.0);
-            }
-            else // m_current[1,1]이 0에 가깝다면, v[1]도 자유 변수일 가능성
-            {
-                v[1] = new Complex(1.0, 0.0); // 이 경우, 다른 자유 변수처럼 1로 설정 (단순화)
+                if (Math.Abs(gauseMat.Mat[1, 1]) > epcilon)
+                {
+                    v[1] = -new Complex(gauseMat.Mat[1, 2], 0.0) * v[2] / new Complex(gauseMat.Mat[1, 1], 0.0);
+                }
+                else // m_current[1,1]이 0에 가깝다면, v[1]도 자유 변수일 가능성
+                {
+                    v[1] = new Complex(1.0, 0.0); // 이 경우, 다른 자유 변수처럼 1로 설정 (단순화)
+                }
             }
 
             // 첫 번째 행으로부터 x 계산: m_current[0,0]x + m_current[0,1]y + m_current[0,2]z = 0
             if (Math.Abs(gauseMat.Mat[0, 0]) > epcilon)
             {
-                v[0] = (-new Complex(gauseMat.Mat[0, 1], 0.0) * v[1] 
+                v[0] = (-new Complex(gauseMat.Mat[0, 1], 0.0) * v[1]
                     - new Complex(gauseMat.Mat[0, 2], 0.0) * v[2]) / new Complex(gauseMat.Mat[0, 0], 0.0);
             }
             else // m_current[0,0]이 0에 가깝다면, v[0]도 자유 변수일 가능성
@@ -169,11 +181,35 @@ public class EigenVectorDecomposition
             }
 
             // 고유 벡터 정규화
-            eigenvectors[0,i] = NormalizeVector(v)[0].Real;
+            eigenvectors[0, i] = NormalizeVector(v)[0].Real;
             eigenvectors[1, i] = NormalizeVector(v)[1].Real;
             eigenvectors[2, i] = NormalizeVector(v)[2].Real;
         }
         return eigenvectors;
+    }
+
+    /// <summary>
+    /// Rank 구하기
+    /// </summary>
+    /// <param name="gauseMat"></param>
+    /// <returns></returns>
+    int RankMatrix(Matrix3x3 gauseMat)
+    {
+        int rank = 0;
+        //랭크가 3일경우
+        if (gauseMat.Mat[2, 2] != 0)
+        {
+            rank = 3;
+        }
+        else
+        {
+            //랭크 1
+            if (gauseMat.Mat[1, 2] == 0 && gauseMat.Mat[1, 1] == 0)
+                rank = 1;
+            else//랭크 2
+                rank = 2;
+        }
+        return rank;
     }
 
     // --- 3차 방정식의 근을 찾는 카르다노의 공식 구현 ---
@@ -241,7 +277,7 @@ public class EigenVectorDecomposition
         }
         return depressedRoots;
     }
-    
+
     /// <summary>
     /// 행 사다리꼴 행렬로 변환
     /// </summary>
@@ -251,11 +287,11 @@ public class EigenVectorDecomposition
     {
         Matrix3x3 curMat = m.Clone();
 
-        for(int k = 0; k < 2; k++)
+        for (int k = 0; k < 2; k++)
         {
             //피벗행 찾기(최대 절댓값 비교)
             int pivotRow = k;
-            for(int row = k + 1; row < 3; row++)
+            for (int row = k + 1; row < 3; row++)
             {
                 if (Math.Abs(m.Mat[row, k]) > Math.Abs(m.Mat[pivotRow, k]))
                 {
@@ -266,7 +302,7 @@ public class EigenVectorDecomposition
             if (pivotRow != k)
             {
                 //각 열별로 교환
-                for(int j = k; j < 3; j++)
+                for (int j = k; j < 3; j++)
                 {
                     double temp = curMat.Mat[k, j];
                     curMat.Mat[k, j] = curMat.Mat[pivotRow, j];
@@ -292,11 +328,11 @@ public class EigenVectorDecomposition
         }
         return curMat;
     }
-   /// <summary>
-   /// 벡터 정규화 (복소수 벡터용)
-   /// </summary>
-   /// <param name="vector"></param>
-   /// <returns></returns>
+    /// <summary>
+    /// 벡터 정규화 (복소수 벡터용)
+    /// </summary>
+    /// <param name="vector"></param>
+    /// <returns></returns>
     private static Complex[] NormalizeVector(Complex[] vector)
     {
         double magnitudeSquared = 0;
