@@ -5,6 +5,7 @@ public class ForceTest : MonoBehaviour
     [SerializeField]
     public float forcePower = 10f;
     private Rigidbody rb;
+    private Vector3 lastVelocity;
 
     void Start()
     {
@@ -25,5 +26,23 @@ public class ForceTest : MonoBehaviour
         // 직접 Velocity 제어 테스트
         if (Input.GetKeyDown(KeyCode.Space))
             rb.linearVelocity = Vector3.up * 5f;
+    }
+
+    void FixedUpdate()
+    {
+        // 속도 벡터 시각화 (파란색)
+        Debug.DrawLine(transform.position, transform.position + rb.linearVelocity, Color.blue);
+
+        // 가속도 근사 (현재속도 - 이전속도)
+        Vector3 accel = (rb.linearVelocity - lastVelocity) / Time.fixedDeltaTime;
+        Debug.DrawLine(transform.position, transform.position + accel * 0.1f, Color.red);
+
+        lastVelocity = rb.linearVelocity;
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(transform.position, 0.1f);
     }
 }
