@@ -7,6 +7,11 @@ public class PlayerMove : MonoBehaviour
     public float maxSpeed = 5f;
     private Rigidbody rb;
 
+    public float jumpPower = 7f;
+    public Transform groundCheck;
+    public LayerMask groundLayer;
+    private bool isGrounded;
+
     void Start() => rb = GetComponent<Rigidbody>();
 
     void Update()
@@ -19,5 +24,18 @@ public class PlayerMove : MonoBehaviour
         // 가속도 기반 이동
         if (rb.linearVelocity.magnitude < maxSpeed)
             rb.AddForce(dir * moveForce);
+
+        // 지면 감지 (Raycast)
+        isGrounded = Physics.Raycast(groundCheck.position, Vector3.down, 0.2f, groundLayer);
+
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+    }
+
+   
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * 0.2f);
     }
 }
