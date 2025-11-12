@@ -34,10 +34,10 @@ public class TimeCompare : MonoBehaviour
         //적분방식에 따른 속도, 위치
         if(integrator == Integrator.ForwardEuler)
         {
-            //속도
-            velocity += (acceleration * dt);
             //이동
             transform.position += (velocity * dt);
+            //속도
+            velocity += (acceleration * dt);
         }
         else
         {
