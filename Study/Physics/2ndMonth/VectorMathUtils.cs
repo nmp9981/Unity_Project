@@ -73,4 +73,17 @@ public static class VectorMathUtils
         float j = -(1 + e) * rv / (1.0f / m1 + 1.0f / m2);
         return normal * j;//최종 충격량 벡터 = 법선 벡터 * 충격량
     }
+
+    /// <summary>
+/// 두물체가 충돌했을 때의 충격량
+/// </summary>
+/// <param name="m1">물체1 질량</param>
+/// <param name="m2">물체2 질량</param>
+/// <param name="relVel AlongNormal">법선 방향을 따른 상대 속도</param>
+/// <param name="e">반발계수</param>
+/// <returns></returns>
+public static float CalImpulseAmount(float m1, float m2, float relVelAlongNormal, float e)
+{
+    return -(1 + e) * relVelAlongNormal / (1 / m1 + 1 / m2);
+}
 }
