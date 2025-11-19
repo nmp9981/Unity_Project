@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CustomRigidBody : MonoBehaviour
@@ -9,7 +10,11 @@ public class CustomRigidBody : MonoBehaviour
 
     [Header("Force")]
     public Vector3 externalForce = Vector3.zero;//외력
+    public Vector3 accumulatedForce = Vector3.zero;//가속도 힘
     public float linearDrag = 0.1f;//저항
+
+    [Header("Option")]
+    public bool useGravity = true;
 
     //적분 방식
     public enum Integrator { ForwardEuler, SemiImplicitEuler }
@@ -24,7 +29,8 @@ public class CustomRigidBody : MonoBehaviour
     void Step(float dt)
     {
         //알짜힘 구하기
-        Vector3 gravityForce = Physics.gravity * mass;//중력
+        AddForce(accumulatedForce);
+        Vector3 gravityForce = useGravity?Physics.gravity * mass:Vector3.zero;//중력
         Vector3 dragForce = -velocity * linearDrag;//저항힘
         Vector3 totalForce = externalForce + gravityForce + dragForce;//알짜힘
 
@@ -46,13 +52,16 @@ public class CustomRigidBody : MonoBehaviour
             //이동
             transform.position += (velocity * dt);
         }
+        //힘 초기화
+        ClearForces();
     }
 
     //helper API
-    public void ApplyForce(Vector3 f)
+    public void AddForce(Vector3 f)
     {
         externalForce += f;
     }
+   
     public void ClearForces()
     {
         externalForce = Vector3.zero;
