@@ -17,13 +17,16 @@ public class ColiisionUtility
         bool isCollisionX = true;
         bool isCollisionY = true;
 
+        var A = aBox.GetBounds();
+        var B = bBox.GetBounds();
+
         //x축 비교
-        if (aBox.GetBounds().max.x < bBox.GetBounds().min.x || aBox.GetBounds().min.x > bBox.GetBounds().max.x)
+        if (A.max.x < B.min.x || A.min.x > B.max.x)
         {
             isCollisionX = false;
         }
         //y축 비교
-        if (aBox.GetBounds().max.y < bBox.GetBounds().min.y || aBox.GetBounds().min.y > bBox.GetBounds().max.y)
+        if (A.max.y < B.min.y || A.min.y > B.max.y)
         {
             isCollisionY = false;
         }
@@ -48,18 +51,21 @@ public class ColiisionUtility
         bool isCollisionY = true;
         bool isCollisionZ = true;
 
+        var A = aBox.GetBounds();
+        var B = bBox.GetBounds();
+
         //x축 비교
-        if (aBox.GetBounds().max.x < bBox.GetBounds().min.x || aBox.GetBounds().min.x > bBox.GetBounds().max.x)
+        if (A.max.x < B.min.x || A.min.x > B.max.x)
         {
             isCollisionX = false;
         }
         //y축 비교
-        if (aBox.GetBounds().max.y < bBox.GetBounds().min.y || aBox.GetBounds().min.y > bBox.GetBounds().max.y)
+        if (A.max.y < B.min.y || A.min.y > B.max.y)
         {
             isCollisionY = false;
         }
         //z축 비교
-        if (aBox.GetBounds().max.z < bBox.GetBounds().min.z || aBox.GetBounds().min.z > bBox.GetBounds().max.z)
+        if (A.max.z < B.min.z || A.min.z > B.max.z)
         {
             isCollisionZ = false;
         }
