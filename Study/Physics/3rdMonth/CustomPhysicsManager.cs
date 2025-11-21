@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
 
 public class CustomPhysicsManager : MonoBehaviour
@@ -10,9 +9,9 @@ public class CustomPhysicsManager : MonoBehaviour
 
     private void Awake()
     {
-        rigidBodies2D.AddRange(FindObjectsOfType<CustomRigidbody2D>());
-        rigidBodies3D.AddRange(FindObjectsOfType<CustomRigidBody>());
-        colliders3D.AddRange(FindObjectsOfType<CustomCollider3D>());
+        rigidBodies2D.AddRange(FindObjectsByType<CustomRigidbody2D>(FindObjectsSortMode.None));
+        rigidBodies3D.AddRange(FindObjectsByType<CustomRigidBody>(FindObjectsSortMode.None));
+        colliders3D.AddRange(FindObjectsByType<CustomCollider3D>(FindObjectsSortMode.None));
     }
 
     private void FixedUpdate()
