@@ -1,3 +1,6 @@
+using System;
+using System.Numerics;
+
 public class ColiisionUtility
 {
     public static bool CheckAABBBox(CustomCollider3D aBox, CustomCollider3D bBox)
@@ -74,6 +77,56 @@ public class ColiisionUtility
         {
             return true;
         }
+        return false;
+    }
+
+    /// <summary>
+    /// 원끼리의 충돌
+    /// </summary>
+    /// <param name="center1">원1의 중심 좌표</param>
+    /// <param name="r1">원1의 반지름</param>
+    /// <param name="center2">원2의 중심 좌표</param>
+    /// <param name="r2">원2의 반지름</param>
+    /// <returns></returns>
+    public static bool IsCollisionCircle(Vector2 center1, float r1, Vector2 center2, float r2)
+    {
+        //벡터 차
+        Vector2 diff = center1- center2;
+
+        //반지름 합
+        float sumRadius = r2 + r1;
+        float sumRadius2 = sumRadius * sumRadius;
+
+        //중심간 거리 제곱
+        float diffCenter2 = diff.X*diff.X+diff.Y*diff.Y;
+
+        //충돌 검사
+        if (diffCenter2 < sumRadius2) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// 구끼리의 충돌
+    /// </summary>
+    /// <param name="center1">구1의 중심 좌표</param>
+    /// <param name="r1">구1의 반지름</param>
+    /// <param name="center2">구2의 중심 좌표</param>
+    /// <param name="r2">구2의 반지름</param>
+    /// <returns></returns>
+    public static bool IsCollisionCircle(Vector3 center1, float r1, Vector3 center2, float r2)
+    {
+        //벡터 차
+        Vector3 diff = center1 - center2;
+
+        //반지름 합
+        float sumRadius = r2 + r1;
+        float sumRadius2 = sumRadius * sumRadius;
+
+        //중심간 거리 제곱
+        float diffCenter2 = diff.X*diff.X + diff.Y*diff.Y+diff.Z*diff.Z;
+
+        //충돌 검사
+        if (diffCenter2 < sumRadius2) return true;
         return false;
     }
 }
