@@ -129,4 +129,16 @@ public class ColiisionUtility
         if (diffCenter2 < sumRadius2) return true;
         return false;
     }
+    public static bool IsSphereAABBCollision(Vector3 sphereCenter, float radius, CustomAABB box)
+{
+    float closestX = Mathf.Clamp(sphereCenter.x, box.min.x, box.max.x);
+    float closestY = Mathf.Clamp(sphereCenter.y, box.min.y, box.max.y);
+    float closestZ = Mathf.Clamp(sphereCenter.z, box.min.z, box.max.z);
+
+    Vector3 closestPoint = new Vector3(closestX, closestY, closestZ);
+
+    float distanceSq = (sphereCenter - closestPoint).sqrMagnitude;
+
+    return distanceSq <= radius * radius;
+}
 }
