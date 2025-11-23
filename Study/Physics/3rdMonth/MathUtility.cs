@@ -22,6 +22,16 @@ public static class MathUtility
     }
 
     /// <summary>
+    /// 제곱근 구하기
+    /// </summary>
+    /// <param name="a">실수</param>
+    /// <returns>루트a</returns>
+    public static float Root(float a)
+    {
+        return a * a;
+    }
+
+    /// <summary>
     /// 가장 가까운 값 찾기
     /// </summary>
     /// <param name="standardValue">기준 값</param>
