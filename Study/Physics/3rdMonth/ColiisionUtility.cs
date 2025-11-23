@@ -129,16 +129,52 @@ public class ColiisionUtility
         if (diffCenter2 < sumRadius2) return true;
         return false;
     }
-    public static bool IsSphereAABBCollision(Vector3 sphereCenter, float radius, CustomAABB box)
-{
-    float closestX = Mathf.Clamp(sphereCenter.x, box.min.x, box.max.x);
-    float closestY = Mathf.Clamp(sphereCenter.y, box.min.y, box.max.y);
-    float closestZ = Mathf.Clamp(sphereCenter.z, box.min.z, box.max.z);
+    /// <summary>
+    /// AABB박스와 원과의 충돌 체크
+    /// </summary>
+    /// <param name="box">AABB박스</param>
+    /// <param name="circleCenter">원의 중심</param>
+    /// <param name="radius">원의 반지름</param>
+    /// <returns></returns>
+    public static bool IsColliderCircle_AABB(CustomCollider2D box, Vector2 circleCenter, float radius)
+    {
+        //원과 가장 가까운점 찾기
+        var boxMinPos = box.minPosition();
+        var boxMaxPos = box.maxPosition();
 
-    Vector3 closestPoint = new Vector3(closestX, closestY, closestZ);
+        float closestX = MathUtility.ClampValue(circleCenter.X, boxMinPos.x, boxMaxPos.x);
+        float closestY = MathUtility.ClampValue(circleCenter.Y, boxMinPos.y, boxMaxPos.y);
 
-    float distanceSq = (sphereCenter - closestPoint).sqrMagnitude;
+        //가장 가까운 점과 원의 중심간 거리 비교
+        float dist2 = (closestX - circleCenter.X) * (closestX - circleCenter.X) 
+            + (closestY - circleCenter.Y) * (closestY - circleCenter.Y);
 
-    return distanceSq <= radius * radius;
-}
+        //반지름보다 더 작으면 충돌
+        return dist2 < radius*radius;
+    }
+    /// <summary>
+    /// AABB박스와 구와의 충돌 체크
+    /// </summary>
+    /// <param name="box">AABB박스</param>
+    /// <param name="sphereCenter">구의 중심</param>
+    /// <param name="radius"구원의 반지름</param>
+    /// <returns></returns>
+    public static bool IsColliderSphere_AABB(CustomCollider3D box, Vector3 sphereCenter, float radius)
+    {
+        //원과 가장 가까운점 찾기
+        var boxMinPos = box.minPosition();
+        var boxMaxPos = box.maxPosition();
+        
+        float closestX = MathUtility.ClampValue(sphereCenter.X, boxMinPos.x, boxMaxPos.x);
+        float closestY = MathUtility.ClampValue(sphereCenter.Y, boxMinPos.y, boxMaxPos.y);
+        float closestZ = MathUtility.ClampValue(sphereCenter.Z, boxMinPos.z, boxMaxPos.z);
+
+        //가장 가까운 점과 원의 중심간 거리 비교
+        float dist2 = (closestX - sphereCenter.X) * (closestX - sphereCenter.X)
+            + (closestY - sphereCenter.Y) * (closestY - sphereCenter.Y)
+            + (closestZ - sphereCenter.Z) * (closestZ - sphereCenter.Z);
+
+        //반지름보다 더 작으면 충돌
+        return dist2 < radius * radius;
+    }
 }
