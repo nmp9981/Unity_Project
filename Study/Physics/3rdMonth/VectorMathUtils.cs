@@ -145,16 +145,32 @@ public static class VectorMathUtils
     }
 
     /// <summary>
-    /// 반사 벡터 구하기
+    /// 반사 벡터 구하기 - 2D
     /// 반발 계수를 적용
     /// </summary>
-    /// <param name="v">구할 벡터</param>
+    /// <param name="v">입력 벡터</param>
     /// <param name="normal">평면의 법선 벡터</param>
     /// <param name="restitution">반발 계수</param>
     /// <returns></returns>
-    public static Vec3 ReflectWithRestitution(Vec3 v, Vec3 normal, float restitution)
+    public static Vec2 ReflectWithRestitution2D(Vec2 v, Vec2 normal, float restitution)
     {
-        return Vec3.Reflect(v, normal) * restitution;
+        float dotPN = -Vec2.Dot(v, normal);
+        Vec2 reflectVec = v + normal * (2 * dotPN);
+        return reflectVec * restitution;
+    }
+    /// <summary>
+    /// 반사 벡터 구하기 - 3D
+    /// 반발 계수를 적용
+    /// </summary>
+    /// <param name="v">입력 벡터</param>
+    /// <param name="normal">평면의 법선 벡터</param>
+    /// <param name="restitution">반발 계수</param>
+    /// <returns></returns>
+    public static Vec3 ReflectWithRestitution3D(Vec3 v, Vec3 normal, float restitution)
+    {
+        float dotPN = -Vec3.Dot(v,normal);
+        Vec3 reflectVec = v + normal*(2*dotPN);
+        return reflectVec * restitution;
     }
 
     /// <summary>
