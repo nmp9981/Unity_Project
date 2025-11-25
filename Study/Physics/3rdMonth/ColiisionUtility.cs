@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using UnityEngine;
 
 public class ColiisionUtility
 {
@@ -88,17 +89,17 @@ public class ColiisionUtility
     /// <param name="center2">원2의 중심 좌표</param>
     /// <param name="r2">원2의 반지름</param>
     /// <returns></returns>
-    public static bool IsCollisionCircle(Vector2 center1, float r1, Vector2 center2, float r2)
+    public static bool IsCollisionCircle(Vec2 center1, float r1, Vec2 center2, float r2)
     {
         //벡터 차
-        Vector2 diff = center1- center2;
+        Vec2 diff = center1- center2;
 
         //반지름 합
         float sumRadius = r2 + r1;
         float sumRadius2 = sumRadius * sumRadius;
 
         //중심간 거리 제곱
-        float diffCenter2 = diff.X*diff.X+diff.Y*diff.Y;
+        float diffCenter2 = diff.x*diff.x+diff.y*diff.y;
 
         //충돌 검사
         if (diffCenter2 < sumRadius2) return true;
@@ -113,17 +114,17 @@ public class ColiisionUtility
     /// <param name="center2">구2의 중심 좌표</param>
     /// <param name="r2">구2의 반지름</param>
     /// <returns></returns>
-    public static bool IsCollisionCircle(Vector3 center1, float r1, Vector3 center2, float r2)
+    public static bool IsCollisionCircle(Vec3 center1, float r1, Vec3 center2, float r2)
     {
         //벡터 차
-        Vector3 diff = center1 - center2;
+        Vec3 diff = center1 - center2;
 
         //반지름 합
         float sumRadius = r2 + r1;
         float sumRadius2 = sumRadius * sumRadius;
 
         //중심간 거리 제곱
-        float diffCenter2 = diff.X*diff.X + diff.Y*diff.Y+diff.Z*diff.Z;
+        float diffCenter2 = diff.x*diff.x + diff.y*diff.y+diff.z*diff.z;
 
         //충돌 검사
         if (diffCenter2 < sumRadius2) return true;
@@ -207,10 +208,33 @@ public class ColiisionUtility
 
         return contactInfo;
     }
-    //충돌 응답
+    /// <summary>
+    /// 충돌 응답
+    /// 충돌하면 튕겨야함
+    /// </summary>
+    /// <param name="colA">물체 A</param>
+    /// <param name="colB">물체 B</param>
+    /// <param name="contact">충돌 정보</param>
     public static void ResponseCollision3D(CustomCollider3D colA, CustomCollider3D colB, ContactInfo contact)
     {
+        var rbA = colA.rigidBody;
+        var rbB = colB.rigidBody;
 
+        Vec3 diffVelocity = rbB.velocity - rbA.velocity;
+        float velAlongNormal = Vec3.Dot(diffVelocity,contact.normal);
+
+        //서로 멀어지면 응답 X
+        if (velAlongNormal > 0.0f) return;
+
+        float e = MathUtility.Min(rbA.physicMaterial.bounciness, rbB.physicMaterial.bounciness);
+
+        float j = -(1 + e) * velAlongNormal;
+        j /= (1 / rbA.mass.value + 1 / rbB.mass.value);
+
+        Vec3 impulse = contact.normal*j;
+
+        rbA.velocity -= impulse / rbA.mass.value;
+        rbB.velocity += impulse / rbB.mass.value;
     }
 
 }
