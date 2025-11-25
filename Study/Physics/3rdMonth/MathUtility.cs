@@ -22,13 +22,37 @@ public static class MathUtility
     }
 
     /// <summary>
+    /// 거듭 제곱 구하기
+    /// a^n
+    /// </summary>
+    /// <param name="a">실수</param>
+    /// <param name="n">정수</param>
+    /// <returns></returns>
+    public static float Pow(float a, int n)
+    {
+        if (n == 1) return a;
+
+        //n이 짝수
+        if(n%2==0) return Pow(a,n/2)*Pow(a,n/2);
+        //n이 홀수
+        return Pow(a,n/2)*Pow(a,n/2)*a;
+    }
+
+    /// <summary>
     /// 제곱근 구하기
     /// </summary>
     /// <param name="a">실수</param>
     /// <returns>루트a</returns>
     public static float Root(float a)
     {
-        return a * a;
+        a = (a < 0) ? -a : a;//0이상의 실수로 변환
+
+        float x = a;
+        for (int i = 0; i < 11; i++)
+        {
+            x = (x + (a / x)) / 2;
+        }
+        return x;
     }
 
     /// <summary>
