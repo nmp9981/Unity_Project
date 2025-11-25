@@ -157,7 +157,7 @@ public class ColiisionUtility
     /// </summary>
     /// <param name="box">AABB박스</param>
     /// <param name="sphereCenter">구의 중심</param>
-    /// <param name="radius"구원의 반지름</param>
+    /// <param name="radius">구의 반지름</param>
     /// <returns></returns>
     public static bool IsColliderSphere_AABB(CustomCollider3D box, Vector3 sphereCenter, float radius)
     {
@@ -177,4 +177,40 @@ public class ColiisionUtility
         //반지름보다 더 작으면 충돌
         return dist2 < radius * radius;
     }
+
+    /// <summary>
+    /// 충돌 정보 계산
+    /// </summary>
+    public static ContactInfo GetContactAABB3D(CustomCollider3D colA, CustomCollider3D colB)
+    {
+        //두 바운드박스
+        var boundA = colA.GetBounds();
+        var boundB = colB.GetBounds();
+
+        ContactInfo contactInfo = new ContactInfo();
+
+        // 축별 겹침량
+        float overlapX = MathUtility.Min(boundA.max.x-boundB.min.x, boundB.max.x - boundA.min.x);
+        float overlapY = MathUtility.Min(boundA.max.y - boundB.min.y, boundB.max.y - boundA.min.y);
+        float overlapZ = MathUtility.Min(boundA.max.z - boundB.min.z, boundB.max.z - boundA.min.z);
+        
+        // penetration = 가장 작은 축의 겹침량
+        contactInfo.penetration = MathUtility.Min(overlapX, MathUtility.Min(overlapY, overlapZ));
+
+        // 축 결과에 따라 밀어내는 방향 결정
+        if (contactInfo.penetration == overlapX)
+            contactInfo.normal = (boundA.center.x < boundB.center.x) ? VectorMathUtils.LeftVector3D() : VectorMathUtils.RightVector3D();
+        else if (contactInfo.penetration == overlapY)
+            contactInfo.normal = (boundA.center.y < boundB.center.y) ? VectorMathUtils.DownVector3D() : VectorMathUtils.UpVector3D();
+        else
+            contactInfo.normal = (boundA.center.z < boundB.center.z) ? VectorMathUtils.BackVector3D() : VectorMathUtils.FrontVector3D();
+
+        return contactInfo;
+    }
+    //충돌 응답
+    public static void ResponseCollision3D(CustomCollider3D colA, CustomCollider3D colB, ContactInfo contact)
+    {
+
+    }
+
 }
