@@ -1,59 +1,37 @@
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class VectorBasic : MonoBehaviour
 {
-    Transform A;
-    Transform B;
+    public Transform slope; // any point on slope
+    Rigidbody rb;
+    Vec3 g = new Vec3(0, -9.81f, 0);
 
-void Start() => rb = GetComponent<Rigidbody>();
+    void Start() => rb = GetComponent<Rigidbody>();
 
-void FixedUpdate()
-{
-    // gravity vector
-    Vector3 g = Physics.gravity;
-
-    // assume contact normal = slope.up (or use raycast to get actual normal)
-    Vector3 normal = slope.up;
-
-    // perpendicular (normal) component: project g onto normal
-    Vector3 g_perp = Vector3.Project(g, normal);
-
-    // parallel component: g - g_perp (or ProjectOnPlane)
-    Vector3 g_parallel = g - g_perp;
-    // or Vector3.ProjectOnPlane(g, normal) -> gives g_parallel
-
-    // visual
-    Debug.DrawRay(transform.position, g, Color.blue);          // gravity
-    Debug.DrawRay(transform.position, g_perp, Color.red);      // normal comp
-    Debug.DrawRay(transform.position, g_parallel, Color.yellow); // parallel comp
-}
-    
-    public void OnDrawGizmos()
+    void FixedUpdate()
     {
-        if (A == null || B == null) return;
+        // assume contact normal = slope.up (or use raycast to get actual normal)
+        Vec3 normal = new Vec3(slope.position.x, slope.position.y, slope.position.z);
 
-        Vector3 a = A.position;
-        Vector3 b = B.position;
-        Vector3 ab = b - a;
+        // perpendicular (normal) component: project g onto normal
+        Vec3 g_perp = VectorMathUtils.Project(g, normal);
 
-        // draw points
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(a, 0.05f);
-        Gizmos.DrawSphere(b, 0.05f);
-
-        // draw vector AB
-        Debug.DrawLine(a, b, Color.white);
-
-        // normalized, magnitude
-        Vector3 an = ab.normalized;
-        float mag = ab.magnitude;
-
-        // draw normalized direction scaled
-        Debug.DrawRay(a, an * 1.0f, Color.green);
-
-        // dot and cross
-        float dot = Vector3.Dot(a.normalized, b.normalized);
-        Vector3 cross = Vector3.Cross(a, b);
+        // parallel component: g - g_perp (or ProjectOnPlane)
+        Vec3 g_parallel = g - g_perp;
     }
-    
+
+    /// <summary>
+    /// 2*2행렬 방정식 풀이
+    /// </summary>
+    (float x, float y) SolveEquipment(float a, float b, float c, float d, float x0, float y0)
+    {
+        //행렬식
+        float det = a * d - b * c;
+
+        //해
+        float x = (d * x0 - b * y0)/det;
+        float y = (-c * x0 + a * y0)/det;
+        return (x, y);
+    }
 }
