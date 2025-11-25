@@ -1,18 +1,17 @@
-using UnityEngine;
-
 public class CustomRigidBody : MonoBehaviour
 {
     [Header("Physical Properties")]
-    public Vector3 velocity;//속도
-    public Vector3 acceleration;//가속도
+    public Vec3 velocity;//속도
+    public Vec3 acceleration;//가속도
     public Mass mass = new Mass();//질량
+    public Vec3 gravity3D = new Vec3(0, -9.81f,0);
 
     [Header("Material")]
-    public CustomPhysicsMaterial phsicMaterial;//재질
+    public CustomPhysicsMaterial physicMaterial;//재질
 
     [Header("Force")]
-    public Vector3 externalForce = Vector3.zero;//외력
-    public Vector3 accumulatedForce = Vector3.zero;//내부 힘
+    public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
+    public Vec3 accumulatedForce = VectorMathUtils.ZeroVector3D();//내부 힘
     
     [Header("Option")]
     public bool useGravity = true;
@@ -22,17 +21,16 @@ public class CustomRigidBody : MonoBehaviour
     [Header("Integration")]
     public Integrator integrator = Integrator.ForwardEuler;
 
-    void FixedUpdate()
-    {
-        Step(Time.fixedDeltaTime);
-    }
+    //결과 값
+    public Vec3 deltaPosition = VectorMathUtils.ZeroVector3D();
 
-    void Step(float dt)
+
+    public void Step(float dt)
     {
         //알짜힘 구하기
-        accumulatedForce += useGravity?Physics.gravity * mass.value:Vector3.zero;//중력
-        accumulatedForce += -velocity * phsicMaterial.linearDrag;//저항힘
-        Vector3 totalForce = externalForce + accumulatedForce;//알짜힘
+        accumulatedForce += useGravity? gravity3D * mass.value: VectorMathUtils.ZeroVector3D();//중력
+        accumulatedForce +=(velocity *(-1)) * physicMaterial.linearDrag;//저항힘
+        Vec3 totalForce = externalForce + accumulatedForce;//알짜힘
 
         //총 가속도
         acceleration = totalForce / mass.value;
@@ -60,7 +58,7 @@ public class CustomRigidBody : MonoBehaviour
     /// 외력 추가
     /// </summary>
     /// <param name="f"></param>
-    public void AddForce(Vector3 f)
+    public void AddForce(Vec3 f)
     {
         externalForce += f;
     }
@@ -69,7 +67,7 @@ public class CustomRigidBody : MonoBehaviour
     /// 내부 힘 추가
     /// </summary>
     /// <param name="f"></param>
-    public void AddInternalForce(Vector3 f)
+    public void AddInternalForce(Vec3 f)
     {
         accumulatedForce += f;
     }
@@ -79,8 +77,8 @@ public class CustomRigidBody : MonoBehaviour
     /// </summary>
     public void ClearForces()
     {
-        externalForce = Vector3.zero;
-        accumulatedForce = Vector3.zero;
+        externalForce = VectorMathUtils.ZeroVector3D();
+        accumulatedForce = VectorMathUtils.ZeroVector3D();
     }
 
     /// <summary>
@@ -88,7 +86,7 @@ public class CustomRigidBody : MonoBehaviour
     /// </summary>
     /// <param name="acceleration">가속도</param>
     /// <param name="dt">시간 간격</param>
-    void IntegrateVelocity(Vector3 acceleration, float dt)
+    void IntegrateVelocity(Vec3 acceleration, float dt)
     {
         velocity += (acceleration * dt);
     }
@@ -97,8 +95,8 @@ public class CustomRigidBody : MonoBehaviour
     /// </summary>
     /// <param name="acceleration">속도</param>
     /// <param name="dt">시간 간격</param>
-    void IntegratePosition(Vector3 velocity, float dt)
+    void IntegratePosition(Vec3 velocity, float dt)
     {
-        transform.position += (velocity * dt);
+        deltaPosition = (velocity * dt);
     }
 }
