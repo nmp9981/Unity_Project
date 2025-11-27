@@ -84,15 +84,19 @@ public class CustomPhysicsManager : MonoBehaviour
     /// </summary>
     void PositionUpdateState()
     {
+        float alpha = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;//보간 값
+
         foreach (var rb in rigidBodies2D)
         {
-            rb.transform.position += new Vector3(rb.deltaPosition.x, rb.deltaPosition.y, rb.deltaPosition.z);
-            rb.deltaPosition = VectorMathUtils.ZeroVector3D();
+            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha);
+
+            rb.transform.position = new Vector3(lerped.x, lerped.y, 0);
         }
         foreach (var rb in rigidBodies3D)
         {
-            rb.transform.position += new Vector3(rb.deltaPosition.x, rb.deltaPosition.y, rb.deltaPosition.z);
-            rb.deltaPosition = VectorMathUtils.ZeroVector3D();
+            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha);
+
+            rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
         }
     }
     /// <summary>
