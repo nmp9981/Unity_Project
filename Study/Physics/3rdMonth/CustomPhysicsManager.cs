@@ -3,9 +3,15 @@ using UnityEngine;
 
 public class CustomPhysicsManager : MonoBehaviour
 {
+    [SerializeField]
     List<CustomRigidbody2D> rigidBodies2D = new List<CustomRigidbody2D>();
+    [SerializeField]
     List<CustomRigidBody> rigidBodies3D = new List<CustomRigidBody>();
+    [SerializeField]
     List<CustomCollider3D> colliders3D = new List<CustomCollider3D>();
+
+    //물리 작동 여부
+    public bool physicsPaused = false;
 
     private void Awake()
     {
@@ -16,11 +22,18 @@ public class CustomPhysicsManager : MonoBehaviour
 
     private void Update()
     {
+        // P 버튼으로 물리만 멈춤/재시작
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            physicsPaused = !physicsPaused;
+        }
+
         RenderStep(Time.deltaTime);
     }
     private void FixedUpdate()
     {
-        PhysicsStep(Time.fixedDeltaTime);
+        if(!physicsPaused)
+            PhysicsStep(Time.fixedDeltaTime);
     }
 
     /// <summary>
