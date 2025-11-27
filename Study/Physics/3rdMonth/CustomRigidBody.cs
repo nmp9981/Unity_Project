@@ -1,3 +1,10 @@
+using UnityEngine;
+
+public struct RigidbodyState
+{
+    public Vec3 position;
+}
+
 public class CustomRigidBody : MonoBehaviour
 {
     [Header("Physical Properties")]
@@ -16,6 +23,10 @@ public class CustomRigidBody : MonoBehaviour
     [Header("Option")]
     public bool useGravity = true;
 
+    //위치 보정
+    public RigidbodyState previousState;//이전 상태
+    public RigidbodyState currentState;//현재 상태
+
     //적분 방식
     public enum Integrator { ForwardEuler, SemiImplicitEuler }
     [Header("Integration")]
@@ -24,9 +35,12 @@ public class CustomRigidBody : MonoBehaviour
     //결과 값
     public Vec3 deltaPosition = VectorMathUtils.ZeroVector3D();
 
-
-    public void Step(float dt)
+    //Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
+    public void PhysicsStep(float dt)
     {
+        //이전 상태 저장
+        previousState.position = currentState.position;
+
         //알짜힘 구하기
         accumulatedForce += useGravity? gravity3D * mass.value: VectorMathUtils.ZeroVector3D();//중력
         accumulatedForce +=(velocity *(-1)) * physicMaterial.linearDrag;//저항힘
@@ -52,6 +66,9 @@ public class CustomRigidBody : MonoBehaviour
         }
         //힘 초기화
         ClearForces();
+
+        //현재 상태 업데이트
+        currentState.position = new Vec3(transform.position.x,transform.position.y,transform.position.z);
     }
 
     /// <summary>
@@ -79,6 +96,14 @@ public class CustomRigidBody : MonoBehaviour
     {
         externalForce = VectorMathUtils.ZeroVector3D();
         accumulatedForce = VectorMathUtils.ZeroVector3D();
+    }
+    /// <summary>
+    /// 위치 초기화
+    /// </summary>
+    public void ClearPosition()
+    {
+        currentState.position += deltaPosition;
+        deltaPosition = VectorMathUtils.ZeroVector3D();
     }
 
     /// <summary>
