@@ -25,6 +25,7 @@ public class CustomPhysicsManager : MonoBehaviour
 
     /// <summary>
     /// 물리 스텝
+    /// Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
     /// </summary>
     /// <param name="dt"></param>
     void PhysicsStep(float dt)
@@ -32,15 +33,25 @@ public class CustomPhysicsManager : MonoBehaviour
         //모든 물리 step
         foreach (var rb in rigidBodies2D)
         {
-            rb.Step(dt);
+            rb.PhysicsStep(dt);
         }
         foreach (var rb in rigidBodies3D)
         {
-            rb.Step(dt);
+            rb.PhysicsStep(dt);
         }
 
         //충돌 체크
         Handle3DCollisions();
+
+        //초기화
+        foreach (var rb in rigidBodies2D)
+        {
+            rb.ClearPosition();
+        }
+        foreach (var rb in rigidBodies3D)
+        {
+            rb.ClearPosition();
+        }
     }
 
     /// <summary>
@@ -84,17 +95,18 @@ public class CustomPhysicsManager : MonoBehaviour
     /// </summary>
     void PositionUpdateState()
     {
-        float alpha = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;//보간 값
+        float alpha = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
+        float alpha01 = MathUtility.ClampValue(alpha,0,1);//보간 값
 
         foreach (var rb in rigidBodies2D)
         {
-            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha);
+            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha01);
 
             rb.transform.position = new Vector3(lerped.x, lerped.y, 0);
         }
         foreach (var rb in rigidBodies3D)
         {
-            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha);
+            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha01);
 
             rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
         }
