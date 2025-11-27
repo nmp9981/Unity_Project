@@ -137,18 +137,18 @@ public class ColiisionUtility
     /// <param name="circleCenter">원의 중심</param>
     /// <param name="radius">원의 반지름</param>
     /// <returns></returns>
-    public static bool IsColliderCircle_AABB(CustomCollider2D box, Vector2 circleCenter, float radius)
+    public static bool IsColliderCircle_AABB(CustomCollider2D box, Vec2 circleCenter, float radius)
     {
         //원과 가장 가까운점 찾기
         var boxMinPos = box.minPosition();
         var boxMaxPos = box.maxPosition();
 
-        float closestX = MathUtility.ClampValue(circleCenter.X, boxMinPos.x, boxMaxPos.x);
-        float closestY = MathUtility.ClampValue(circleCenter.Y, boxMinPos.y, boxMaxPos.y);
+        float closestX = MathUtility.ClampValue(circleCenter.x, boxMinPos.x, boxMaxPos.x);
+        float closestY = MathUtility.ClampValue(circleCenter.y, boxMinPos.y, boxMaxPos.y);
 
         //가장 가까운 점과 원의 중심간 거리 비교
-        float dist2 = (closestX - circleCenter.X) * (closestX - circleCenter.X) 
-            + (closestY - circleCenter.Y) * (closestY - circleCenter.Y);
+        float dist2 = (closestX - circleCenter.x) * (closestX - circleCenter.x) 
+            + (closestY - circleCenter.y) * (closestY - circleCenter.y);
 
         //반지름보다 더 작으면 충돌
         return dist2 < radius*radius;
@@ -160,20 +160,20 @@ public class ColiisionUtility
     /// <param name="sphereCenter">구의 중심</param>
     /// <param name="radius">구의 반지름</param>
     /// <returns></returns>
-    public static bool IsColliderSphere_AABB(CustomCollider3D box, Vector3 sphereCenter, float radius)
+    public static bool IsColliderSphere_AABB(CustomCollider3D box, Vec3 sphereCenter, float radius)
     {
         //원과 가장 가까운점 찾기
         var boxMinPos = box.minPosition();
         var boxMaxPos = box.maxPosition();
         
-        float closestX = MathUtility.ClampValue(sphereCenter.X, boxMinPos.x, boxMaxPos.x);
-        float closestY = MathUtility.ClampValue(sphereCenter.Y, boxMinPos.y, boxMaxPos.y);
-        float closestZ = MathUtility.ClampValue(sphereCenter.Z, boxMinPos.z, boxMaxPos.z);
+        float closestX = MathUtility.ClampValue(sphereCenter.x, boxMinPos.x, boxMaxPos.x);
+        float closestY = MathUtility.ClampValue(sphereCenter.y, boxMinPos.y, boxMaxPos.y);
+        float closestZ = MathUtility.ClampValue(sphereCenter.z, boxMinPos.z, boxMaxPos.z);
 
         //가장 가까운 점과 원의 중심간 거리 비교
-        float dist2 = (closestX - sphereCenter.X) * (closestX - sphereCenter.X)
-            + (closestY - sphereCenter.Y) * (closestY - sphereCenter.Y)
-            + (closestZ - sphereCenter.Z) * (closestZ - sphereCenter.Z);
+        float dist2 = (closestX - sphereCenter.x) * (closestX - sphereCenter.x)
+            + (closestY - sphereCenter.y) * (closestY - sphereCenter.y)
+            + (closestZ - sphereCenter.z) * (closestZ - sphereCenter.z);
 
         //반지름보다 더 작으면 충돌
         return dist2 < radius * radius;
@@ -187,6 +187,14 @@ public class ColiisionUtility
         //두 바운드박스
         var boundA = colA.GetBounds();
         var boundB = colB.GetBounds();
+
+        //두 바운드 박스 겹침 여부 파악
+        if (boundA.max.x < boundB.min.x || boundA.min.x > boundB.max.x ||
+    boundA.max.y < boundB.min.y || boundA.min.y > boundB.max.y ||
+    boundA.max.z < boundB.min.z || boundA.min.z > boundB.max.z)
+        {
+            return null; // 충돌 없음
+        }
 
         ContactInfo contactInfo = new ContactInfo();
 
@@ -220,19 +228,25 @@ public class ColiisionUtility
         var rbA = colA.rigidBody;
         var rbB = colB.rigidBody;
 
-        Vec3 diffVelocity = rbB.velocity - rbA.velocity;
-        float velAlongNormal = Vec3.Dot(diffVelocity,contact.normal);
+        //상대 속도 - 물체 B가 A 기준으로 얼마나 빠르게 움직이는지
+        Vec3 relativeVelocity = rbB.velocity - rbA.velocity;
+        float velAlongNormal = Vec3.Dot(relativeVelocity, contact.normal);
 
-        //서로 멀어지면 응답 X
+        //서로 멀어지면 응답 X, 서로 멀어지는 중
         if (velAlongNormal > 0.0f) return;
 
+        //반발 계수, 둘 중 더 작은값이 충돌의 전체 성질을 결정
+        //e=0 : 완전 비탄성, e=1 : 완전 탄성
         float e = MathUtility.Min(rbA.physicMaterial.bounciness, rbB.physicMaterial.bounciness);
 
+        //충격량 크기
         float j = -(1 + e) * velAlongNormal;
         j /= (1 / rbA.mass.value + 1 / rbB.mass.value);
 
+        //충격 벡터 = 크기 * 밀리는 방향
         Vec3 impulse = contact.normal*j;
 
+        //서로 반대방향으로 밀림
         rbA.velocity -= impulse / rbA.mass.value;
         rbB.velocity += impulse / rbB.mass.value;
     }
