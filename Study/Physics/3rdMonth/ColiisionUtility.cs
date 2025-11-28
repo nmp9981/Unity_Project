@@ -219,17 +219,27 @@ public class ColiisionUtility
     /// <summary>
     /// 충돌 응답
     /// 충돌하면 튕겨야함
+    /// 정적 오브젝트는 움직이면 안됨
     /// </summary>
     /// <param name="colA">물체 A</param>
     /// <param name="colB">물체 B</param>
     /// <param name="contact">충돌 정보</param>
     public static void ResponseCollision3D(CustomCollider3D colA, CustomCollider3D colB, ContactInfo contact)
     {
+        //rigidbody가 null일 수 있다.
         var rbA = colA.rigidBody;
         var rbB = colB.rigidBody;
 
+        //RigidBody가 없으면 정적 충돌체 (ex : 벽, 바닥 등)
+        bool isAStatic = (rbA == null) ? true : false;
+        bool isBStatic = (rbB == null) ? true : false;
+
+        //정적 콜라이더 여부에 따른 속도 설정
+        Vec3 velA = isAStatic ? VectorMathUtils.ZeroVector3D() : rbA.velocity;
+        Vec3 velB = isBStatic ? VectorMathUtils.ZeroVector3D() : rbB.velocity;
+
         //상대 속도 - 물체 B가 A 기준으로 얼마나 빠르게 움직이는지
-        Vec3 relativeVelocity = rbB.velocity - rbA.velocity;
+        Vec3 relativeVelocity = velB-velA;
         float velAlongNormal = Vec3.Dot(relativeVelocity, contact.normal);
 
         //서로 멀어지면 응답 X, 서로 멀어지는 중
@@ -237,18 +247,23 @@ public class ColiisionUtility
 
         //반발 계수, 둘 중 더 작은값이 충돌의 전체 성질을 결정
         //e=0 : 완전 비탄성, e=1 : 완전 탄성
-        float e = MathUtility.Min(rbA.physicMaterial.bounciness, rbB.physicMaterial.bounciness);
+        float eA = isAStatic ? colA.material.bounciness : rbA.physicMaterial.bounciness;
+        float eB = isBStatic ? colB.material.bounciness : rbB.physicMaterial.bounciness;
+        float e = MathUtility.Min(eA, eB);
+
+        //질량 역수
+        float invMassA = isAStatic ? 0 : 1 / rbA.mass.value;
+        float invMassB = isBStatic ? 0 : 1 / rbB.mass.value;
 
         //충격량 크기
         float j = -(1 + e) * velAlongNormal;
-        j /= (1 / rbA.mass.value + 1 / rbB.mass.value);
+        j /= (invMassA+invMassB);//둘다 정적 오브젝트가 아니라서 괜찮음
 
         //충격 벡터 = 크기 * 밀리는 방향
         Vec3 impulse = contact.normal*j;
 
         //서로 반대방향으로 밀림
-        rbA.velocity -= impulse / rbA.mass.value;
-        rbB.velocity += impulse / rbB.mass.value;
+        if(!isAStatic) rbA.velocity -= impulse / rbA.mass.value;
+        if(!isBStatic) rbB.velocity += impulse / rbB.mass.value;
     }
-
 }
