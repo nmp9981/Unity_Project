@@ -226,6 +226,8 @@ public class ColiisionUtility
     /// <param name="contact">충돌 정보</param>
     public static void ResponseCollision3D(CustomCollider3D colA, CustomCollider3D colB, ContactInfo contact)
     {
+        if (contact == null) return;
+
         //rigidbody가 null일 수 있다.
         var rbA = colA.rigidBody;
         var rbB = colB.rigidBody;
@@ -247,14 +249,15 @@ public class ColiisionUtility
 
         //반발 계수, 둘 중 더 작은값이 충돌의 전체 성질을 결정
         //e=0 : 완전 비탄성, e=1 : 완전 탄성
-        float eA = isAStatic ? colA.material.bounciness : rbA.physicMaterial.bounciness;
-        float eB = isBStatic ? colB.material.bounciness : rbB.physicMaterial.bounciness;
+        
+        float eA = colA.material.bounciness;
+        float eB = colB.material.bounciness;
         float e = MathUtility.Min(eA, eB);
 
         //질량 역수
         float invMassA = isAStatic ? 0 : 1 / rbA.mass.value;
         float invMassB = isBStatic ? 0 : 1 / rbB.mass.value;
-
+        
         //충격량 크기
         float j = -(1 + e) * velAlongNormal;
         j /= (invMassA+invMassB);//둘다 정적 오브젝트가 아니라서 괜찮음
@@ -265,5 +268,13 @@ public class ColiisionUtility
         //서로 반대방향으로 밀림
         if(!isAStatic) rbA.velocity -= impulse / rbA.mass.value;
         if(!isBStatic) rbB.velocity += impulse / rbB.mass.value;
+
+        //Jitter 방지, 위치 보정
+        const float percent = 0.4f;
+        const float slop = 0.001f;
+        float correctionMag = Math.Max(contact.penetration - slop, 0f) * percent;
+        Vec3 correction =  contact.normal*correctionMag;
+        if (!isAStatic) rbA.currentState.position -= correction * invMassA;
+        if (!isBStatic) rbB.currentState.position += correction * invMassB;
     }
 }
