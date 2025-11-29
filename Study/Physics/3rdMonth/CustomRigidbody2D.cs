@@ -12,9 +12,9 @@ public class CustomRigidbody2D : MonoBehaviour
     public Vec2 acceleration = new Vec2(0,0);//가속도
     public Mass mass = new Mass();//질량
     public Vec2 gravity2D = new Vec2(0, -9.81f);
-
-    [Header("Material")]
-    public CustomPhysicsMaterial physicMaterial;//재질
+    public float linearDrag = 0.1f;     // 공기 저항
+    public float angularDrag = 0.05f;
+    public CustomCollider2D col;   // 연결된 collider 참조
 
     [Header("Force")]
     public Vec2 externalForce = VectorMathUtils.ZeroVector2D();//외력
@@ -35,7 +35,7 @@ public class CustomRigidbody2D : MonoBehaviour
     //결과 값
     public Vec3 deltaPosition = VectorMathUtils.ZeroVector3D();
 
-    private void Awake()
+    private void Start()
     {
         InitializePosition();
     }
@@ -62,7 +62,7 @@ public class CustomRigidbody2D : MonoBehaviour
 
         //알짜힘 구하기
         accumulatedForce += useGravity ? gravity2D * mass.value : VectorMathUtils.ZeroVector2D();//중력
-        accumulatedForce += (velocity*(-1)) * physicMaterial.linearDrag;//저항힘
+        accumulatedForce += (velocity*(-1)) * linearDrag;//저항힘
         Vec2 totalForce = externalForce + accumulatedForce;//알짜힘
 
         //총 가속도
