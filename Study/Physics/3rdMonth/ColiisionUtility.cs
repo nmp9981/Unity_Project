@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using UnityEngine;
 
 public class ColiisionUtility
@@ -226,55 +224,95 @@ public class ColiisionUtility
     /// <param name="contact">충돌 정보</param>
     public static void ResponseCollision3D(CustomCollider3D colA, CustomCollider3D colB, ContactInfo contact)
     {
-        if (contact == null) return;
+        if (contact == null || colA==null || colB==null) return;
 
         //rigidbody가 null일 수 있다.
         var rbA = colA.rigidBody;
         var rbB = colB.rigidBody;
 
         //RigidBody가 없으면 정적 충돌체 (ex : 벽, 바닥 등)
-        bool isAStatic = (rbA == null) ? true : false;
-        bool isBStatic = (rbB == null) ? true : false;
+        bool isAStatic = (rbA == null) || (rbA.mass == null) || (rbA.mass.value <= 0f);
+        bool isBStatic = (rbB == null) || (rbB.mass == null) || (rbB.mass.value <= 0f);
 
         //정적 콜라이더 여부에 따른 속도 설정
         Vec3 velA = isAStatic ? VectorMathUtils.ZeroVector3D() : rbA.velocity;
         Vec3 velB = isBStatic ? VectorMathUtils.ZeroVector3D() : rbB.velocity;
 
+        //노말 벡터
+        Vec3 normal = contact.normal;
+
         //상대 속도 - 물체 B가 A 기준으로 얼마나 빠르게 움직이는지
         Vec3 relativeVelocity = velB-velA;
-        float velAlongNormal = Vec3.Dot(relativeVelocity, contact.normal);
+        float velAlongNormal = Vec3.Dot(relativeVelocity, normal);
 
         //서로 멀어지면 응답 X, 서로 멀어지는 중
-        if (velAlongNormal > 0.0f) return;
+        const float slop = 0.001f;
+        if (velAlongNormal > 0.0f && contact.penetration <= slop) return;
 
         //반발 계수, 둘 중 더 작은값이 충돌의 전체 성질을 결정
         //e=0 : 완전 비탄성, e=1 : 완전 탄성
-        
-        float eA = colA.material.bounciness;
-        float eB = colB.material.bounciness;
-        float e = MathUtility.Min(eA, eB);
+        float eA = (colA.material != null) ? colA.material.bounciness : 0f;
+        float eB = (colB.material != null) ? colB.material.bounciness : 0f;
+        float restitution = MathUtility.Min(eA, eB);
+        restitution = MathUtility.ClampValue(restitution, 0f, 1f);
 
         //질량 역수
         float invMassA = isAStatic ? 0 : 1 / rbA.mass.value;
         float invMassB = isBStatic ? 0 : 1 / rbB.mass.value;
-        
-        //충격량 크기
-        float j = -(1 + e) * velAlongNormal;
-        j /= (invMassA+invMassB);//둘다 정적 오브젝트가 아니라서 괜찮음
+        float invMassSum = invMassA + invMassB;
 
-        //충격 벡터 = 크기 * 밀리는 방향
-        Vec3 impulse = contact.normal*j;
+        //둘다 정적 물체
+        if (invMassSum <= 0f)
+        {
+            return;
+        }
 
-        //서로 반대방향으로 밀림
-        if(!isAStatic) rbA.velocity -= impulse / rbA.mass.value;
-        if(!isBStatic) rbB.velocity += impulse / rbB.mass.value;
+        //서로 충돌중
+        if (velAlongNormal < 0f)
+        {
+            //충격량 크기
+            float j = -(1f + restitution) * velAlongNormal;
+            j /= invMassSum; //둘다 정적 오브젝트가 아니라서 괜찮음
 
-        //Jitter 방지, 위치 보정
-        const float percent = 0.4f;
-        const float slop = 0.001f;
-        float correctionMag = Math.Max(contact.penetration - slop, 0f) * percent;
-        Vec3 correction =  contact.normal*correctionMag;
-        if (!isAStatic) rbA.currentState.position -= correction * invMassA;
-        if (!isBStatic) rbB.currentState.position += correction * invMassB;
+            //충격 벡터 = 크기 * 밀리는 방향
+            Vec3 impulse = normal * j;
+
+            //서로 반대방향으로 밀림
+            if (!isAStatic) rbA.velocity -= impulse * invMassA;
+            if (!isBStatic) rbB.velocity += impulse * invMassB;
+        }
+
+        // ------------------ Positional correction ------------------
+        // Baumgarte-style correction with slop and percent
+        //위치 보정
+        const float percent = 0.2f; // how much penetration to correct this step (0..1)
+        float penetrationToFix = MathUtility.Max(contact.penetration - slop, 0f);
+
+        // 첫 프레임 penetration이 너무 크면 제한
+        const float maxInitialPenetration = 0.1f;
+        penetrationToFix = MathUtility.Min(penetrationToFix, maxInitialPenetration);
+
+        if (penetrationToFix > 0f)//겹침이 있을 경우 위치 보정이 필요함
+        {
+            float D = penetrationToFix * percent;
+            Vec3 correction = normal * D;
+
+            // distribute correction by inverse-mass ratio
+            if (!isAStatic) rbA.currentState.position -= correction * (invMassA / invMassSum);
+            if (!isBStatic) rbB.currentState.position += correction * (invMassB / invMassSum);
+        }
+
+
+        // ------------------ 미세 속도 0으로 조정 ------------------
+        const float velocityEps = 0.001f;
+        float eps2 = velocityEps * velocityEps;
+        if (!isAStatic)
+        {
+            if (Vec3.Dot(rbA.velocity, rbA.velocity) < eps2) rbA.velocity = VectorMathUtils.ZeroVector3D();
+        }
+        if (!isBStatic)
+        {
+            if (Vec3.Dot(rbB.velocity, rbB.velocity) < eps2) rbB.velocity = VectorMathUtils.ZeroVector3D();
+        }
     }
 }
