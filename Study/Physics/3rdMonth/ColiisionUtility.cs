@@ -186,25 +186,30 @@ public class ColiisionUtility
     /// <param name="planePoint">Plane 위의 한 점</param>
     public static void ResolvePlaneCollision2D(CustomRigidbody2D aabb, Vec2 planeNormal, Vec2 planePoint)
     {
-        // 현재 위치
-        Vec2 pos = new Vec2(aabb.currentState.position.x, aabb.currentState.position.y);
+        // AABB 반높이
+        float halfHeight = aabb.col.GetBounds().extents.y; // AABB Extents 사용
+        Vec3 pos = aabb.currentState.position;
 
-        // AABB에서 Plane까지 거리 계산
-        float dist = Vec2.Dot(pos - planePoint, planeNormal);
+        // 바닥면 위치
+        float aabbBottom = pos.y - halfHeight;
 
-        // 겹침이 있으면
-        if (dist < 0f)
+        // Plane 높이 (y 기준 평면)
+        float planeHeight = planePoint.y;
+
+        // 겹침 계산
+        float penetration = planeHeight - aabbBottom;
+
+        if (penetration > 0f)
         {
             // 위치 보정: Plane 위로 이동
-            pos -= planeNormal * dist;
-            aabb.currentState.position = new Vec3 (pos.x,pos.y,0);
+            pos.y += penetration;
+            aabb.currentState.position = pos;
 
-            // 속도 반사 (탄성 적용)
-            float restitution = 0.5f; // 기본 반발 계수
-            float velAlongNormal = Vec2.Dot(aabb.velocity, planeNormal);
-            if (velAlongNormal < 0)
+            // 속도 반사 (탄성)
+            float restitution = 0.5f; // 반발 계수
+            if (aabb.velocity.y < 0)
             {
-                aabb.velocity -= planeNormal * (1 + restitution) * velAlongNormal;
+                aabb.velocity.y = -aabb.velocity.y * restitution;
             }
         }
     }
@@ -218,25 +223,31 @@ public class ColiisionUtility
     /// <param name="planePoint">Plane 위의 한 점</param>
     public static void ResolvePlaneCollision3D(CustomRigidBody aabb, Vec3 planeNormal, Vec3 planePoint)
     {
-        // 현재 위치
+        // AABB 반높이
+        float halfHeight = aabb.col.GetBounds().extents.y; // AABB Extents 사용
         Vec3 pos = aabb.currentState.position;
 
-        // AABB에서 Plane까지 거리 계산
-        float dist = Vec3.Dot(pos - planePoint, planeNormal);
+        // 바닥면 위치
+        float aabbBottom = pos.y - halfHeight;
 
-        // 겹침이 있으면
-        if (dist < 0f)
+        // Plane 높이 (y 기준 평면)
+        float planeHeight = planePoint.y;
+
+        // 겹침 계산
+        float penetration = planeHeight - aabbBottom;
+
+        // 겹침
+        if (penetration > 0f)
         {
-            // 위치 보정: Plane 위로 이동
-            pos -= planeNormal * dist;
+            // 위치 보정: Plane 위로 이동(겹친만큼 위로 이동)
+            pos.y += penetration;
             aabb.currentState.position = pos;
 
-            // 속도 반사 (탄성 적용)
-            float restitution = 0.5f; // 기본 반발 계수
-            float velAlongNormal = Vec3.Dot(aabb.velocity, planeNormal);
-            if (velAlongNormal < 0)
+            // 속도 반사 (탄성)
+            float restitution = 0.5f; // 반발 계수
+            if (aabb.velocity.y < 0)
             {
-                aabb.velocity -= planeNormal * (1 + restitution) * velAlongNormal;
+                aabb.velocity.y = -aabb.velocity.y * restitution;
             }
         }
     }
