@@ -12,9 +12,9 @@ public class CustomRigidBody : MonoBehaviour
     public Vec3 acceleration = new Vec3(0, 0, 0);//가속도
     public Mass mass = new Mass();//질량
     public Vec3 gravity3D = new Vec3(0, -9.81f,0);
-
-    [Header("Material")]
-    public CustomPhysicsMaterial physicMaterial;//재질
+    public float linearDrag = 0.1f;     // 공기 저항
+    public float angularDrag = 0.05f;
+    public CustomCollider3D col;   // 연결된 collider 참조
 
     [Header("Force")]
     public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
@@ -36,11 +36,11 @@ public class CustomRigidBody : MonoBehaviour
     public Vec3 deltaPosition = VectorMathUtils.ZeroVector3D();
 
 
-    private void Awake()
+    private void Start()
     {
         InitializePosition();
     }
-
+    
     /// <summary>
     /// 초기 위치 설정
     /// </summary>
@@ -48,7 +48,7 @@ public class CustomRigidBody : MonoBehaviour
     {
         Vec3 startPos = new Vec3(transform.position.x, transform.position.y, transform.position.z);
         currentState.position = startPos;
-        previousState.position = startPos;
+        previousState.position = currentState.position;
 
         deltaPosition = VectorMathUtils.ZeroVector3D();
         velocity = VectorMathUtils.ZeroVector3D();
@@ -63,7 +63,7 @@ public class CustomRigidBody : MonoBehaviour
 
         //알짜힘 구하기
         accumulatedForce += useGravity? gravity3D * mass.value: VectorMathUtils.ZeroVector3D();//중력
-        accumulatedForce +=(velocity *(-1)) * physicMaterial.linearDrag;//저항힘
+        accumulatedForce +=(velocity *(-1)) * linearDrag;//저항힘
         Vec3 totalForce = externalForce + accumulatedForce;//알짜힘
 
         //총 가속도
