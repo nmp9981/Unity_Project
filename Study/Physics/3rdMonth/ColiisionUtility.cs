@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ColiisionUtility
 {
@@ -357,26 +359,21 @@ public class ColiisionUtility
             if (!isBStatic) rbB.velocity += impulse * invMassB;
         }
 
-        // ------------------ Positional correction ------------------
-        // Baumgarte-style correction with slop and percent
-        //위치 보정
-        const float percent = 0.2f; // how much penetration to correct this step (0..1)
-        float penetrationToFix = MathUtility.Max(contact.penetration - slop, 0f);
+        //완전 침투 보정
+        float depth = MathUtility.Max(contact.penetration - slop, 0f);
 
-        // 첫 프레임 penetration이 너무 크면 제한
-        const float maxInitialPenetration = 0.1f;
-        penetrationToFix = MathUtility.Min(penetrationToFix, maxInitialPenetration);
-
-        if (penetrationToFix > 0f)//겹침이 있을 경우 위치 보정이 필요함
+        if (depth > 0f)
         {
-            float D = penetrationToFix * percent;
-            Vec3 correction = normal * D;
+            // full correction: percent=1.0f
+            Vec3 correction = normal * depth;
 
-            // distribute correction by inverse-mass ratio
-            if (!isAStatic) rbA.currentState.position -= correction * (invMassA / invMassSum);
-            if (!isBStatic) rbB.currentState.position += correction * (invMassB / invMassSum);
+            // inverse mass 비율로 분배
+            if (!isAStatic)
+                rbA.currentState.position -= correction * (invMassA / invMassSum);
+
+            if (!isBStatic)
+                rbB.currentState.position += correction * (invMassB / invMassSum);
         }
-
 
         // ------------------ 미세 속도 0으로 조정 ------------------
         const float velocityEps = 0.001f;
@@ -388,6 +385,44 @@ public class ColiisionUtility
         if (!isBStatic)
         {
             if (Vec3.Dot(rbB.velocity, rbB.velocity) < eps2) rbB.velocity = VectorMathUtils.ZeroVector3D();
+        }
+    }
+
+    /// <summary>
+    /// 지면과 충돌했는지 판정
+    /// </summary>
+    /// <param name="colA">A물체</param>
+    /// <param name="colB">B물체</param>
+    /// <param name="contact">충돌 정보</param>
+    public static void CheckGround(CustomCollider3D colA,CustomCollider3D colB, ContactInfo contact)
+    {
+        CustomRigidBody rbA = colA.rigidBody;
+        CustomRigidBody rbB = colB.rigidBody;
+
+        //충돌 정보가 없음
+        if(contact == null || colA.rigidBody == null) return;
+
+        // Plane 위에 서 있는지: normal.y가 거의 위쪽
+        const float groundThreshold = 0.5f; // 0~1, 0.5 이상이면 "바닥"으로 판단
+        const float velThreshold = 0.05f;   // 바닥에서 속도가 거의 0이면 접지
+
+        if (contact.normal.y > groundThreshold)//normal이 위쪽인지
+        {
+            if (rbA.velocity.y <= velThreshold)//속도 조건
+            {
+                rbA.isGrounded = true;
+                rbA.velocity.y = 0f; // 바닥에서 미세 튐 방지
+            }
+        }
+
+        // B도 Rigidbody 있으면 체크
+        if (rbB != null)
+        {
+            if (contact.normal.y < -0.5f && rbB.velocity.y <= 0f)
+            {
+                rbB.isGrounded = true;
+                rbB.velocity.y = 0f;
+            }
         }
     }
 }
