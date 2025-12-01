@@ -19,7 +19,7 @@ public class CustomPhysicsManager : MonoBehaviour
         rigidBodies3D.AddRange(FindObjectsByType<CustomRigidBody>(FindObjectsSortMode.None));
         colliders3D.AddRange(FindObjectsByType<CustomCollider3D>(FindObjectsSortMode.None));
     }
-
+    
     private void Update()
     {
         // P 버튼으로 물리만 멈춤/재시작
@@ -46,10 +46,12 @@ public class CustomPhysicsManager : MonoBehaviour
         //모든 물리 step
         foreach (var rb in rigidBodies2D)
         {
+            rb.isGrounded = false;//중력 체크 초기화
             rb.PhysicsStep(dt);
         }
         foreach (var rb in rigidBodies3D)
         {
+            rb.isGrounded = false;//중력 체크 초기화
             rb.PhysicsStep(dt);
         }
 
@@ -82,24 +84,27 @@ public class CustomPhysicsManager : MonoBehaviour
     /// </summary>
     void Handle3DCollisions()
     {
-        for(int i = 0; i < colliders3D.Count; i++)
+        for (int i = 0; i < colliders3D.Count; i++)
         {
             for(int j = i + 1; j < colliders3D.Count; j++)
             {
                 var collA = colliders3D[i];
                 var collB = colliders3D[j];
-
+           
                 //충돌 여부 판정
                 if (!ColiisionUtility.IsCollisionAABB3D(collA, collB)) continue;
-
+            
                 //충돌 정보
                 ContactInfo contactInfo = ColiisionUtility.GetContactAABB3D(collA, collB);
-
+                
                 //충돌 응답
                 ColiisionUtility.ResponseCollision3D(collA, collB, contactInfo);
-
+                
                 //위치 보정
                 PositionalCorrection(collA.rigidBody, collB.rigidBody, contactInfo);
+
+                //지면과 충돌체크 여부
+                ColiisionUtility.CheckGround(collA,collB, contactInfo);
             }
         }
     }
@@ -138,9 +143,28 @@ public class CustomPhysicsManager : MonoBehaviour
         float correction = Mathf.Max(contact.penetration - slop, 0f);
         Vec3 correctionVec =  contact.normal*correction;
 
-        Vec3 rigidAPos = correctionVec * correctionPercent;
-        Vec3 rigidBPos = correctionVec * correctionPercent;
-        rigidA.deltaPosition -= rigidAPos;
-        rigidB.deltaPosition += rigidBPos;
+        // Case 1: 둘 다 rigidBody 있는 경우 → 50% 씩
+        if (rigidA != null && rigidB != null)
+        {
+            rigidA.deltaPosition -= correctionVec * correctionPercent;
+            rigidB.deltaPosition += correctionVec * correctionPercent;
+            return;
+        }
+
+        // Case 2: A만 rigidBody 있는 경우 → A가 100% 이동
+        if (rigidA != null && rigidB == null)
+        {
+            rigidA.deltaPosition -= correctionVec;  // 100%
+            return;
+        }
+
+        // Case 3: B만 rigidBody 있는 경우 → B가 100% 이동
+        if (rigidA == null && rigidB != null)
+        {
+            rigidB.deltaPosition += correctionVec;  // 100%
+            return;
+        }
+
+        // Case 4: 둘다 없으면 아무것도 안함
     }
 }
