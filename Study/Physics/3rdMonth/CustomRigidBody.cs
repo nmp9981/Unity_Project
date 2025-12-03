@@ -44,7 +44,7 @@ public class CustomRigidBody : MonoBehaviour
     {
         InitializePosition();
     }
-    
+
     /// <summary>
     /// 초기 위치 설정
     /// </summary>
@@ -68,10 +68,10 @@ public class CustomRigidBody : MonoBehaviour
         //알짜힘 구하기
         Vec3 totalForce = VectorMathUtils.ZeroVector3D();
         if (useGravity) totalForce += gravity3D * mass.value;//중력
-        totalForce +=(velocity *(-1)) * linearDrag;//저항힘
         totalForce += externalForce;//외력
         totalForce += accumulatedForce;//자체힘
-        
+        totalForce += velocity * -linearDrag;//저항힘
+
         //총 가속도
         acceleration = totalForce / mass.value;
 
@@ -90,8 +90,8 @@ public class CustomRigidBody : MonoBehaviour
             //이동
             IntegratePosition(velocity, dt);
         }
+        // 현재 상태에 deltaPosition 적용
         currentState.position += deltaPosition;
-
         //힘 초기화
         ClearForces();
 
