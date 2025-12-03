@@ -16,6 +16,10 @@ public class CustomRigidBody : MonoBehaviour
     public float angularDrag = 0.05f;
     public CustomCollider3D col;   // 연결된 collider 참조
 
+    [Header("Ground")]
+    public bool isGrounded;          //땅에 닿았는가?
+    public float groundedThreshold = 0.05f;//접지 허용 오차
+
     [Header("Force")]
     public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
     public Vec3 accumulatedForce = VectorMathUtils.ZeroVector3D();//내부 힘
@@ -62,10 +66,12 @@ public class CustomRigidBody : MonoBehaviour
         previousState.position = currentState.position;
 
         //알짜힘 구하기
-        accumulatedForce += useGravity? gravity3D * mass.value: VectorMathUtils.ZeroVector3D();//중력
-        accumulatedForce +=(velocity *(-1)) * linearDrag;//저항힘
-        Vec3 totalForce = externalForce + accumulatedForce;//알짜힘
-
+        Vec3 totalForce = VectorMathUtils.ZeroVector3D();
+        if (useGravity) totalForce += gravity3D * mass.value;//중력
+        totalForce +=(velocity *(-1)) * linearDrag;//저항힘
+        totalForce += externalForce;//외력
+        totalForce += accumulatedForce;//자체힘
+        
         //총 가속도
         acceleration = totalForce / mass.value;
 
@@ -84,11 +90,10 @@ public class CustomRigidBody : MonoBehaviour
             //이동
             IntegratePosition(velocity, dt);
         }
+        currentState.position += deltaPosition;
+
         //힘 초기화
         ClearForces();
-
-        //현재 상태 업데이트
-        currentState.position += deltaPosition;
 
         //Nan방지
         Sanitize();
