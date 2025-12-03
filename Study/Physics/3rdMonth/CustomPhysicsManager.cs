@@ -113,7 +113,7 @@ public class CustomPhysicsManager : MonoBehaviour
     /// </summary>
     void PositionUpdateState()
     {
-        float alpha = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
+        float alpha = (float)(Time.timeAsDouble - Time.fixedTimeAsDouble) / Time.fixedDeltaTime;
         float alpha01 = MathUtility.ClampValue(alpha,0,1);//보간 값
 
         foreach (var rb in rigidBodies2D)
@@ -137,6 +137,8 @@ public class CustomPhysicsManager : MonoBehaviour
     /// <param name="contact">충돌 정보</param>
     void PositionalCorrection(CustomRigidBody rigidA, CustomRigidBody rigidB, ContactInfo contact)
     {
+        if (contact == null) return;
+
         float correctionPercent = 0.5f; // 양쪽 50%씩
         float slop = 0.01f;             // 안정화 값 (penetration이 너무 작으면 무시)
 
@@ -146,22 +148,27 @@ public class CustomPhysicsManager : MonoBehaviour
         // Case 1: 둘 다 rigidBody 있는 경우 → 50% 씩
         if (rigidA != null && rigidB != null)
         {
-            rigidA.deltaPosition -= correctionVec * correctionPercent;
-            rigidB.deltaPosition += correctionVec * correctionPercent;
+            // 분배: inverse mass 비율을 쓰려면 rigid에서 mass 접근 필요
+            float invA = (rigidA.mass != null && rigidA.mass.value > 0f) ? 1f / rigidA.mass.value : 0f;
+            float invB = (rigidB.mass != null && rigidB.mass.value > 0f) ? 1f / rigidB.mass.value : 0f;
+            float invSum = invA + invB;
+            if (invSum <= 0f) return;
+            rigidA.currentState.position -= correctionVec * (invA / invSum);
+            rigidB.currentState.position += correctionVec * (invB / invSum);
             return;
         }
 
         // Case 2: A만 rigidBody 있는 경우 → A가 100% 이동
         if (rigidA != null && rigidB == null)
         {
-            rigidA.deltaPosition -= correctionVec;  // 100%
+            rigidA.currentState.position -= correctionVec;  // 100%
             return;
         }
 
         // Case 3: B만 rigidBody 있는 경우 → B가 100% 이동
         if (rigidA == null && rigidB != null)
         {
-            rigidB.deltaPosition += correctionVec;  // 100%
+            rigidB.currentState.position += correctionVec;  // 100%
             return;
         }
 
