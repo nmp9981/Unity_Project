@@ -11,12 +11,6 @@ public class PhysicsWorld2D : MonoBehaviour
     //물리 작동 여부
     public bool physicsPaused = false;
 
-    private void Awake()
-    {
-        rigidBodies2D.AddRange(FindObjectsByType<CustomRigidbody2D>(FindObjectsSortMode.None));
-        colliders2D.AddRange(FindObjectsByType<CustomCollider2D>(FindObjectsSortMode.None));
-    }
-
     private void Update()
     {
         // P 버튼으로 물리만 멈춤/재시작
@@ -33,12 +27,17 @@ public class PhysicsWorld2D : MonoBehaviour
             PhysicsStep(Time.fixedDeltaTime);
     }
 
+    public void Create_ColliderAndRigid2D()
+    {
+        rigidBodies2D.AddRange(FindObjectsByType<CustomRigidbody2D>(FindObjectsSortMode.None));
+        colliders2D.AddRange(FindObjectsByType<CustomCollider2D>(FindObjectsSortMode.None));
+    }
     /// <summary>
     /// 물리 스텝
     /// Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
     /// </summary>
     /// <param name="dt"></param>
-    void PhysicsStep(float dt)
+    public void PhysicsStep(float dt)
     {
         //모든 물리 step
         foreach (var rb in rigidBodies2D)
