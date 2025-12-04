@@ -1,0 +1,161 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PhysicsWorld2D : MonoBehaviour
+{
+    [SerializeField]
+    List<CustomRigidbody2D> rigidBodies2D = new List<CustomRigidbody2D>();
+    [SerializeField]
+    List<CustomCollider2D> colliders2D = new List<CustomCollider2D>();
+
+    //물리 작동 여부
+    public bool physicsPaused = false;
+
+    private void Awake()
+    {
+        rigidBodies2D.AddRange(FindObjectsByType<CustomRigidbody2D>(FindObjectsSortMode.None));
+        colliders2D.AddRange(FindObjectsByType<CustomCollider2D>(FindObjectsSortMode.None));
+    }
+
+    private void Update()
+    {
+        // P 버튼으로 물리만 멈춤/재시작
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            physicsPaused = !physicsPaused;
+        }
+
+        RenderStep(Time.deltaTime);
+    }
+    private void FixedUpdate()
+    {
+        if (!physicsPaused)
+            PhysicsStep(Time.fixedDeltaTime);
+    }
+
+    /// <summary>
+    /// 물리 스텝
+    /// Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
+    /// </summary>
+    /// <param name="dt"></param>
+    void PhysicsStep(float dt)
+    {
+        //모든 물리 step
+        foreach (var rb in rigidBodies2D)
+        {
+            rb.isGrounded = false;//중력 체크 초기화
+            rb.PhysicsStep(dt);
+        }
+
+        //충돌 체크
+        Handle2DCollisions();
+
+        //초기화
+        foreach (var rb in rigidBodies2D)
+        {
+            rb.ClearPosition();
+        }
+    }
+
+    /// <summary>
+    /// 렌더링 스텝
+    /// 렌더링은 물리 상태를 읽기만 한다.
+    /// </summary>
+    /// <param name="dt"></param>
+    void RenderStep(float dt)
+    {
+        PositionUpdateState();
+    }
+
+    /// <summary>
+    /// 충돌 체크
+    /// </summary>
+    void Handle2DCollisions()
+    {
+        for (int i = 0; i < colliders2D.Count; i++)
+        {
+            for (int j = i + 1; j < colliders2D.Count; j++)
+            {
+                var collA = colliders2D[i];
+                var collB = colliders2D[j];
+
+                //충돌 여부 판정
+                if (!ColiisionUtility2D.IsCollisionAABB2D(collA, collB)) continue;
+
+                //충돌 정보
+                ContactInfo contactInfo = ColiisionUtility2D.GetContactAABB2D(collA, collB);
+
+                //충돌 응답
+                ColiisionUtility2D.ResponseCollision2D(collA, collB, contactInfo);
+
+                //위치 보정
+                PositionalCorrection(collA.rigidBody, collB.rigidBody, contactInfo);
+
+                //지면과 충돌체크 여부
+                ColiisionUtility2D.CheckGround(collA, collB, contactInfo);
+            }
+        }
+    }
+    /// <summary>
+    /// 위치 상태 업데이트
+    /// </summary>
+    void PositionUpdateState()
+    {
+        float alpha = (float)(Time.timeAsDouble - Time.fixedTimeAsDouble) / Time.fixedDeltaTime;
+        float alpha01 = MathUtility.ClampValue(alpha, 0, 1);//보간 값
+
+        foreach (var rb in rigidBodies2D)
+        {
+            Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha01);
+
+            rb.transform.position = new Vector3(lerped.x, lerped.y, 0);
+        }
+    }
+    /// <summary>
+    /// 위치 보정
+    /// </summary>
+    /// <param name="rigidA">물체 A</param>
+    /// <param name="rigidB">물체 B</param>
+    /// <param name="contact">충돌 정보</param>
+    void PositionalCorrection(CustomRigidbody2D rigidA, CustomRigidbody2D rigidB, ContactInfo contact)
+    {
+        if (contact == null) return;
+
+        float correctionPercent = 0.5f; // 양쪽 50%씩
+        float slop = 0.01f;             // 안정화 값 (penetration이 너무 작으면 무시)
+
+        float correction = Mathf.Max(contact.penetration - slop, 0f);
+        if (correctionPercent <= 0f) return;
+
+        Vec3 correctionVec = contact.normal * correction;
+
+        // Case 1: 둘 다 rigidBody 있는 경우 → 50% 씩
+        if (rigidA != null && rigidB != null)
+        {
+            // 분배: inverse mass 비율을 쓰려면 rigid에서 mass 접근 필요
+            float invA = (rigidA.mass != null && rigidA.mass.value > 0f) ? 1f / rigidA.mass.value : 0f;
+            float invB = (rigidB.mass != null && rigidB.mass.value > 0f) ? 1f / rigidB.mass.value : 0f;
+            float invSum = invA + invB;
+            if (invSum <= 0f) return;
+            rigidA.currentState.position -= correctionVec * (invA / invSum);
+            rigidB.currentState.position += correctionVec * (invB / invSum);
+            return;
+        }
+
+        // Case 2: A만 rigidBody 있는 경우 → A가 100% 이동
+        if (rigidA != null && rigidB == null)
+        {
+            rigidA.currentState.position -= correctionVec;  // 100%
+            return;
+        }
+
+        // Case 3: B만 rigidBody 있는 경우 → B가 100% 이동
+        if (rigidA == null && rigidB != null)
+        {
+            rigidB.currentState.position += correctionVec;  // 100%
+            return;
+        }
+
+        // Case 4: 둘다 없으면 아무것도 안함
+    }
+}
