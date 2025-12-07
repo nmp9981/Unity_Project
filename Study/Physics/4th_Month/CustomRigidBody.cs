@@ -61,8 +61,6 @@ public class CustomRigidBody : MonoBehaviour
         previousState.accel = VectorMathUtils.ZeroVector3D();
 
         deltaPosition = VectorMathUtils.ZeroVector3D();
-        velocity = VectorMathUtils.ZeroVector3D();
-        acceleration = VectorMathUtils.ZeroVector3D();
     }
 
     //Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
@@ -76,7 +74,7 @@ public class CustomRigidBody : MonoBehaviour
         if (useGravity) totalForce += gravity3D * mass.value;//중력
         totalForce += externalForce;//외력
         totalForce += accumulatedForce;//자체힘
-        totalForce += velocity * -linearDrag;//저항힘
+        totalForce += currentState.velocity * -linearDrag;//저항힘
 
         //적분방식에 따른 속도, 위치
         if (integrator == Integrator.ForwardEuler)
@@ -85,11 +83,13 @@ public class CustomRigidBody : MonoBehaviour
             acceleration = totalForce / mass.value;
 
             //이동
-            IntegratePosition(velocity, dt);
+            IntegratePosition(currentState.velocity, dt);
             //속도
             IntegrateVelocity(acceleration, dt);
             // 현재 상태에 deltaPosition 적용
             currentState.position += deltaPosition;
+            //힘 초기화
+            ClearForces();
         }
         else if(integrator == Integrator.SemiImplicitEuler)
         {
@@ -99,17 +99,19 @@ public class CustomRigidBody : MonoBehaviour
             //속도
             IntegrateVelocity(acceleration, dt);
             //이동
-            IntegratePosition(velocity, dt);
+            IntegratePosition(currentState.velocity, dt);
             // 현재 상태에 deltaPosition 적용
             currentState.position += deltaPosition;
+            //힘 초기화
+            ClearForces();
         }
         else if(integrator == Integrator.Verlet)
         {
-            currentState = IntegrationUtility.VelocityVerlet(dt, currentState, totalForce, mass.value);
+            RigidbodyState newState= IntegrationUtility.VelocityVerlet(dt, currentState, totalForce, mass.value);
+            deltaPosition = newState.position - currentState.position;
+            currentState = newState;
         }
-       
-        //힘 초기화
-        ClearForces();
+      
 
         //Nan방지
         Sanitize();
@@ -174,13 +176,13 @@ public class CustomRigidBody : MonoBehaviour
     /// </summary>
     void Sanitize()
     {
-        if (float.IsNaN(velocity.x) || float.IsInfinity(velocity.x)) velocity.x = 0;
-        if (float.IsNaN(velocity.y) || float.IsInfinity(velocity.y)) velocity.y = 0;
-        if (float.IsNaN(velocity.z) || float.IsInfinity(velocity.z)) velocity.z = 0;
+        if (float.IsNaN(currentState.velocity.x) || float.IsInfinity(currentState.velocity.x)) currentState.velocity.x = 0;
+        if (float.IsNaN(currentState.velocity.y) || float.IsInfinity(currentState.velocity.y)) currentState.velocity.y = 0;
+        if (float.IsNaN(currentState.velocity.z) || float.IsInfinity(currentState.velocity.z)) currentState.velocity.z = 0;
 
-        if (float.IsNaN(acceleration.x) || float.IsInfinity(acceleration.x)) acceleration.x = 0;
-        if (float.IsNaN(acceleration.y) || float.IsInfinity(acceleration.y)) acceleration.y = 0;
-        if (float.IsNaN(acceleration.z) || float.IsInfinity(acceleration.z)) acceleration.z = 0;
+        if (float.IsNaN(currentState.accel.x) || float.IsInfinity(currentState.accel.x)) currentState.accel.x = 0;
+        if (float.IsNaN(currentState.accel.y) || float.IsInfinity(currentState.accel.y)) currentState.accel.y = 0;
+        if (float.IsNaN(currentState.accel.z) || float.IsInfinity(currentState.accel.z)) currentState.accel.z = 0;
 
         if (float.IsNaN(deltaPosition.x) || float.IsInfinity(deltaPosition.x)) deltaPosition.x = 0;
         if (float.IsNaN(deltaPosition.y) || float.IsInfinity(deltaPosition.y)) deltaPosition.y = 0;
