@@ -78,29 +78,36 @@ public class CustomRigidBody : MonoBehaviour
         totalForce += accumulatedForce;//자체힘
         totalForce += velocity * -linearDrag;//저항힘
 
-        //총 가속도
-        acceleration = totalForce / mass.value;
-
         //적분방식에 따른 속도, 위치
         if (integrator == Integrator.ForwardEuler)
         {
+            //총 가속도
+            acceleration = totalForce / mass.value;
+
             //이동
             IntegratePosition(velocity, dt);
             //속도
             IntegrateVelocity(acceleration, dt);
+            // 현재 상태에 deltaPosition 적용
+            currentState.position += deltaPosition;
         }
         else if(integrator == Integrator.SemiImplicitEuler)
         {
+            //총 가속도
+            acceleration = totalForce / mass.value;
+
             //속도
             IntegrateVelocity(acceleration, dt);
             //이동
             IntegratePosition(velocity, dt);
-        }else if(integrator == Integrator.Verlet)
+            // 현재 상태에 deltaPosition 적용
+            currentState.position += deltaPosition;
+        }
+        else if(integrator == Integrator.Verlet)
         {
             currentState = IntegrationUtility.VelocityVerlet(dt, currentState, totalForce, mass.value);
         }
-        // 현재 상태에 deltaPosition 적용
-        currentState.position += deltaPosition;
+       
         //힘 초기화
         ClearForces();
 
