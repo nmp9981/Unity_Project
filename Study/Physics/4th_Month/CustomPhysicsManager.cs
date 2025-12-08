@@ -13,8 +13,8 @@ public class CustomPhysicsManager : MonoBehaviour
 
     void Start()
     {
-        world2D = new PhysicsWorld2D();
-        world3D = new PhysicsWorld();
+        world2D = FindAnyObjectByType<PhysicsWorld2D>();
+        world3D = FindAnyObjectByType<PhysicsWorld>();
         SceneBootstrap(mode);    // rigidbody & collider 생성
     }
 
