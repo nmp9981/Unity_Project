@@ -1,3 +1,21 @@
+/// <summary>
+/// 위치 속도 미분 - 2차원
+/// </summary>
+public struct Derivative2D
+{
+    public Vec3 dPosition;//위치 미분
+    public Vec2 dVelocity;//속도 미분
+}
+
+/// <summary>
+/// 위치 속도 미분 - 3차원
+/// </summary>
+public struct Derivative
+{
+    public Vec3 dPosition;//위치 미분
+    public Vec3 dVelocity;//속도 미분
+}
+
 public static class IntegrationUtility
 {
     /// <summary>
@@ -60,7 +78,7 @@ public static class IntegrationUtility
         //가속도 업데이트
         Vec2 newA = force / mass;
 
-        //속도 업데이트
+        //속도 업데이트(평균 가속도 사용)
         Vec2 newV = curState.velocity + (curState.accel + newA) * dt * 0.5f;
 
         //다음 상태 반환
@@ -70,5 +88,107 @@ public static class IntegrationUtility
             velocity = newV,
             accel = newA,
         };
+    }
+
+    /// <summary>
+    /// 미분
+    /// </summary>
+    /// <returns></returns>
+    private static Derivative2D Evaluate2D(RigidbodyState2D state, Vec2 force, float mass)
+    {
+        Derivative2D d;
+        d.dPosition = new Vec3(state.velocity.x, state.velocity.y,0);//위치 미분하면 속도
+        d.dVelocity = force / mass;//속도 미분하면 가속도
+        return d;
+    }
+
+    /// <summary>
+    /// 미분
+    /// </summary>
+    /// <returns></returns>
+    private static Derivative Evaluate(RigidbodyState state, Vec3 force, float mass)
+    {
+        Derivative d;
+        d.dPosition = state.velocity;//위치 미분하면 속도
+        d.dVelocity = force / mass;//속도 미분하면 가속도
+        return d;
+    }
+    /// <summary>
+    /// RK4 - 2D
+    /// </summary>
+    /// <param name="state">상태</param>
+    /// <param name="force">힘</param>
+    /// <param name="mass">질량</param>
+    /// <param name="dt">시간차</param>
+    /// <returns></returns>
+    public static RigidbodyState2D Integrate2DRK4(RigidbodyState2D state, Vec2 force, float mass, float dt)
+    {
+        Derivative2D k1 = Evaluate2D(state, force, mass);
+
+        RigidbodyState2D state2 = new RigidbodyState2D
+        {
+            position = state.position + k1.dPosition * 0.5f * dt,
+            velocity = state.velocity + k1.dVelocity * 0.5f * dt
+        };
+        Derivative2D k2 = Evaluate2D(state2, force, mass);
+
+        RigidbodyState2D state3 = new RigidbodyState2D
+        {
+            position = state.position + k2.dPosition * 0.5f * dt,
+            velocity = state.velocity + k2.dVelocity * 0.5f * dt
+        };
+        Derivative2D k3 = Evaluate2D(state3, force, mass);
+
+        RigidbodyState2D state4 = new RigidbodyState2D
+        {
+            position = state.position + k3.dPosition * dt,
+            velocity = state.velocity + k3.dVelocity * dt
+        };
+        Derivative2D k4 = Evaluate2D(state4, force, mass);
+
+        //가중치 합
+        state.position += (k1.dPosition + k2.dPosition * 2 + k3.dPosition * 2 + k4.dPosition) * dt / 6;
+        state.velocity += (k1.dVelocity + k2.dVelocity * 2 + k3.dVelocity * 2 + k4.dVelocity) * dt / 6;
+
+        return state;
+    }
+    /// <summary>
+    /// RK4 - 3D
+    /// </summary>
+    /// <param name="state">상태</param>
+    /// <param name="force">힘</param>
+    /// <param name="mass">질량</param>
+    /// <param name="dt">시간차</param>
+    /// <returns></returns>
+    public static RigidbodyState IntegrateRK4(RigidbodyState state, Vec3 force, float mass, float dt)
+    {
+        Derivative k1= Evaluate(state, force, mass);
+
+        RigidbodyState state2 = new RigidbodyState
+        {
+            position = state.position + k1.dPosition * 0.5f * dt,
+            velocity = state.velocity + k1.dVelocity * 0.5f * dt
+        };
+        Derivative k2 = Evaluate(state2, force, mass);
+
+        RigidbodyState state3 = new RigidbodyState
+        {
+            position = state.position + k2.dPosition * 0.5f * dt,
+            velocity = state.velocity + k2.dVelocity * 0.5f * dt
+        };
+        Derivative k3 = Evaluate(state3, force, mass);
+
+        RigidbodyState state4 = new RigidbodyState
+        {
+            position = state.position + k3.dPosition * dt,
+            velocity = state.velocity + k3.dVelocity * dt
+        };
+        Derivative k4 = Evaluate(state4, force, mass);
+
+        //가중치 합
+        state.position += (k1.dPosition + k2.dPosition*2 + k3.dPosition*2 + k4.dPosition) * dt / 6;
+        state.velocity += (k1.dVelocity + k2.dVelocity * 2 + k3.dVelocity * 2 + k4.dVelocity) * dt / 6;
+
+        return state;
     }
 }
