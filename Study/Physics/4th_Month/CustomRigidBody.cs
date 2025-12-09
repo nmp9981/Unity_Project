@@ -108,11 +108,14 @@ public class CustomRigidBody : MonoBehaviour
         else if(integrator == Integrator.Verlet)
         {
             RigidbodyState newState= IntegrationUtility.VelocityVerlet(dt, currentState, totalForce, mass.value);
-            deltaPosition = newState.position - currentState.position;
+           
+            previousState = currentState;
             currentState = newState;
+            //렌더용 이동량
+            deltaPosition = newState.position - currentState.position;
+            ClearForces();
         }
       
-
         //Nan방지
         Sanitize();
     }
