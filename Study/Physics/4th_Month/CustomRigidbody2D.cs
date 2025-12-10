@@ -1,4 +1,3 @@
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 
 public struct RigidbodyState2D
@@ -35,7 +34,7 @@ public class CustomRigidbody2D : MonoBehaviour
     public RigidbodyState2D currentState;//현재 상태
 
     //적분 방식
-    public enum Integrator { ForwardEuler, SemiImplicitEuler, Verlet }
+    public enum Integrator { ForwardEuler, SemiImplicitEuler, Verlet, RK4 }
     [Header("Integration")]
     public Integrator integrator = Integrator.ForwardEuler;
 
@@ -110,6 +109,19 @@ public class CustomRigidbody2D : MonoBehaviour
             currentState = newState;
             //렌더용 이동량
             deltaPosition = newState.position - currentState.position;
+            ClearForces();
+        }
+        else if (integrator == Integrator.RK4)
+        {
+            RigidbodyState2D newState = IntegrationUtility.Integrate2DRK4(currentState, totalForce, mass.value, dt);
+
+            previousState = currentState;
+            Vec3 oldPos = currentState.position;
+            currentState = newState;
+
+            //렌더용 이동량
+            deltaPosition = newState.position - oldPos;
+
             ClearForces();
         }
 
