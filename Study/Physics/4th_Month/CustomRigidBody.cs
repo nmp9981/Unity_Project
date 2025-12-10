@@ -34,7 +34,7 @@ public class CustomRigidBody : MonoBehaviour
     public RigidbodyState currentState;//현재 상태
 
     //적분 방식
-    public enum Integrator { ForwardEuler, SemiImplicitEuler, Verlet }
+    public enum Integrator { ForwardEuler, SemiImplicitEuler, Verlet, RK4 }
     [Header("Integration")]
     public Integrator integrator = Integrator.ForwardEuler;
 
@@ -61,6 +61,8 @@ public class CustomRigidBody : MonoBehaviour
         previousState.accel = VectorMathUtils.ZeroVector3D();
 
         deltaPosition = VectorMathUtils.ZeroVector3D();
+
+        currentState.velocity = new Vec3(5, 8, 0);
     }
 
     //Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
@@ -110,9 +112,21 @@ public class CustomRigidBody : MonoBehaviour
             RigidbodyState newState= IntegrationUtility.VelocityVerlet(dt, currentState, totalForce, mass.value);
            
             previousState = currentState;
-            currentState = newState;
             //렌더용 이동량
             deltaPosition = newState.position - currentState.position;
+            currentState = newState;
+            ClearForces();
+        }else if(integrator == Integrator.RK4)
+        {
+            RigidbodyState newState = IntegrationUtility.IntegrateRK4(currentState,totalForce,mass.value,dt);
+
+            previousState = currentState;
+            Vec3 oldPos = currentState.position;
+            currentState = newState;
+
+            //렌더용 이동량
+            deltaPosition = newState.position - oldPos;
+            
             ClearForces();
         }
       
