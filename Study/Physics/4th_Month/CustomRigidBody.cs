@@ -41,7 +41,6 @@ public class CustomRigidBody : MonoBehaviour
     //결과 값
     public Vec3 deltaPosition = VectorMathUtils.ZeroVector3D();
 
-
     private void Start()
     {
         InitializePosition();
@@ -76,7 +75,7 @@ public class CustomRigidBody : MonoBehaviour
         if (useGravity) totalForce += gravity3D * mass.value;//중력
         totalForce += externalForce;//외력
         totalForce += accumulatedForce;//자체힘
-        totalForce += currentState.velocity * -linearDrag;//저항힘
+        //totalForce += currentState.velocity * -linearDrag;//저항힘
 
         //적분방식에 따른 속도, 위치
         if (integrator == Integrator.ForwardEuler)
@@ -116,7 +115,8 @@ public class CustomRigidBody : MonoBehaviour
             deltaPosition = newState.position - currentState.position;
             currentState = newState;
             ClearForces();
-        }else if(integrator == Integrator.RK4)
+        }
+        else if(integrator == Integrator.RK4)
         {
             RigidbodyState newState = IntegrationUtility.IntegrateRK4(currentState,totalForce,mass.value,dt);
 
