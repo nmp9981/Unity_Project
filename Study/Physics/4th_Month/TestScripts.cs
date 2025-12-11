@@ -1,11 +1,9 @@
+using NUnit.Framework.Constraints;
 using System;
 using UnityEngine;
 
 public class TestScripts : MonoBehaviour
 {
-    public enum Integrator { Euler, SemiImplicit, Verlet ,RK4}
-    public Integrator mode = Integrator.Euler;
-
     public CustomRigidBody rigid;
     public float k;//스프링 상수
     
@@ -15,11 +13,16 @@ public class TestScripts : MonoBehaviour
         lr.positionCount = 3000;
         
     }
+    private void Start()
+    {
+        rigid.currentState.position = new Vec3(1,0,0); // 초기 변위
+        rigid.currentState.velocity = new Vec3(1,0,0); //초기 속도
+    }
 
     void FixedUpdate()
     {
-        //rigid.accumulatedForce = VectorMathUtils.RightVector3D()* MathF.Sin(Time.fixedTime);
-        //rigid.PhysicsStep(0.02f);
+        rigid.accumulatedForce = rigid.currentState.position * (-k);
+        rigid.PhysicsStep(Time.fixedDeltaTime);
         float x = rigid.currentState.position.x;
         float v = rigid.currentState.velocity.x;
 
