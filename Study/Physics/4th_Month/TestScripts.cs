@@ -1,11 +1,9 @@
-using NUnit.Framework.Constraints;
-using System;
 using UnityEngine;
 
 public class TestScripts : MonoBehaviour
 {
     public CustomRigidBody rigid;
-    public float k;//스프링 상수
+    public static float k=1000;//스프링 상수
     
     void Awake()
     {
