@@ -133,7 +133,8 @@ public class PhysicsWorld : MonoBehaviour
         float correction = Mathf.Max(contact.penetration - slop, 0f);
         if (correctionPercent <= 0f) return;
 
-        Vec3 correctionVec = contact.normal * correction*correctionPercent;
+        float beta = 0.2f;//전체중에 이정도만 고치자
+        Vec3 correctionVec = contact.normal * correction*correctionPercent*beta;
 
         // Case 1: 둘 다 rigidBody 있는 경우 → 50% 씩
         if (rigidA != null && rigidB != null)
