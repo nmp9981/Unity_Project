@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.ShaderData;
 
 public struct RigidbodyState
 {
@@ -192,14 +193,28 @@ public class CustomRigidBody : MonoBehaviour
     /// 커밋 단계 - 이번 프레임의 물리 계산이 끝났다.
     /// 1. position 확정
     /// 2. velocity 재계산
-    /// 3. grounded 판정 확정
-    /// 4. 힘 초기화
+    /// 3. 누적된 groundNormal 기반 속도 차단
+    /// 4. grounded 판정 확정
+    /// 5. 힘 초기화
     /// </summary>
     public void Commit(float dt)
     {
+
         velocity = (predictedPosition - prevPosition) / dt;
         position = predictedPosition;
 
+        //누적된 groundNormal 기반 속도 차단, 법선 방향 이동 차단
+        if (hasGroundContact)
+        {
+            float vn = Vec3.Dot(velocity, groundNormal);
+
+            if (vn < 0f)
+            {
+                velocity -= groundNormal*vn;
+            }
+        }
+
+        //지면 판정
         if (hasGroundContact && velocity.y <= groundedThreshold)
         {
             isGrounded = true;
@@ -208,6 +223,30 @@ public class CustomRigidBody : MonoBehaviour
         else
         {
             isGrounded = false;
+        }
+
+        //마찰 계산, 마찰은 접촉 상태에서만 존재
+        float staticThreshold = 0.05f;
+
+        if (hasGroundContact)
+        {
+            //속도를 접선, 법선성분으로 분해
+            //groundNormal * Vec3.Dot(velocity, groundNormal)는 groundNormal에 투영한 법선 속도로서
+            //방향*크기로 구한다.
+            //접선 속도 = 전체 − 법선, 접선 속도가 바닥을 따라 미끄러지는 속도
+            Vec3 tangentVel = velocity - groundNormal * Vec3.Dot(velocity, groundNormal);
+
+            if (tangentVel.Magnitude < staticThreshold)
+            {
+                // 정지 마찰
+                velocity -= tangentVel;
+            }
+            else
+            {
+                // 동적 마찰
+                float friction = 0.8f;
+                velocity -= tangentVel * friction;
+            }
         }
 
         externalForce = VectorMathUtils.ZeroVector3D();
