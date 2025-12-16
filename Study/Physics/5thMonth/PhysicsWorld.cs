@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class PhysicsWorld : MonoBehaviour
 {
@@ -171,7 +172,11 @@ public class PhysicsWorld : MonoBehaviour
     /// </summary>
     void SolveOtherConstraints()
     {
-       
+        for (int i = 0; i < solverIterations; ++i)
+        {
+            ContactSolver.SolveContactNormal();
+            ContactSolver.SolveContactFriction();
+        }
     }
     /// <summary>
     /// Ground 증거 수집
