@@ -154,7 +154,28 @@ public class ColiisionUtility
             return null; // 충돌 없음
         }
 
+        //충돌 정보 생성
         ContactInfo contactInfo = new ContactInfo();
+
+        //Impulse 초기화
+        contactInfo.normalImpulse = 0f;
+        contactInfo.tangentImpulse = 0f;
+
+        //질량 계산
+        float invMassA = (colA.rigidBody != null && colA.rigidBody.mass.value > 0f)
+            ? 1f / colA.rigidBody.mass.value : 0f;
+
+        float invMassB = (colB.rigidBody != null && colB.rigidBody.mass.value > 0f)
+            ? 1f / colB.rigidBody.mass.value : 0f;
+
+        contactInfo.invMassSum = invMassA + invMassB;
+
+        //마찰 계수 계산
+        float muA = colA.material != null ? colA.material.friction : 0f;
+        float muB = colB.material != null ? colB.material.friction : 0f;
+
+        // 보통 min 또는 평균
+        contactInfo.frictionValue = MathUtility.Min(muA, muB);
 
         // 축별 겹침량
         float overlapX = MathUtility.Min(boundA.max.x-boundB.min.x, boundB.max.x - boundA.min.x);
@@ -171,6 +192,15 @@ public class ColiisionUtility
             contactInfo.normal = (boundA.center.y < boundB.center.y) ? VectorMathUtils.DownVector3D() : VectorMathUtils.UpVector3D();
         else
             contactInfo.normal = (boundA.center.z < boundB.center.z) ? VectorMathUtils.BackVector3D() : VectorMathUtils.FrontVector3D();
+
+        //마찰 벡터 등록
+        Vec3 any = MathUtility.Abs(contactInfo.normal.y) < 0.9f?VectorMathUtils.UpVector3D(): VectorMathUtils.RightVector3D();
+        Vec3 crossAny = Vec3.Cross(any,contactInfo.normal);
+        contactInfo.tangent = crossAny.Normalized;
+
+        //리지드바디 등록
+        contactInfo.rigidA = colA.rigidBody;
+        contactInfo.rigidB = colB.rigidBody;
 
         return contactInfo;
     }
