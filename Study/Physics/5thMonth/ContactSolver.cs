@@ -61,8 +61,8 @@ public static class ContactSolver
         float dJt = Vec3.Dot(vt,contact.tangent) / contact.invMassSum;
         dJt *= (-1);
 
-        //최대 마찰력
-        float maxFriction = contact.frictionValue * contact.tangentImpulse;
+        //최대 마찰력(마찰계수*수직항력)
+        float maxFriction = contact.frictionValue * contact.normalImpulse;
 
         float oldJt = contact.tangentImpulse;
         contact.tangentImpulse = MathUtility.ClampValue(oldJt + dJt, -maxFriction, maxFriction);
