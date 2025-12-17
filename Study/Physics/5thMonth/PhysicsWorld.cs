@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Security.Cryptography;
 using UnityEngine;
+using static UnityEditor.ShaderData;
 using static UnityEngine.GraphicsBuffer;
 
 public class PhysicsWorld : MonoBehaviour
@@ -18,6 +20,9 @@ public class PhysicsWorld : MonoBehaviour
 
     //지면 판정
     public float groundThreshold;
+
+    //충돌 정보 모음
+    public List<ContactInfo> contactList = new List<ContactInfo>();
 
     private void Update()
     {
@@ -49,11 +54,20 @@ public class PhysicsWorld : MonoBehaviour
             rb.isGrounded = false;//중력 체크 초기화
             rb.PredictState(dt);
         }
+
+        //Contact 생성
+        contactList.Clear();
+
         //충돌 체크
-        for (int i = 0; i < solverIterations; i++)
+        Handle3DCollisions();// 내부에서 PositionalCorrection만 수행
+
+        //충돌 뒤 제약 조건 체크
+        SolveOtherConstraints();
+
+        //Ground 판정
+        foreach (var cont in contactList)
         {
-            Handle3DCollisions();// 내부에서 PositionalCorrection만 수행
-            SolveOtherConstraints();//제약 조건 처리
+            AccumulateGroundContact(cont.rigidA, cont.rigidB, cont);
         }
 
         //모든 물리 step
@@ -92,14 +106,9 @@ public class PhysicsWorld : MonoBehaviour
                 //충돌 정보
                 ContactInfo contactInfo = ColiisionUtility.GetContactAABB3D(collA, collB);
 
+                contactList.Add(contactInfo);
                 //충돌 응답
                 //ColiisionUtility.ResponseCollision3D(collA, collB, contactInfo);
-
-                // 1. 위치 보정
-                PositionalCorrection(collA.rigidBody, collB.rigidBody, contactInfo);
-
-                // 2. Ground 증거 수집
-                AccumulateGroundContact(collA.rigidBody, collB.rigidBody, contactInfo);
             }
         }
     }
@@ -174,8 +183,12 @@ public class PhysicsWorld : MonoBehaviour
     {
         for (int i = 0; i < solverIterations; ++i)
         {
-            ContactSolver.SolveContactNormal();
-            ContactSolver.SolveContactFriction();
+            foreach(var contactInfo in contactList)
+            {
+                ContactSolver.SolveContactNormal(contactInfo);//노멀 계산
+                ContactSolver.SolveContactFriction(contactInfo);//마찰 계산
+                PositionalCorrection(contactInfo.rigidA, contactInfo.rigidB, contactInfo);//위치 보정
+            }
         }
     }
     /// <summary>
