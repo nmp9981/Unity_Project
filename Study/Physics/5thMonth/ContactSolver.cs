@@ -62,7 +62,7 @@ public static class ContactSolver
         dJt *= (-1);
 
         //최대 마찰력
-        float maxFriction = contact.frictionValue * contact.normalImpulse;
+        float maxFriction = contact.frictionValue * contact.tangentImpulse;
 
         float oldJt = contact.tangentImpulse;
         contact.tangentImpulse = MathUtility.ClampValue(oldJt + dJt, -maxFriction, maxFriction);
