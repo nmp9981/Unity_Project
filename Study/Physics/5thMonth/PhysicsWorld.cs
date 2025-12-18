@@ -107,6 +107,9 @@ public class PhysicsWorld : MonoBehaviour
                 ContactInfo contactInfo = ColiisionUtility.GetContactAABB3D(collA, collB);
 
                 contactList.Add(contactInfo);
+
+                //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
+                ContactSolver.WarmStart(contactInfo);
                 //충돌 응답
                 //ColiisionUtility.ResponseCollision3D(collA, collB, contactInfo);
             }
