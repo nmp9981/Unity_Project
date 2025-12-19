@@ -99,4 +99,22 @@ public static class ContactSolver
             rigidB.velocity += deltaImpulse * invMassB;
         }
     }
+
+    /// <summary>
+    /// 지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
+    /// 이미 계산된 값을 적용
+    /// </summary>
+    /// <param name="contact"></param>
+    public static void WarmStart(ContactInfo contact)
+    {
+        Vec3 normalImpulse =
+            contact.normal * contact.normalImpulse;
+
+        Vec3 tangentImpulse =
+            contact.tangent * contact.tangentImpulse;
+
+        Vec3 totalImpulse = normalImpulse + tangentImpulse;
+
+        ApplyImpulse(totalImpulse, contact);
+    }
 }
