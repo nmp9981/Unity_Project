@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 /// <summary>
 /// 충돌 정보
 /// </summary>
@@ -9,13 +11,44 @@ public class ContactInfo
 
     public bool isCollide;//충돌 여부
     public Vec3 normal;//어느 방향으로 밀어낼지
-    public float penetration;//겹침량
+    public float penetration;//겹침량, 위치 제약
     public Vec3 tangent;//탄젠트 벡터
     public Vec3 contactPoint;// 회전
 
-    public float normalImpulse;   // 누적 Jn
-    public float tangentImpulse;  // 누적 Jt
+    public float normalImpulse;   // 누적 Jn, Solver 기억 값
+    public float tangentImpulse;  // 누적 Jt, Solver 기억 값
 
     public float invMassSum;//두 물체의 질량 역수의 합
     public float frictionValue;//마찰 계수
+
+    public List<ContactPoint> contacts = new List<ContactPoint>(4);
+}
+
+/// <summary>
+/// 같은 두 물체 사이의 contact 묶음(최대 4개)
+/// </summary>
+public class ContactManifold
+{
+    //두 물체
+    public CustomRigidBody rigidA;
+    public CustomRigidBody rigidB;
+
+    //노말 벡터와 두 물체사이의 마찰 계수
+    public Vec3 normal;
+    public float frictionValue;
+
+    //접촉점 모음
+    public List<ContactPoint> points = new List<ContactPoint>(4);
+}
+
+/// <summary>
+/// Impulse를 저장하는 최소 단위 (한 접촉점)
+/// </summary>
+public class ContactPoint
+{
+    public Vec3 localPointA;//a 로컬 좌표
+    public Vec3 localPointB;//b 로컬 좌표
+
+    public float normalImpulse;//누적 jn
+    public float tangentImpulse;//누적 jt
 }
