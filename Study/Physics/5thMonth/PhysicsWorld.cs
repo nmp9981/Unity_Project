@@ -230,7 +230,7 @@ public class PhysicsWorld : MonoBehaviour
                 {
                     ContactSolver.SolveContactNormal(contactInfo);//노멀 계산
                     ContactSolver.SolveContactFriction(contactInfo);//마찰 계산
-                    PositionalCorrection(contactInfo.rigidA, contactInfo.rigidB, contactInfo);//위치 보정
+                    PositionalCorrection(manifold.rigidA, manifold.rigidB, contactInfo);//위치 보정
                 }
             }
         }
