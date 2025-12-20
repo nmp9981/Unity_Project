@@ -23,7 +23,10 @@ public class PhysicsWorld : MonoBehaviour
 
     //충돌 정보 모음
     public List<ContactInfo> contactList = new List<ContactInfo>();
-
+    
+    //Manifold 리스트
+    public List<ContactManifold> manifolds;
+    
     private void Update()
     {
         // P 버튼으로 물리만 멈춤/재시작
@@ -60,6 +63,15 @@ public class PhysicsWorld : MonoBehaviour
 
         //충돌 체크
         Handle3DCollisions();// 내부에서 PositionalCorrection만 수행
+
+        //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
+        foreach (var manifold in manifolds)
+        {
+            foreach (var cp in manifold.points)
+            {
+                ContactSolver.WarmStart(manifold, cp);
+            }
+        }
 
         //충돌 뒤 제약 조건 체크
         SolveOtherConstraints();
@@ -108,8 +120,6 @@ public class PhysicsWorld : MonoBehaviour
 
                 contactList.Add(contactInfo);
 
-                //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
-                ContactSolver.WarmStart(contactInfo);
                 //충돌 응답
                 //ColiisionUtility.ResponseCollision3D(collA, collB, contactInfo);
             }
