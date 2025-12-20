@@ -33,9 +33,10 @@ public class ContactManifold
     public CustomRigidBody rigidA;
     public CustomRigidBody rigidB;
 
-    //노말 벡터와 두 물체사이의 마찰 계수
-    public Vec3 normal;
-    public float frictionValue;
+    //노말 벡터, 마찰 벡터와 두 물체사이의 마찰 계수
+public Vec3 normal;
+public Vec3 tangent;
+public float frictionValue;
 
     //접촉점 모음
     public List<ContactPoint> points = new List<ContactPoint>(4);
