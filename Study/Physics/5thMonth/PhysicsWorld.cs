@@ -22,9 +22,9 @@ public class PhysicsWorld : MonoBehaviour
     public float groundThreshold;
 
     //충돌 정보 모음
-    public List<ContactInfo> contactList = new List<ContactInfo>();
+    public List<ContactInfo> contactList = new List<ContactInfo>();//이건 사용하지 않음
     
-    //Manifold 리스트
+    //Manifold 리스트, 이게 충돌 정보
     public List<ContactManifold> manifolds;
     
     private void Update()
@@ -51,18 +51,22 @@ public class PhysicsWorld : MonoBehaviour
     /// <param name="dt"></param>
     public void PhysicsStep(float dt)
     {
-        //모든 물리 step
+        // 1. 다음 상태 예측
         foreach (var rb in rigidBodies3D)
         {
             rb.isGrounded = false;//중력 체크 초기화
             rb.PredictState(dt);
         }
 
-        //Contact 생성
         contactList.Clear();
 
-        //충돌 체크
-        Handle3DCollisions();// 내부에서 PositionalCorrection만 수행
+        Handle3DCollisionDetection();   // contactList 생성, 내부에서 PositionalCorrection만 수행
+       
+        // 3. Contact Persistence (화요일 핵심)
+        ContactSolver.UpdateManifolds(
+            manifolds,
+            contactList,
+            out manifolds);
 
         //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
         foreach (var manifold in manifolds)
@@ -75,6 +79,9 @@ public class PhysicsWorld : MonoBehaviour
 
         //충돌 뒤 제약 조건 체크
         SolveOtherConstraints();
+
+        // 6. Positional Correction (임시)
+        //PositionalCorrection(manifolds);
 
         //Ground 판정
         foreach (var cont in contactList)
@@ -103,7 +110,7 @@ public class PhysicsWorld : MonoBehaviour
     /// <summary>
     /// 충돌 체크
     /// </summary>
-    void Handle3DCollisions()
+    void Handle3DCollisionDetection()
     {
         for (int i = 0; i < colliders3D.Count; i++)
         {
@@ -125,6 +132,15 @@ public class PhysicsWorld : MonoBehaviour
             }
         }
     }
+
+    /// <summary>
+    /// Contact 생성
+    /// </summary>
+    void BuildContactCandidates()
+    {
+
+    }
+
     /// <summary>
     /// 위치 상태 업데이트
     /// </summary>
@@ -194,13 +210,16 @@ public class PhysicsWorld : MonoBehaviour
     /// </summary>
     void SolveOtherConstraints()
     {
-        for (int i = 0; i < solverIterations; ++i)
+        for (int i = 0; i < solverIterations; i++)
         {
-            foreach(var contactInfo in contactList)
+            foreach (var manifold in manifolds)
             {
-                ContactSolver.SolveContactNormal(contactInfo);//노멀 계산
-                ContactSolver.SolveContactFriction(contactInfo);//마찰 계산
-                PositionalCorrection(contactInfo.rigidA, contactInfo.rigidB, contactInfo);//위치 보정
+                foreach (var cp in manifold.points)
+                {
+                    ContactSolver.SolveContactNormal(contactInfo);//노멀 계산
+                    ContactSolver.SolveContactFriction(contactInfo);//마찰 계산
+                    PositionalCorrection(contactInfo.rigidA, contactInfo.rigidB, contactInfo);//위치 보정
+                }
             }
         }
     }
