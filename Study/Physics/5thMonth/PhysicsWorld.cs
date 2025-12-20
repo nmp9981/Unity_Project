@@ -61,10 +61,12 @@ public class PhysicsWorld : MonoBehaviour
         contactList.Clear();
 
         Handle3DCollisionDetection();   // contactList 생성, 내부에서 PositionalCorrection만 수행
-       
+
         // 3. Contact Persistence (화요일 핵심)
+        var previousManifolds = manifolds;
+
         ContactSolver.UpdateManifolds(
-            manifolds,
+            previousManifolds,
             contactList,
             out manifolds);
 
@@ -77,11 +79,11 @@ public class PhysicsWorld : MonoBehaviour
             }
         }
 
+        // 5. Contact Solver (GS Iteration)
+        //SolveContactConstraints(manifolds);
+
         //충돌 뒤 제약 조건 체크
         SolveOtherConstraints();
-
-        // 6. Positional Correction (임시)
-        //PositionalCorrection(manifolds);
 
         //Ground 판정
         foreach (var cont in contactList)
@@ -131,14 +133,6 @@ public class PhysicsWorld : MonoBehaviour
                 //ColiisionUtility.ResponseCollision3D(collA, collB, contactInfo);
             }
         }
-    }
-
-    /// <summary>
-    /// Contact 생성
-    /// </summary>
-    void BuildContactCandidates()
-    {
-
     }
 
     /// <summary>
@@ -203,6 +197,24 @@ public class PhysicsWorld : MonoBehaviour
         }
 
         // Case 4: 둘다 없으면 아무것도 안함
+    }
+
+    /// <summary>
+    /// Contact Solver (GS Iteration)
+    /// </summary>
+    /// <param name="manifolds"></param>
+    void SolveContactConstraints(List<ContactManifold> manifolds)
+    {
+        for (int iter = 0; iter < solverIterations; iter++)
+        {
+            foreach (var manifold in manifolds)
+            {
+                foreach (var cp in manifold.points)
+                {
+                    //SolveContactPoint(manifold, cp);
+                }
+            }
+        }
     }
 
     /// <summary>
