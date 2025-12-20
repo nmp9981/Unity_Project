@@ -1,7 +1,11 @@
-using System.Security.Cryptography;
+using System.Collections.Generic;
+using System.Net.Mail;
 
 public static class ContactSolver
 {
+    //Contact 매칭 거리
+    const float CONTACT_MATCH_DIST = 0.02f;
+
     /// <summary>
     /// 노말벡터 계산
     /// </summary>
@@ -104,17 +108,145 @@ public static class ContactSolver
     /// 지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
     /// 이미 계산된 값을 적용
     /// </summary>
-    /// <param name="contact"></param>
-    public static void WarmStart(ContactInfo contact)
+    /// <param name="manifold"></param>
+    /// <param name="cp"></param>
+    public static void WarmStart(ContactManifold manifold, ContactPoint cp)
     {
-        Vec3 normalImpulse =
-            contact.normal * contact.normalImpulse;
+        Vec3 totalImpulse =
+            manifold.normal * cp.normalImpulse +
+            manifold.tangent * cp.tangentImpulse;
 
-        Vec3 tangentImpulse =
-            contact.tangent * contact.tangentImpulse;
+        ApplyImpulse(totalImpulse, manifold, cp);
+    }
 
-        Vec3 totalImpulse = normalImpulse + tangentImpulse;
+    /// <summary>
+    /// 지난 프레임 manifold + 이번 프레임 contact 후보들을 기반으로
+    /// 새로운 manifold들을 구성한다 (Contact Persistence)
+    /// </summary>
+    public static void UpdateManifolds(
+        List<ContactManifold> previousManifolds,
+        List<ContactInfo> contactList,
+        out List<ContactManifold> manifolds)
+    {
+        manifolds = new List<ContactManifold>();
 
-        ApplyImpulse(totalImpulse, contact);
+        // 1. 이번 프레임 contact들을 manifold 단위로 묶는다
+        foreach (var contact in contactList)
+        {
+            // --- Manifold 매칭 ---
+            var manifold = FindManifold(
+                contact.rigidA,
+                contact.rigidB,
+                manifolds);
+
+            if (manifold == null)
+            {
+                manifold = new ContactManifold
+                {
+                    rigidA = contact.rigidA,
+                    rigidB = contact.rigidB,
+                    normal = contact.normal,
+                    frictionValue = contact.frictionValue
+                };
+                manifolds.Add(manifold);
+            }
+
+            // --- 로컬 좌표 계산 ---
+            Vec3 localA = contact.rigidA.WorldToLocal(contact.contactPoint);
+            Vec3 localB = contact.rigidB.WorldToLocal(contact.contactPoint);
+
+            // --- ContactPoint 유지 / 추가 ---
+            UpdateContactPoint(
+                manifold,
+                localA,
+                localB,
+                previousManifolds);
+        }
+
+        // 2. contact 없는 오래된 cp 제거 (화요일 마무리 단계)
+        foreach (var manifold in manifolds)
+        {
+            RemoveStaleContacts(manifold);
+        }
+    }
+
+    /// <summary>
+    /// Manifold 업데이트
+    /// </summary>
+    /// <param name="manifold"></param>
+    /// <param name="newLocalA">새로운 A위치</param>
+    /// <param name="newLocalB">새로운 B위치</param>
+    public static void UpdateContactPoint(ContactManifold manifold,Vec3 newLocalA,Vec3 newLocalB, List<ContactManifold> previousManifolds)
+    {
+        // 지난 프레임 같은 manifold 찾기
+        var oldManifold = FindManifold(
+            manifold.rigidA,
+            manifold.rigidB,
+            previousManifolds);
+
+        ContactPoint oldCp = null;
+
+        if (oldManifold != null)
+        {
+            oldCp = FindMatchingContact(oldManifold, newLocalA);
+        }
+
+        if (oldCp != null)
+        {
+            // ✅ 유지 contact (impulse 계승)
+            manifold.points.Add(new ContactPoint
+            {
+                localPointA = newLocalA,
+                localPointB = newLocalB,
+                normalImpulse = oldCp.normalImpulse,
+                tangentImpulse = oldCp.tangentImpulse
+            });
+        }
+        else
+        {
+            // ✅ 새 contact
+            manifold.points.Add(new ContactPoint
+            {
+                localPointA = newLocalA,
+                localPointB = newLocalB,
+                normalImpulse = 0f,
+                tangentImpulse = 0f
+            });
+        }
+    }
+
+    /// <summary>
+    /// Manifold 찾기
+    /// </summary>
+    public static ContactManifold FindManifold(CustomRigidBody rigidA, CustomRigidBody rigidB, List<ContactManifold> manifolds)
+    {
+        foreach (var m in manifolds)
+        {
+            //두 물체가 같으면 같은 Manifold이다.
+            if ((m.rigidA == rigidA && m.rigidB == rigidB) ||
+                (m.rigidA == rigidB && m.rigidB == rigidA))
+                return m;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// contact point 매칭
+    /// </summary>
+    /// <param name="manifold"></param>
+    /// <param name="newLocalA"></param>
+    /// <returns></returns>
+    public static ContactPoint FindMatchingContact(
+    ContactManifold manifold,
+    Vec3 newLocalA)
+    {
+        foreach (var cp in manifold.points)
+        {
+            //거리 차이가 거의 안난다면 같은 위치
+            if ((cp.localPointA - newLocalA).Square
+                < CONTACT_MATCH_DIST * CONTACT_MATCH_DIST)
+                return cp;
+        }
+        return null;
     }
 }
