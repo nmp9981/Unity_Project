@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.Mail;
+using UnityEditor.SceneManagement;
 
 public static class ContactSolver
 {
@@ -145,11 +146,13 @@ public static class ContactSolver
                 {
                     rigidA = contact.rigidA,
                     rigidB = contact.rigidB,
-                    normal = contact.normal,
                     frictionValue = contact.frictionValue
                 };
                 manifolds.Add(manifold);
             }
+            //매 프레임 normal은 최신값으로
+            manifold.normal = contact.normal;
+            manifold.frictionValue = contact.frictionValue;
 
             // --- 로컬 좌표 계산 ---
             Vec3 localA = contact.rigidA.WorldToLocal(contact.contactPoint);
