@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
-using System.Net.Mail;
-using UnityEditor.SceneManagement;
+using System.Security.Cryptography;
 
 public static class ContactSolver
 {
@@ -10,7 +10,7 @@ public static class ContactSolver
     /// <summary>
     /// 노말벡터 계산
     /// </summary>
-    public static void SolveContactNormal(ContactInfo contact)
+    public static void SolveContactNormal(ContactManifold contact, ContactPoint cp)
     {
         if (contact == null || contact.rigidA.col == null || contact.rigidB.col == null) return;
 
@@ -36,45 +36,50 @@ public static class ContactSolver
         restitution = MathUtility.ClampValue(restitution, 0f, 1f);
 
         //둘다 정적 물체
-        if (contact.invMassSum <= 0f)
+        float invMassSum = (1.0f / rbA.mass.value) + (1.0f / rbB.mass.value);
+        if (invMassSum <= 0f)
         {
             return;
         }
 
         //delta impulse
         float dJn = -(1f + restitution) * velAlongNormal;
-        dJn /= contact.invMassSum;
+        dJn /= invMassSum;
 
         //누적+clamp
-        float oldJt = contact.normalImpulse;
-        contact.normalImpulse = MathUtility.Max(oldJt + dJn, 0f);
-        float deltaJn = contact.normalImpulse - oldJt;
+        float oldJt = cp.normalImpulse;
+        cp.normalImpulse = MathUtility.Max(oldJt + dJn, 0f);
+        float deltaJn = cp.normalImpulse - oldJt;
 
         //보정값 적용
-        ApplyImpulse(normal * deltaJn, contact);
+        ApplyImpulse(normal * deltaJn, contact, cp);
         
     }
 
     /// <summary>
     /// 마찰 계산
     /// </summary>
-    public static void SolveContactFriction(ContactInfo contact)
+    public static void SolveContactFriction(ContactManifold contact, ContactPoint cp)
     {
         Vec3 relativeVelocity = contact.rigidB.velocity - contact.rigidA.velocity;
         Vec3 vt = relativeVelocity - contact.normal * Vec3.Dot(relativeVelocity, contact.normal);
 
-        float dJt = Vec3.Dot(vt,contact.tangent) / contact.invMassSum;
+        //질량 역수의 합
+        float invMassSum = (1.0f / contact.rigidA.mass.value) + (1.0f / contact.rigidB.mass.value);
+
+        contact.tangent = vt.Normalized;
+        float dJt = Vec3.Dot(vt,contact.tangent) / invMassSum;
         dJt *= (-1);
 
         //최대 마찰력(마찰계수*수직항력)
-        float maxFriction = contact.frictionValue * contact.normalImpulse;
+        float maxFriction = contact.frictionValue * cp.normalImpulse;
 
-        float oldJt = contact.tangentImpulse;
-        contact.tangentImpulse = MathUtility.ClampValue(oldJt + dJt, -maxFriction, maxFriction);
+        float oldJt = cp.tangentImpulse;
+        cp.tangentImpulse = MathUtility.ClampValue(oldJt + dJt, -maxFriction, maxFriction);
 
-        dJt = contact.tangentImpulse - oldJt;
+        dJt = cp.tangentImpulse - oldJt;
 
-        ApplyImpulse(contact.tangent * dJt, contact);
+        ApplyImpulse(contact.tangent * dJt, contact, cp);
     }
 
     /// <summary>
@@ -82,7 +87,7 @@ public static class ContactSolver
     /// </summary>
     /// <param name="delNomalImpulseAmount"></param>
     /// <param name="contact"></param>
-    public static void ApplyImpulse(Vec3 deltaImpulse, ContactInfo contact)
+    public static void ApplyImpulse(Vec3 deltaImpulse, ContactManifold contact, ContactPoint cp)
     {
         var rigidA = contact.rigidA;    
         var rigidB = contact.rigidB;
@@ -251,5 +256,65 @@ public static class ContactSolver
                 return cp;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 위치 보정 Solver, 임시 보정량을 계산해줌
+    /// </summary>
+    /// <param name="manifolds"></param>
+    /// <param name="dt"></param>
+    public static void SolvePositionConstraints(List<ContactManifold> manifolds, float dt)
+    {
+        const float beta = 0.2f; // Baumgarte 계수
+
+        foreach (var manifold in manifolds)
+        {
+            foreach (var cp in manifold.points)
+            {
+                // penetration 깊이, 침투
+                float penetration = GetPenetration(manifold, cp);
+                if (penetration <= 0f)//침투가 없으면 아래 계산하지 않고 넘어감(위치 보정 불필요)
+                    continue;
+
+                //질량 역수의 합
+                float invMassSum = (1.0f/manifold.rigidA.mass.value) + (1.0f/manifold.rigidB.mass.value);
+
+                //둘다 정적 물체(ex, 땅)
+                if (invMassSum <= 0f) continue;
+
+                // 🔥 split impulse 계산
+                const float slop = 0.01f;//허용 침투량
+                float correction = MathUtility.Max(penetration - slop, 0f);
+                float jnPos = correction / invMassSum;
+
+                //여기서 찐 위치 보정
+                ApplyPositionImpulse(manifold, cp, jnPos);
+            }
+        }
+    }
+    /// <summary>
+    /// 위치 충격량을 더해줌
+    /// 여기서 위치보정을 한다.
+    /// </summary>
+    /// <param name="manifold"></param>
+    /// <param name="cp"></param>
+    /// <param name="impulse"></param>
+    public static void ApplyPositionImpulse(ContactManifold manifold, ContactPoint cp, float impulse)
+    {
+        Vec3 n = manifold.normal;
+
+        float invMassA = 1.0f/manifold.rigidA.mass.value;
+        float invMassB = 1.0f / manifold.rigidB.mass.value;
+        if (invMassA > 0f)
+        {
+            manifold.rigidA.position -=
+                n * impulse * invMassA;
+        }
+
+        if (invMassB > 0f)
+        {
+            manifold.rigidB.position +=
+                n * impulse * invMassB;
+        }
     }
 }
