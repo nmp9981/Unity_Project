@@ -69,21 +69,21 @@ public class PhysicsWorld : MonoBehaviour
             previousManifolds,
             contactList,
             out manifolds);
-
         //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
         foreach (var manifold in manifolds)
         {
             foreach (var cp in manifold.points)
             {
+                //지난 프레임에 수렴한 해를 이번 프레임의 초기값으로 재사용
                 ContactSolver.WarmStart(manifold, cp);
             }
         }
 
-        // 5. Contact Solver (GS Iteration)
-        //SolveContactConstraints(manifolds);
+        // 5. Velocity Solver, 속도 -> 위치
+        SolveVelocityConstraints(manifolds, dt);
 
-        //충돌 뒤 제약 조건 체크
-        SolveOtherConstraints();
+        // 6. Contact Solver (GS Iteration)
+        ContactSolver.SolvePositionConstraints(manifolds, dt);
 
         //Ground 판정
         foreach (var cont in contactList)
@@ -150,60 +150,12 @@ public class PhysicsWorld : MonoBehaviour
             rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
         }
     }
-    /// <summary>
-    /// 위치 보정
-    /// </summary>
-    /// <param name="rigidA">물체 A</param>
-    /// <param name="rigidB">물체 B</param>
-    /// <param name="contact">충돌 정보</param>
-    void PositionalCorrection(CustomRigidBody rigidA, CustomRigidBody rigidB, ContactInfo contact)
-    {
-        if (contact == null) return;
-
-        float correctionPercent = 0.5f; // 양쪽 50%씩
-        float slop = 0.01f;             // 안정화 값 (penetration이 너무 작으면 무시)
-
-        float correction = Mathf.Max(contact.penetration - slop, 0f);
-        if (correctionPercent <= 0f) return;
-
-        float beta = 0.2f;//전체중에 이정도만 고치자
-        Vec3 correctionVec = contact.normal * correction*correctionPercent*beta;
-
-        // Case 1: 둘 다 rigidBody 있는 경우 → 50% 씩
-        if (rigidA != null && rigidB != null)
-        {
-            // 분배: inverse mass 비율을 쓰려면 rigid에서 mass 접근 필요
-            float invA = (rigidA.mass != null && rigidA.mass.value > 0f) ? 1f / rigidA.mass.value : 0f;
-            float invB = (rigidB.mass != null && rigidB.mass.value > 0f) ? 1f / rigidB.mass.value : 0f;
-            float invSum = invA + invB;
-            if (invSum <= 0f) return;
-            rigidA.predictedPosition -= correctionVec * (invA / invSum);
-            rigidB.predictedPosition += correctionVec * (invB / invSum);
-            return;
-        }
-
-        // Case 2: A만 rigidBody 있는 경우 → A가 100% 이동
-        if (rigidA != null && rigidB == null)
-        {
-            rigidA.predictedPosition -= correctionVec;  // 100%
-            return;
-        }
-
-        // Case 3: B만 rigidBody 있는 경우 → B가 100% 이동
-        if (rigidA == null && rigidB != null)
-        {
-            rigidB.predictedPosition += correctionVec;  // 100%
-            return;
-        }
-
-        // Case 4: 둘다 없으면 아무것도 안함
-    }
-
+   
     /// <summary>
     /// Contact Solver (GS Iteration)
     /// </summary>
     /// <param name="manifolds"></param>
-    void SolveContactConstraints(List<ContactManifold> manifolds)
+    void SolveVelocityConstraints(List<ContactManifold> manifolds, float dt)
     {
         for (int iter = 0; iter < solverIterations; iter++)
         {
@@ -217,24 +169,6 @@ public class PhysicsWorld : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 제약 조건 처리
-    /// </summary>
-    void SolveOtherConstraints()
-    {
-        for (int i = 0; i < solverIterations; i++)
-        {
-            foreach (var manifold in manifolds)
-            {
-                foreach (var cp in manifold.points)
-                {
-                    ContactSolver.SolveContactNormal(contactInfo);//노멀 계산
-                    ContactSolver.SolveContactFriction(contactInfo);//마찰 계산
-                    PositionalCorrection(manifold.rigidA, manifold.rigidB, contactInfo);//위치 보정
-                }
-            }
-        }
-    }
     /// <summary>
     /// Ground 증거 수집
     /// </summary>
