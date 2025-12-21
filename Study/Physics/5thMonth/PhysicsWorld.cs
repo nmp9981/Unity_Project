@@ -91,12 +91,11 @@ public class PhysicsWorld : MonoBehaviour
             AccumulateGroundContact(cont.rigidA, cont.rigidB, cont);
         }
 
-        //모든 물리 step
-        foreach (var rb in rigidBodies3D)
-        {
-            //커밋 단계
-            rb.Commit(dt);
-        }
+         //커밋 단계
+          foreach (var rb in rigidBodies3D) rb.Commit(dt);
+
+          //Sleeping -> 정지 판정
+
     }
 
     /// <summary>
