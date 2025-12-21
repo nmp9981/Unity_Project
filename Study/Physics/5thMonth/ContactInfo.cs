@@ -55,3 +55,15 @@ public class ContactPoint
 
     public float positionalImpulse;//Split impulse 전용
 }
+
+/// <summary>
+/// 접촉점 모음(그래프)
+/// </summary>
+public class Island
+{
+    public List<CustomRigidBody> bodies = new();
+    public List<ContactManifold> manifolds = new();
+
+    public bool isSleeping = false;
+    public int sleepCounter = 0;
+}
