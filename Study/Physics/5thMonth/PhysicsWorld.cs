@@ -91,11 +91,15 @@ public class PhysicsWorld : MonoBehaviour
             AccumulateGroundContact(cont.rigidA, cont.rigidB, cont);
         }
 
-         //커밋 단계
-          foreach (var rb in rigidBodies3D) rb.Commit(dt);
+        //커밋 단계
+        foreach (var rb in rigidBodies3D) rb.Commit(dt);
 
-          //Sleeping -> 정지 판정
-
+        //Sleeping -> 정지 판정
+        // PhysicsStep 마지막
+        foreach (var rb in rigidBodies3D)
+        {
+            CheckSleeping(rb);
+        }
     }
 
     /// <summary>
@@ -193,5 +197,14 @@ public class PhysicsWorld : MonoBehaviour
             if (-contact.normal.y > rbB.groundNormal.y)
                 rbB.groundNormal = contact.normal*(-1);
         }
+    }
+
+    /// <summary>
+    /// Sleeping 판정
+    /// </summary>
+    /// <param name="rigid"></param>
+    void CheckSleeping(CustomRigidBody rigid)
+    {
+
     }
 }
