@@ -52,4 +52,6 @@ public class ContactPoint
 
     public float normalImpulse;//누적 jn
     public float tangentImpulse;//누적 jt
+
+    public float positionalImpulse;//Split impulse 전용
 }
