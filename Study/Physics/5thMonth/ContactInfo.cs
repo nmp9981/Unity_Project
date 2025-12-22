@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// 충돌 정보
+/// 충돌 정보 : 결과 보고서 개념, 추후 삭제
 /// </summary>
 public class ContactInfo
 {
@@ -38,14 +38,9 @@ public class ContactManifold
     public Vec3 tangent;
     public float frictionValue;
 
-    //이번 프레임 - 이전 프레임
-    public float deltaNormalImpulse;
-    public float deltaTangentImpulse;
-
     //접촉점 모음
     public List<ContactPoint> points = new List<ContactPoint>(4);
 }
-
 
 /// <summary>
 /// Impulse를 저장하는 최소 단위 (한 접촉점)
@@ -58,6 +53,10 @@ public class ContactPoint
     public float normalImpulse;//누적 jn
     public float tangentImpulse;//누적 jt
 
+    //이번 프레임 - 이전 프레임
+    public float deltaNormalImpulse;
+    public float deltaTangentImpulse;
+
     public float positionalImpulse;//Split impulse 전용
 }
 
@@ -66,9 +65,9 @@ public class ContactPoint
 /// </summary>
 public class Island
 {
-    public List<CustomRigidBody> bodies = new();
-    public List<ContactManifold> manifolds = new();
+    public List<CustomRigidBody> bodies = new();//접촉한 물체가 속한 그룹 리스트
+    public List<ContactManifold> manifolds = new();//접촉한 물체가 속한 manifold 리스트
 
-    public bool isSleeping = false;
-    public int sleepCounter = 0;
+    public bool isSleeping = false;//정지 여부
+    public int sleepCounter = 0;//타이머
 }
