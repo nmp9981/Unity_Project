@@ -11,13 +11,20 @@ static class SleepConfig
     public const float impulseEps = 0.001f;
     public const int sleepFrames = 60; // 1초 (60Hz)
 }
-
+/// <summary>
+/// 다음 프레임을 계산할 가치가 있는가?
+/// </summary>
 public class IslandSleepSystem
 {
+    /// <summary>
+    /// sleeping 판정
+    /// </summary>
+    /// <param name="islands"></param>
     public static void UpdateSleeping(List<Island> islands)
     {
         foreach (var island in islands)
         {
+            //자면 깨워보기, 깨면 재워보기
             if (island.isSleeping)
                 TryWake(island);
             else
@@ -55,6 +62,7 @@ public class IslandSleepSystem
             foreach (var cp in manifold.points)
             {
                 //노말, 접선 모두 변화가 없는가?
+                //매 프레임 변하고 있다면 아직 수렴중이므로 잠들면 안됨
                 if (Math.Abs(cp.deltaNormalImpulse) > SleepConfig.impulseEps)
                     return false;
 
@@ -77,8 +85,9 @@ public class IslandSleepSystem
             return;
         }
 
+        //수치 오차로 잠깐 멈춘 것과 물리적으로 안정된 상태를 구분
+        //오차로 잠깐 멈춘거일수도 있으므로 일정 프레임을 기다린다.
         island.sleepCounter++;
-
         if (island.sleepCounter < SleepConfig.sleepFrames)
             return;
 
@@ -94,14 +103,14 @@ public class IslandSleepSystem
         }
     }
     /// <summary>
-    /// Sleep 해제 로직 진입
+    /// Sleep 해제 로직 진입 -> 해제를 위한 조건 검사
     /// </summary>
     /// <param name="island"></param>
     static void TryWake(Island island)
     {
         foreach (var body in island.bodies)
         {
-            //외력이 들어옴
+            //외력이 들어옴 -> 더 이상 sleep 상태가 아님
             if (body.hasExternalForce)
             {
                 WakeIsland(island);
@@ -112,7 +121,8 @@ public class IslandSleepSystem
         // 새 contact / manifold 변화
         foreach (var manifold in island.manifolds)
         {
-            //새로운 접촉점
+            //새로운 접촉점 -> 더 이상 sleep 상태가 아님
+            // ex,박스가 새로 닿는 경우
             if (manifold.hasNewContact) // UpdateManifolds에서 설정
             {
                 WakeIsland(island);
