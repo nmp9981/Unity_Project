@@ -34,13 +34,18 @@ public class ContactManifold
     public CustomRigidBody rigidB;
 
     //노말 벡터, 마찰 벡터와 두 물체사이의 마찰 계수
-public Vec3 normal;
-public Vec3 tangent;
-public float frictionValue;
+    public Vec3 normal;
+    public Vec3 tangent;
+    public float frictionValue;
+
+    //이번 프레임 - 이전 프레임
+    public float deltaNormalImpulse;
+    public float deltaTangentImpulse;
 
     //접촉점 모음
     public List<ContactPoint> points = new List<ContactPoint>(4);
 }
+
 
 /// <summary>
 /// Impulse를 저장하는 최소 단위 (한 접촉점)
