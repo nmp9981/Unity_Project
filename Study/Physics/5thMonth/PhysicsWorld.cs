@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using UnityEngine;
 using static UnityEditor.ShaderData;
@@ -69,22 +70,40 @@ public class PhysicsWorld : MonoBehaviour
             previousManifolds,
             contactList,
             out manifolds);
-        //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
-        foreach (var manifold in manifolds)
+
+        //접촉점 그룹
+        // 4. Build Islands
+        var islands = IslandBuilder.Build(rigidBodies3D, manifolds);
+
+        foreach (var island in islands)
         {
-            foreach (var cp in manifold.points)
+            //Sleeping 상태
+            if (island.isSleeping) continue;
+
+            //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
+            foreach (var manifold in manifolds)
             {
-                //지난 프레임에 수렴한 해를 이번 프레임의 초기값으로 재사용
-                ContactSolver.WarmStart(manifold, cp);
+                foreach (var cp in manifold.points)
+                {
+                    //지난 프레임에 수렴한 해를 이번 프레임의 초기값으로 재사용
+                    ContactSolver.WarmStart(manifold, cp);
+                }
             }
         }
 
-        // 5. Velocity Solver, 속도 -> 위치
-        SolveVelocityConstraints(manifolds, dt);
+        //Solver는 Island 단위로 돌린다
+        foreach (var island in islands)
+        {
+            if (island.isSleeping)
+                continue;
 
-        // 6. Contact Solver (GS Iteration)
-        ContactSolver.SolvePositionConstraints(manifolds, dt);
+            // 5. Velocity Solver, 속도 -> 위치
+            SolveVelocityConstraints(manifolds, dt);
 
+            // 6. Contact Solver (GS Iteration)
+            ContactSolver.SolvePositionConstraints(manifolds, dt);
+        }
+      
         //Ground 판정
         foreach (var cont in contactList)
         {
@@ -96,10 +115,8 @@ public class PhysicsWorld : MonoBehaviour
 
         //Sleeping -> 정지 판정
         // PhysicsStep 마지막
-        foreach (var rb in rigidBodies3D)
-        {
-            CheckSleeping(rb);
-        }
+        // 9. Sleeping Check
+        IslandSleepSystem.UpdateSleeping(islands);
     }
 
     /// <summary>
@@ -197,14 +214,5 @@ public class PhysicsWorld : MonoBehaviour
             if (-contact.normal.y > rbB.groundNormal.y)
                 rbB.groundNormal = contact.normal*(-1);
         }
-    }
-
-    /// <summary>
-    /// Sleeping 판정
-    /// </summary>
-    /// <param name="rigid"></param>
-    void CheckSleeping(CustomRigidBody rigid)
-    {
-
     }
 }
