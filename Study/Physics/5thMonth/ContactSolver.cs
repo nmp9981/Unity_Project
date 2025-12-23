@@ -159,6 +159,12 @@ public static class ContactSolver
             manifold.normal = contact.normal;
             manifold.frictionValue = contact.frictionValue;
 
+            //외력이 있음
+            if (manifold.hasNewContact)
+            {
+
+            }
+
             // --- 로컬 좌표 계산 ---
             Vec3 localA = contact.rigidA.WorldToLocal(contact.contactPoint);
             Vec3 localB = contact.rigidB.WorldToLocal(contact.contactPoint);
@@ -282,7 +288,8 @@ public static class ContactSolver
                 //둘다 정적 물체(ex, 땅)
                 if (invMassSum <= 0f) continue;
 
-                // 🔥 split impulse 계산
+                // 단순 Position Projection (금요일 단계)
+                // split impulse 형태는 다음 주에 적용
                 const float slop = 0.01f;//허용 침투량
                 float correction = MathUtility.Max(penetration - slop, 0f);
                 float jnPos = correction / invMassSum;
