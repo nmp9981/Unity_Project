@@ -81,7 +81,7 @@ public class PhysicsWorld : MonoBehaviour
             if (island.isSleeping) continue;
 
             //지난 프레임에 이미 구해놓은 impulse를 이번 프레임 Solver 시작 전에 미리 적용
-            foreach (var manifold in manifolds)
+            foreach (var manifold in island.manifolds)
             {
                 foreach (var cp in manifold.points)
                 {
@@ -94,16 +94,17 @@ public class PhysicsWorld : MonoBehaviour
         //Solver는 Island 단위로 돌린다
         foreach (var island in islands)
         {
+            //자고 있으면 계산 X
             if (island.isSleeping)
                 continue;
 
             // 5. Velocity Solver, 속도 -> 위치
-            SolveVelocityConstraints(manifolds, dt);
+            SolveVelocityConstraints(island.manifolds, dt);
 
             // 6. Contact Solver (GS Iteration)
-            ContactSolver.SolvePositionConstraints(manifolds, dt);
+            ContactSolver.SolvePositionConstraints(island.manifolds, dt);
         }
-      
+
         //Ground 판정
         foreach (var cont in contactList)
         {
@@ -114,8 +115,6 @@ public class PhysicsWorld : MonoBehaviour
         foreach (var rb in rigidBodies3D) rb.Commit(dt);
 
         //Sleeping -> 정지 판정
-        // PhysicsStep 마지막
-        // 9. Sleeping Check
         IslandSleepSystem.UpdateSleeping(islands);
     }
 
@@ -140,6 +139,12 @@ public class PhysicsWorld : MonoBehaviour
             {
                 var collA = colliders3D[i];
                 var collB = colliders3D[j];
+
+                //둘다 sleep이면 충돌 검사 X
+                if(IslandSleepSystem.CanSkipCollision(collA.rigidBody, collB.rigidBody))
+                {
+                    continue;
+                }
 
                 //충돌 여부 판정
                 if (!ColiisionUtility.IsCollisionAABB3D(collA, collB)) continue;
