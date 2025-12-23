@@ -142,4 +142,29 @@ public class IslandSleepSystem
         foreach (var body in island.bodies)
             body.isSleepling = false;
     }
+    /// <summary>
+    /// 충돌 스킵 가능한지 검사
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    public static bool CanSkipCollision(CustomRigidBody a, CustomRigidBody b)
+    {
+        var islandA = a.island;
+        var islandB = b.island;
+
+        if (islandA == null || islandB == null)
+            return false;
+
+        // 같은 island이고 둘 다 sleep
+        if (islandA == islandB && islandA.isSleeping)
+            return true;
+
+        // 한쪽만 자고 있다 → island 단위로 깨운다
+        if (islandA.isSleeping && !islandB.isSleeping)
+            WakeIsland(islandA);
+
+        if (!islandA.isSleeping && islandB.isSleeping)
+            WakeIsland(islandB);
+        return false;
+    }
 }
