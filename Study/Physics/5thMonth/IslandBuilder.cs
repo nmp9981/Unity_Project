@@ -24,7 +24,9 @@ public static class IslandBuilder
                 manifolds,
                 visited
             );
-
+            //이전 DFS에서 한묶음으로 묶어줬으니 이제 이거는 하나고 각각마다 해당 Island소이라는 것을 알려줘야 한다.
+            //쉽게 말해 각 멤버들한테 너네 그룹명은 xx야 라고 알려주는것
+            foreach (var body in island.bodies) body.island = island;
             islands.Add(island);
         }
         return islands;
@@ -59,7 +61,7 @@ public static class IslandBuilder
                 if(!ManifoldContains(manifold, body)) continue;
 
                 //중복 방지를 위해 manifold는 island에 추가
-                if (island.manifolds.Contains(manifold))
+                if (!island.manifolds.Contains(manifold))
                 {
                     island.bodies.Add(body);
                 }
