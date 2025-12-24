@@ -38,6 +38,8 @@ public class ContactManifold
     public Vec3 tangent;
     public float frictionValue;
 
+    //새로운 접촉점 여부
+    public bool hasNewContact;
     //접촉점 모음
     public List<ContactPoint> points = new List<ContactPoint>(4);
 }
@@ -58,6 +60,26 @@ public class ContactPoint
     public float deltaTangentImpulse;
 
     public float positionalImpulse;//Split impulse 전용
+
+    //각 정보
+    public Vec3 contactNormal;//접촉 노멀
+    //중심->접촉점 벡터
+    public Vec3 rotationA;
+    public Vec3 rotationB;
+
+    //선속도
+    public Vec3 linearVelocityA;
+    public Vec3 linearVelocityB;
+
+    //각속도
+    public Vec3 angularVelocityA;
+    public Vec3 angularVelocityB;
+
+    //관성모먼트
+    public float IMomentA;
+    public float IMomentB;
+
+    public float restitution;
 }
 
 /// <summary>
