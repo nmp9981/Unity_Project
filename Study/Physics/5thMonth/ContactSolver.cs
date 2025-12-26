@@ -119,11 +119,27 @@ public static class ContactSolver
     /// <param name="cp"></param>
     public static void WarmStart(ContactManifold manifold, ContactPoint cp)
     {
-        Vec3 totalImpulse =
-            manifold.normal * cp.normalImpulse +
-            manifold.tangent * cp.tangentImpulse;
+       float invMassA = manifold.rigidA.isStatic?0.0f: (1.0f / manifold.rigidA.mass.value);
+float invMassB = manifold.rigidB.isStatic ? 0.0f : (1.0f / manifold.rigidB.mass.value);
 
-        ApplyImpulse(totalImpulse, manifold, cp);
+//외력 여부
+if (manifold.hasNewContact)
+{
+    cp.normalImpulse = 0;
+    cp.tangentImpulse = 0;
+}
+
+//운동량 P
+Vec3 totalImpulse =
+     cp.contactNormal* cp.normalImpulse +
+    cp.contactTangent * cp.tangentImpulse;
+
+//선속도
+cp.linearVelocityA -= totalImpulse* invMassA;
+cp.linearVelocityB += totalImpulse* invMassB;
+//가속도
+cp.angularVelocityA -= Vec3.Cross(cp.rotationA, totalImpulse) * (1.0f / cp.IMomentA);
+cp.angularVelocityB += Vec3.Cross(cp.rotationB, totalImpulse) * (1.0f/cp.IMomentB);
     }
 
     /// <summary>
