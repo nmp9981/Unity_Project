@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using Unity.VisualScripting;
 
 public static class ContactSolver
 {
@@ -159,7 +160,7 @@ public static class ContactSolver
             manifold.normal = contact.normal;
             manifold.frictionValue = contact.frictionValue;
 
-            //외력이 있음
+            //외력이 있음 -> 새 접촉점이 있는가?
             if (manifold.hasNewContact)
             {
 
@@ -169,7 +170,7 @@ public static class ContactSolver
             Vec3 localA = contact.rigidA.WorldToLocal(contact.contactPoint);
             Vec3 localB = contact.rigidB.WorldToLocal(contact.contactPoint);
 
-            // --- ContactPoint 유지 / 추가 ---
+            // --- ContactPoint(접촉점) 유지 / 추가 ---
             UpdateContactPoint(
                 manifold,
                 localA,
@@ -323,5 +324,128 @@ public static class ContactSolver
             manifold.rigidB.position +=
                 n * impulse * invMassB;
         }
+    }
+
+    /// <summary>
+    /// Contact Solver (GS Iteration)
+    /// 1. 접촉점 상대속도 계산
+    ///2. 노말 방향 상대속도 추출
+    ///3. 제약 위반 여부 판단
+    ///4. effectiveMass 계산
+    ///5. normal impulse 계산
+    ///6. 누적 + clamp
+    ///7. 두 물체 속도에 반영
+    /// </summary>
+    /// <param name="manifolds"></param>
+    public static void ContactSolverNormal(ContactPoint cp, ContactManifold manifold)
+    {
+        //1. 접촉점 상대속도 계산
+        //접촉점 속도 계산
+        Vec3 velocity_A_Contact = cp.linearVelocityA + Vec3.Cross(cp.angularVelocityA, cp.rotationA);
+        Vec3 velocity_B_Contact = cp.linearVelocityB + Vec3.Cross(cp.angularVelocityB, cp.rotationB);
+        //상대 속도
+        Vec3 velocity_Rel = velocity_B_Contact - velocity_A_Contact;
+
+        //2. 노말 방향 상대 속도
+        float velocity_Normal = Vec3.Dot(velocity_Rel, cp.contactNormal);
+
+        //3. 제약 위반 여부 판단
+        //이게 음수면 파고든다.(해결해야함, 양수면 이미 분리로 impulse=0)
+        if (velocity_Normal >= 0.0f) return;
+
+        //4. effectiveMass 계산
+        float invMassA = 1.0f / (manifold.rigidA.mass.value);
+        float invMassB = 1.0f / (manifold.rigidB.mass.value);
+        float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal)) / cp.IMomentA;
+        float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) / cp.IMomentB;
+        float kNormal = invMassA + invMassB + rotationValue_A + rotationValue_B;
+        float effectiveMass = 1.0f / kNormal;
+
+        //5. normal impulse 계산
+        float e = cp.restitution;
+        if (velocity_Normal < -cp.restitution)
+            e = cp.restitution;
+        else
+            e = 0.0f;
+        float addImpulse = -(1.0f + e) * velocity_Normal * effectiveMass;
+
+
+
+        //6. 누적 + clamp, normalImpulse는 음수X
+        float oldclamp = cp.normalImpulse;
+        cp.normalImpulse = MathUtility.Max(0, oldclamp + addImpulse);
+        float deltaImpulse = cp.normalImpulse - oldclamp;//Normal Impulse변화량
+
+        //7. 두 물체 속도에 반영(찐 움직임), V'=V+J/m
+        Vec3 JImpulse = cp.contactNormal * deltaImpulse;
+        //선속도
+        cp.linearVelocityA -= JImpulse * invMassA;
+        cp.linearVelocityB += JImpulse * invMassB;
+        //각속도
+        cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * (1.0f / cp.IMomentA);
+        cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * (1.0f / cp.IMomentB);
+    }
+
+    /// <summary>
+    /// Contact Tangent Solver (접선 방향)
+    /// 1. 접촉점 상대속도 계산
+    ///2. 노말 방향 상대속도 추출
+    ///3. 정규화
+    ///4. effectiveMass 계산
+    ///5. tangent impulse 계산
+    ///6. 마찰 한계
+    ///7. 누적 + clamp
+    ///8. 두 물체 속도에 반영
+    /// </summary>
+    /// <param name="manifolds"></param>
+    public static void ContactSolverTangent(ContactPoint cp, ContactManifold manifold)
+    {
+        //1. 접촉점 상대속도 계산
+        //접촉점 속도 계산
+        Vec3 velocity_A_Contact = cp.linearVelocityA + Vec3.Cross(cp.angularVelocityA, cp.rotationA);
+        Vec3 velocity_B_Contact = cp.linearVelocityB + Vec3.Cross(cp.angularVelocityB, cp.rotationB);
+        //상대 속도
+        Vec3 velocity_Rel = velocity_B_Contact - velocity_A_Contact;
+
+        //2. 노말 성분 제거
+        float velocity_Normal = Vec3.Dot(velocity_Rel, cp.contactNormal);
+        Vec3 velocity_Rel_Tangent = velocity_Rel - cp.contactNormal*velocity_Normal;
+
+        //3. 정규화
+        Vec3 tangentNormal;
+        if (velocity_Rel_Tangent.Square > float.Epsilon)
+        {
+            tangentNormal = velocity_Rel_Tangent.Normalized;
+        }
+        else tangentNormal = VectorMathUtils.ZeroVector3D();
+
+        //4. effectiveMass 계산
+        float invMassA = 1.0f / (manifold.rigidA.mass.value);
+        float invMassB = 1.0f / (manifold.rigidB.mass.value);
+        float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, tangentNormal), Vec3.Cross(cp.rotationA, tangentNormal)) / cp.IMomentA;
+        float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, tangentNormal), Vec3.Cross(cp.rotationB, tangentNormal)) / cp.IMomentB;
+        float kTangent = invMassA + invMassB + rotationValue_A + rotationValue_B;
+        float effectiveMass = 1.0f / kTangent;
+
+        //5. tangent impulse 계산
+        float velocityTangent = Vec3.Dot(velocity_Rel, tangentNormal);
+        float addImpulse = -velocityTangent * effectiveMass;
+
+        //6. 마찰 한계(마찰계수*수직항력)
+        float maxFriction = manifold.frictionValue * cp.normalImpulse;
+
+        //7. 누적 + clamp, normalImpulse는 음수X
+        float oldclamp = cp.tangentImpulse;
+        cp.tangentImpulse = MathUtility.ClampValue(oldclamp + addImpulse, -maxFriction, maxFriction);
+        float deltaImpulse = cp.tangentImpulse - oldclamp;//Normal Impulse변화량
+
+        //8. 두 물체 속도에 반영(찐 움직임), V'=V+J/m
+        Vec3 JImpulse = tangentNormal * deltaImpulse;
+        //선속도
+        cp.linearVelocityA -= JImpulse * invMassA;
+        cp.linearVelocityB += JImpulse * invMassB;
+        //각속도
+        cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * (1.0f / cp.IMomentA);
+        cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * (1.0f / cp.IMomentB);
     }
 }
