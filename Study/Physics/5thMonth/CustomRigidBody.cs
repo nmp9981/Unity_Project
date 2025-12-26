@@ -21,9 +21,14 @@ public class CustomRigidBody : MonoBehaviour
     public Vec3 position;//위치
     public Vec3 prevPosition;//이전 위치
 
+    //회전량
+    public Quaternion rotation;//변환, Transform
+    public Quaternion orientation;//현재 회전 상태 state, 이 접촉점에서 밀린 만큼, 물체가 얼마나 돌아야 하는가?
+
     // 보조 물리량
     public Vec3 velocity = new Vec3(0, 0, 0);//속도
     public Vec3 acceleration = new Vec3(0, 0, 0);//가속도
+    public Vec3 angularVelocity = new Vec3(0, 0, 0);//각속도
     // 예측 위치
     public Vec3 predictedPosition = new Vec3(0,0,0);
 
@@ -34,6 +39,18 @@ public class CustomRigidBody : MonoBehaviour
     // Solve 단계에서만 쓰는 임시 정보
     public bool hasGroundContact;      // 이번 프레임에 지면 접촉이 있었는가?
     public Vec3 groundNormal = new Vec3(0,0,0);          // 가장 신뢰할 수 있는 접촉 normal
+
+    //외력 여부
+    public bool hasExternalForce;
+
+    //멈춤 상태 여부
+    public bool isSleepling = false;
+
+    //자신이 속한 Island
+    public Island island;
+
+    //정적 물체 여부
+    public bool isStatic;
 
     [Header("Force")]
     public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
@@ -298,5 +315,16 @@ public class CustomRigidBody : MonoBehaviour
         if (float.IsNaN(deltaPosition.x) || float.IsInfinity(deltaPosition.x)) deltaPosition.x = 0;
         if (float.IsNaN(deltaPosition.y) || float.IsInfinity(deltaPosition.y)) deltaPosition.y = 0;
         if (float.IsNaN(deltaPosition.z) || float.IsInfinity(deltaPosition.z)) deltaPosition.z = 0;
+    }
+
+    /// <summary>
+    /// 월드 좌표 -> 로컬 좌표
+    /// </summary>
+    /// <param name="world"></param>
+    /// <returns></returns>
+    public Vec3 WorldToLocal(Vec3 world)
+    {
+        var a = Quaternion.Inverse(rotation);
+        return Quaternion.Inverse(rotation) * (world - position);
     }
 }
