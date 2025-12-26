@@ -178,13 +178,8 @@ public class PhysicsWorld : MonoBehaviour
    
     /// <summary>
     /// Contact Solver (GS Iteration)
-    /// 1. 접촉점 상대속도 계산
-    ///2. 노말 방향 상대속도 추출
-    ///3. 제약 위반 여부 판단
-    ///4. effectiveMass 계산
-    ///5. normal impulse 계산
-    ///6. 누적 + clamp
-    ///7. 두 물체 속도에 반영
+    /// 1. 노말 벡터
+    /// 2. 접선 벡터
     /// </summary>
     /// <param name="manifolds"></param>
     void SolveVelocityConstraints(List<ContactManifold> manifolds, float dt)
@@ -195,45 +190,11 @@ public class PhysicsWorld : MonoBehaviour
             {
                 foreach (var cp in manifold.points)
                 {
-                    //1. 접촉점 상대속도 계산
-                    //접촉점 속도 계산
-                    Vec3 velocity_A_Contact = cp.linearVelocityA + Vec3.Cross(cp.angularVelocityA, cp.rotationA);
-                    Vec3 velocity_B_Contact = cp.linearVelocityB + Vec3.Cross(cp.angularVelocityB, cp.rotationB);
-                    //상대 속도
-                    Vec3 velocity_Rel = velocity_B_Contact - velocity_A_Contact;
+                    //Normal Impulse
+                    ContactSolver.ContactSolverNormal(cp,manifold);
 
-                    //2. 노말 방향 상대 속도
-                    float velocity_Normal = Vec3.Dot(velocity_Rel, cp.contactNormal);
-
-                    //3. 제약 위반 여부 판단
-                    //이게 음수면 파고든다.(해결해야함, 양수면 이미 분리로 impulse=0)
-                    if (velocity_Normal >= 0.0f) continue;
-
-                    //4. effectiveMass 계산
-                    float invMassA = 1.0f / (manifold.rigidA.mass.value);
-                    float invMassB = 1.0f / (manifold.rigidB.mass.value);
-                    float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal)) / cp.IMomentA;
-                    float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) / cp.IMomentB;
-                    float kNormal = invMassA + invMassB +rotationValue_A+rotationValue_B;
-                    float effectiveMass = 1.0f / kNormal;
-
-                    //5. normal impulse 계산
-                    float e = cp.restitution;
-                    float addImpulse = -(1.0f + e) * velocity_Normal * effectiveMass;
-
-                    //6. 누적 + clamp, normalImpulse는 음수X
-                    float oldclamp = cp.normalImpulse;
-                    cp.normalImpulse = MathUtility.Max(0,oldclamp+addImpulse);
-                    float deltaImpulse = cp.normalImpulse - oldclamp;//Normal Impulse변화량
-
-                    //7. 두 물체 속도에 반영(찐 움직임), V'=V+J/m
-                    Vec3 JImpulse =cp.contactNormal*deltaImpulse;
-                    //선속도
-                    cp.linearVelocityA -= JImpulse*invMassA;
-                    cp.linearVelocityB += JImpulse*invMassB;
-                    //각속도
-                    cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * cp.IMomentA;
-                    cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * cp.IMomentB;
+                    //TangentImpulse
+                    ContactSolver.ContactSolverTangent(cp,manifold);
                 }
             }
         }
