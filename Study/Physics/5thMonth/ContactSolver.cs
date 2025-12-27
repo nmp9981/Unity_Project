@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using Unity.VisualScripting;
-using UnityEngine;
 
 public static class ContactSolver
 {
     //Contact 매칭 거리
     const float CONTACT_MATCH_DIST = 0.02f;
+    const float restitutionThreshold = 0.5f;//이 접촉을 ‘충돌’로 볼 것인가, 아니면 ‘정지 접촉(resting contact)’으로 볼 것인가를 가르는 속도 기준값
 
     /// <summary>
     /// 노말벡터 계산
@@ -290,7 +288,7 @@ public static class ContactSolver
     public static void SolvePositionConstraints(List<ContactManifold> manifolds, float dt)
     {
         const float slop = 0.01f;//허용 침투량
-        const float beta = 0.2f; // Baumgarte 계수, 보정 계수
+       
         int positionIterations = 5;
         for (int i = 0; i < positionIterations; i++)
         {
@@ -298,31 +296,21 @@ public static class ContactSolver
             {
                 foreach (var cp in manifold.points)
                 {
-                    //질량 역수의 합
-                    float invMassSum = (1.0f / manifold.rigidA.mass.value) + (1.0f / manifold.rigidB.mass.value);
-
                     //둘다 정적 물체(ex, 땅)
-                    if (invMassSum <= 0f) continue;
+                    if (manifold.rigidA.isStatic && manifold.rigidB.isStatic) continue;
 
-                    // 단순 Position Projection (금요일 단계)
-                    // split impulse 형태는 다음 주에 적용
-                    float correction =cp.penetrationDepth - slop;
-
-                    //침투가 안일어남
-                    if (correction <= 0f) continue;
-
-                    //얼마나 밀어낼 것인가? 비율
-                    float bias = beta * correction;
+                    // Split Impulse 적용
+                    float correction =MathUtility.Max(0, cp.penetrationDepth - slop);
 
                     //effectiveMass 계산
-                    float invMassA = 1.0f / (manifold.rigidA.mass.value);
-                    float invMassB = 1.0f / (manifold.rigidB.mass.value);
-                    float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal))* (1 / cp.IMomentA);
-                    float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) * (1 / cp.IMomentB);
-                    float k = invMassA + invMassB + rotationValue_A + rotationValue_B;
+                    float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal))* manifold.rigidA.invInertia;
+                    float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) * manifold.rigidB.invInertia;
+                    float k = manifold.rigidA.invMass + manifold.rigidB.invMass + rotationValue_A + rotationValue_B;
                     float effectiveMass = (k>0)? 1.0f / k:0f;
 
-                    float lambda = -bias * effectiveMass;
+                    if (effectiveMass <= 0f) continue;
+
+                    float lambda = -correction / effectiveMass;
                     float old = cp.positionalImpulse;
                     cp.positionalImpulse = MathUtility.Max(0, old + lambda);//음수X, 밀어내기만
                     float delta = cp.positionalImpulse - old;
@@ -330,13 +318,17 @@ public static class ContactSolver
                     //위치에만 적용
                     Vec3 Pos = cp.contactNormal * delta;
                     //Position
-                    manifold.rigidA.position -= Pos * invMassA;
-                    manifold.rigidB.position += Pos * invMassB;
+                    if (manifold.rigidA.invMass > 0f)
+                        manifold.rigidA.position -= Pos * manifold.rigidA.invMass;
+                    if (manifold.rigidB.invMass > 0f)
+                        manifold.rigidB.position += Pos * manifold.rigidB.invMass;
                     //Orientation
-                    float angularCorrectionA = Vec3.Cross(cp.rotationA, Pos).z * (1 / cp.IMomentA);
-                    float angularCorrectionB = Vec3.Cross(cp.rotationB, Pos).z * (1 / cp.IMomentB);
-                    manifold.rigidA.orientation -= angularCorrectionA;
-                    manifold.rigidB.orientation += angularCorrectionB;
+                    float angularCorrectionA = Vec3.Cross(cp.rotationA, Pos).z * manifold.rigidA.invInertia;
+                    float angularCorrectionB = Vec3.Cross(cp.rotationB, Pos).z * manifold.rigidB.invInertia;
+                    if (manifold.rigidA.invInertia > 0f)
+                        manifold.rigidA.orientation -= angularCorrectionA;
+                    if (manifold.rigidB.invInertia > 0f)
+                        manifold.rigidB.orientation += angularCorrectionB;
                 }
             }
         }
@@ -403,18 +395,16 @@ public static class ContactSolver
         float effectiveMass = 1.0f / kNormal;
 
         //5. normal impulse 계산
-        float e = cp.restitution;
-        if (velocity_Normal < -cp.restitution)
-            e = cp.restitution;
-        else
-            e = 0.0f;
-        float addImpulse = -(1.0f + e) * velocity_Normal * effectiveMass;
+        //노말에 투영된 상대속도
+        float vn = Vec3.Dot(velocity_Rel, cp.contactNormal);
+        if (vn >= 0) return;//이미 멀어지는 방향으로 침투가 일어나지 않음
 
-
+        float e = (vn < -restitutionThreshold) ? cp.restitution : 0.0f;
+        float lambda = -(vn + e * vn) * effectiveMass;
 
         //6. 누적 + clamp, normalImpulse는 음수X
         float oldclamp = cp.normalImpulse;
-        cp.normalImpulse = MathUtility.Max(0, oldclamp + addImpulse);
+        cp.normalImpulse = MathUtility.Max(0, oldclamp + lambda);
         float deltaImpulse = cp.normalImpulse - oldclamp;//Normal Impulse변화량
 
         //7. 두 물체 속도에 반영(찐 움직임), V'=V+J/m
@@ -423,8 +413,8 @@ public static class ContactSolver
         cp.linearVelocityA -= JImpulse * invMassA;
         cp.linearVelocityB += JImpulse * invMassB;
         //각속도
-        cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * (1.0f / cp.IMomentA);
-        cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * (1.0f / cp.IMomentB);
+        cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * manifold.rigidA.invInertia;
+        cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * manifold.rigidB.invInertia;
     }
 
     /// <summary>
