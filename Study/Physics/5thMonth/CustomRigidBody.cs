@@ -23,7 +23,7 @@ public class CustomRigidBody : MonoBehaviour
 
     //회전량
     public Quaternion rotation;//변환, Transform
-    public Quaternion orientation;//현재 회전 상태 state, 이 접촉점에서 밀린 만큼, 물체가 얼마나 돌아야 하는가?
+    public float orientation;//현재 회전 상태 state, 이 접촉점에서 밀린 만큼, 물체가 얼마나 돌아야 하는가?
 
     // 보조 물리량
     public Vec3 velocity = new Vec3(0, 0, 0);//속도
@@ -52,6 +52,12 @@ public class CustomRigidBody : MonoBehaviour
     //정적 물체 여부
     public bool isStatic;
 
+    //질량 역수
+    public float invMass;
+    //관성 모먼트
+    public float inertia;
+    public float invInertia;
+
     [Header("Force")]
     public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
     public Vec3 accumulatedForce = VectorMathUtils.ZeroVector3D();//내부 힘
@@ -74,6 +80,7 @@ public class CustomRigidBody : MonoBehaviour
     private void Start()
     {
         InitializePosition();
+        SetMass();
     }
 
     /// <summary>
@@ -92,6 +99,22 @@ public class CustomRigidBody : MonoBehaviour
         deltaPosition = VectorMathUtils.ZeroVector3D();
 
         currentState.velocity = new Vec3(5, 8, 0);
+    }
+    /// <summary>
+    /// 질량 세팅
+    /// </summary>
+    void SetMass()
+    {
+        if (isStatic)
+        {
+            invMass = 0f;
+            invInertia = 0f;
+        }
+        else
+        {
+            invMass = 1f / mass.value;
+            invInertia = 1f / inertia;
+        }
     }
 
     //Physics Step → Collision → Resolve → Commit → Render Step(Interpolation)
