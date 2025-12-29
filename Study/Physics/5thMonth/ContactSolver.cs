@@ -6,6 +6,7 @@ public static class ContactSolver
     //Contact 매칭 거리
     const float CONTACT_MATCH_DIST = 0.02f;
     const float restitutionThreshold = 0.5f;//이 접촉을 ‘충돌’로 볼 것인가, 아니면 ‘정지 접촉(resting contact)’으로 볼 것인가를 가르는 속도 기준값
+    const float RestingVelocityThreshold = 0.1f; // m/s, resting contact 판단 값(튐 허용 기준)
 
     /// <summary>
     /// 노말벡터 계산
@@ -379,28 +380,32 @@ public static class ContactSolver
         //상대 속도
         Vec3 velocity_Rel = velocity_B_Contact - velocity_A_Contact;
 
-        //2. 노말 방향 상대 속도
+        //2. 노말 방향 상대 속도(노말에 투영된 상대 속도)
         float velocity_Normal = Vec3.Dot(velocity_Rel, cp.contactNormal);
 
         //3. 제약 위반 여부 판단
         //이게 음수면 파고든다.(해결해야함, 양수면 이미 분리로 impulse=0)
         if (velocity_Normal >= 0.0f) return;
 
+        //resting contact 판별
+        float e = 0;
+        bool isResting = MathUtility.Abs(velocity_Normal) < RestingVelocityThreshold;//거의 안움직이는가?
+        if (!isResting && velocity_Normal < -restitutionThreshold)
+        {
+            e = cp.restitution;
+        }
+
         //4. effectiveMass 계산
-        float invMassA = 1.0f / (manifold.rigidA.mass.value);
-        float invMassB = 1.0f / (manifold.rigidB.mass.value);
-        float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal)) / cp.IMomentA;
-        float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) / cp.IMomentB;
+        float invMassA = manifold.rigidA.invMass;
+        float invMassB = manifold.rigidB.invMass;
+        float rotationValue_A = Vec3.Dot(Vec3.Cross(cp.rotationA, cp.contactNormal), Vec3.Cross(cp.rotationA, cp.contactNormal))*manifold.rigidA.invInertia;
+        float rotationValue_B = Vec3.Dot(Vec3.Cross(cp.rotationB, cp.contactNormal), Vec3.Cross(cp.rotationB, cp.contactNormal)) * manifold.rigidB.invInertia;
         float kNormal = invMassA + invMassB + rotationValue_A + rotationValue_B;
+        if (kNormal <= 0.0f) return;
         float effectiveMass = 1.0f / kNormal;
 
         //5. normal impulse 계산
-        //노말에 투영된 상대속도
-        float vn = Vec3.Dot(velocity_Rel, cp.contactNormal);
-        if (vn >= 0) return;//이미 멀어지는 방향으로 침투가 일어나지 않음
-
-        float e = (vn < -restitutionThreshold) ? cp.restitution : 0.0f;
-        float lambda = -(vn + e * vn) * effectiveMass;
+        float lambda = -(velocity_Normal + e * velocity_Normal) * effectiveMass;
 
         //6. 누적 + clamp, normalImpulse는 음수X
         float oldclamp = cp.normalImpulse;
