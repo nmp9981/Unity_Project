@@ -55,6 +55,10 @@ public class ContactPoint
     public float normalImpulse;//누적 jn
     public float tangentImpulse;//누적 jt
 
+     //이전 프레임
+ public float prevNormalImpulse;
+ public float prevTangentImpulse;
+    
     //이번 프레임 - 이전 프레임
     public float deltaNormalImpulse;
     public float deltaTangentImpulse;
