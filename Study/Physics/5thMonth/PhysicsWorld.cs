@@ -103,6 +103,10 @@ public class PhysicsWorld : MonoBehaviour
 
             // 6. Contact Solver (GS Iteration)
             ContactSolver.SolvePositionConstraints(island.manifolds, dt);
+
+            //Impulse 값 저장
+            if(!island.isSleeping)
+                ContactSolver.SaveImpulse(island);
         }
 
         //Ground 판정
@@ -186,15 +190,20 @@ public class PhysicsWorld : MonoBehaviour
     {
         for (int iter = 0; iter < solverIterations; iter++)
         {
+            //Normal Impulse, 구조를 세움
             foreach (var manifold in manifolds)
             {
                 foreach (var cp in manifold.points)
                 {
-                    //Normal Impulse
                     ContactSolver.ContactSolverNormal(cp,manifold);
-
-                    //TangentImpulse
-                    ContactSolver.ContactSolverTangent(cp,manifold);
+                }
+            }
+            //TangentImpulse, 미끄럼 억제
+            foreach (var manifold in manifolds)
+            {
+                foreach (var cp in manifold.points)
+                {
+                    ContactSolver.ContactSolverTangent(cp, manifold);
                 }
             }
         }
