@@ -484,4 +484,22 @@ public static class ContactSolver
         cp.angularVelocityA -= Vec3.Cross(cp.rotationA, JImpulse) * (1.0f / cp.IMomentA);
         cp.angularVelocityB += Vec3.Cross(cp.rotationB, JImpulse) * (1.0f / cp.IMomentB);
     }
+    /// <summary>
+/// Impulse 값 저장
+/// </summary>
+public static void SaveImpulse(Island island)
+{
+    foreach(var manifold in island.manifolds)
+    {
+        foreach(var cp in manifold.points)
+        {
+            cp.deltaNormalImpulse = MathUtility.Abs(cp.normalImpulse - cp.prevNormalImpulse);
+            cp.deltaTangentImpulse = MathUtility.Abs(cp.tangentImpulse - cp.prevTangentImpulse);
+
+            //다음 프레임 대비 저장
+            cp.prevNormalImpulse = cp.normalImpulse;
+            cp.prevTangentImpulse = cp.tangentImpulse;
+        }
+    }
+}
 }
