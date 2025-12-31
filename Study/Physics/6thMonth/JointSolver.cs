@@ -54,4 +54,20 @@ public class JointSolver : MonoBehaviour, IConstraint
         bodyA.position += correction * bodyA.invMass / totalInvMass;
         bodyB.position -= correction * bodyB.invMass / totalInvMass;
     }
+
+     //여기서는 loop만 돈다.
+ public void SolveJointVelocity(float dt)
+ {
+     foreach(var joint in jointList)
+     {
+         joint.SolveVelocity(dt);
+     }
+ }
+ public void SolveJointPosition(float dt)
+ {
+     foreach (var joint in jointList)
+     {
+         joint.SolvePosition(dt);
+     }
+ }
 }
