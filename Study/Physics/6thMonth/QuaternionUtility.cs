@@ -31,8 +31,8 @@ public struct CustomQuaternion
         => new CustomQuaternion(q.scala/d,q.vec/d);
 
     //크기
-    public float Square => vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
-    public float Magnitude => MathUtility.Root(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+ public float Square => scala*scala+Vec3.Dot(vec,vec);
+ public float Magnitude => MathUtility.Root(scala * scala + Vec3.Dot(vec, vec));
 
     //켤레
     public CustomQuaternion Conjugate => new CustomQuaternion(scala, new Vec3(-vec.x, -vec.y, -vec.z));
