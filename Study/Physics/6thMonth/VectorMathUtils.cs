@@ -1,5 +1,3 @@
-using System.Numerics;
-
 /// <summary>
 /// 벡터 정의 2D, 3D
 /// </summary>
@@ -64,17 +62,6 @@ public struct Vec3
        => new Vec3(a.x*d, a.y*d, a.z*d);
     public static Vec3 operator *(float d, Vec3 a)
        => new Vec3(a.x * d, a.y * d, a.z * d);
-    //QVQ^(-1)
-    public static Vec3 operator *(Quaternion q, Vec3 v)
-    {
-        Vec3 u = new Vec3(q.X, q.Y, q.Z);
-        float s = q.W;
-      
-        return
-            2.0f * Vec3.Dot(u, v)*u
-          + (s * s - Vec3.Dot(u, u)) * v
-          + 2.0f * s * Vec3.Cross(u, v);
-    }
     public static Vec3 operator /(Vec3 a, float d)
        => new Vec3(a.x/d, a.y/d, a.z/d);
 
@@ -82,6 +69,19 @@ public struct Vec3
     public float Square => x * x + y * y + z * z;
     public float Magnitude => MathUtility.Root(x * x + y * y + z * z);
     public Vec3 Normalized => this / (Magnitude == 0 ? 0.0001f : Magnitude);//0으로 나눌 수 없음
+
+    //회전
+    //QVQ^(-1)
+    public static Vec3 Rotation3DVec(CustomQuaternion q, Vec3 v)
+    {
+        Vec3 u = new Vec3(q.vec.x, q.vec.y, q.vec.z);
+        float s = q.scala;
+
+        return
+            2.0f * Vec3.Dot(u, v) * u
+          + (s * s - Vec3.Dot(u, u)) * v
+          + 2.0f * s * Vec3.Cross(u, v);
+    }
 
     //내적, 외적
     public static float Dot(Vec3 a, Vec3 b)
