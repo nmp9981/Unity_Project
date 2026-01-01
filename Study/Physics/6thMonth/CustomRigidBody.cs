@@ -363,4 +363,15 @@ public class CustomRigidBody : MonoBehaviour
         CustomQuaternion localQ = qInv * vQ * rotation;
         return localQ.vec;
     }
+     /// <summary>
+ /// 로컬 회전 -> 월드 회전
+ /// </summary>
+ /// <param name="localDir"></param>
+ /// <returns></returns>
+ public Vec3 LocalToWorldDirection(Vec3 localDir)
+ {
+     CustomQuaternion vQ = new CustomQuaternion(0.0f, localDir);
+     CustomQuaternion worldQ = rotation * vQ * QuaternionUtility.Inverse(rotation);
+     return worldQ.vec;
+ }
 }
