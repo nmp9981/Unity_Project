@@ -31,8 +31,9 @@ public struct CustomQuaternion
         => new CustomQuaternion(q.scala/d,q.vec/d);
 
     //크기
- public float Square => scala*scala+Vec3.Dot(vec,vec);
- public float Magnitude => MathUtility.Root(scala * scala + Vec3.Dot(vec, vec));
+    public float Square => scala*scala+Vec3.Dot(vec,vec);
+    public float Magnitude => MathUtility.Root(scala * scala + Vec3.Dot(vec, vec));
+    public CustomQuaternion Normalized => new CustomQuaternion(scala/Magnitude, vec/Magnitude);
 
     //켤레
     public CustomQuaternion Conjugate => new CustomQuaternion(scala, new Vec3(-vec.x, -vec.y, -vec.z));
@@ -45,5 +46,20 @@ public static class QuaternionUtility
     public static CustomQuaternion Inverse(CustomQuaternion q)
     {
         return q.Conjugate / q.Square;
+    }
+
+    /// <summary>
+    /// 회전 적분
+    /// </summary>
+    /// <param name="rot"></param>
+    /// <param name="corr"></param>
+    /// <param name="dt"></param>
+    /// <returns></returns>
+    public static CustomQuaternion IntegrateRotation(CustomQuaternion rot, Vec3 corr, float dt)
+    {
+        CustomQuaternion omegaQ = new CustomQuaternion(0.0f, corr);
+        CustomQuaternion dq = rot * omegaQ;
+        CustomQuaternion nextRot = rot + dq * (0.5f * dt);
+        return nextRot.Normalized;
     }
 }
