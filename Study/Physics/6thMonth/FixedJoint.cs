@@ -7,6 +7,9 @@ class FixedJoint : Joint
     Vec3 localAnchorA;
     Vec3 localAnchorB;
 
+    float effectiveMass;
+    float angularEffectiveMass;
+
     //생성자
     public FixedJoint(CustomRigidBody a, CustomRigidBody b, Vec3 worldAnchor)
     {
@@ -18,6 +21,7 @@ class FixedJoint : Joint
     }
 
     //Solver 구현 : 추상 클래스 상속 후 구현
+    //속도는 미리 제어, 위치는 과거 오차 바로 잡기
     public override void SolveVelocity(float dt)
     {
         SolveLinearVelocity();
@@ -27,7 +31,7 @@ class FixedJoint : Joint
     public override void SolvePosition(float dt)
     {
         SolveLinearPosition();
-        SolveAngularPosition();
+        SolveAngularPosition(dt);
     }
     /// <summary>
     /// 선속 Solver
@@ -35,8 +39,8 @@ class FixedJoint : Joint
     void SolveLinearVelocity()
     {
         //축 위치 계산
-        Vec3 rA = rigidA.rotation * localAnchorA;
-        Vec3 rB = rigidB.rotation * localAnchorB;
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation ,localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation , localAnchorB);
 
         Vec3 pA = rigidA.position + rA;
         Vec3 pB = rigidB.position + rB;
@@ -66,6 +70,8 @@ class FixedJoint : Joint
     /// <param name="axis"></param>
     void ApplyLinearConstraint(Vec3 axis, Vec3 vRel, Vec3 rA, Vec3 rB)
     {
+        effectiveMass = 1.0f / (rigidA.invMass + rigidB.invMass);
+
         //상대속도를 축에 투영
         float Cdot = Vec3.Dot(vRel, axis);
         float lambda = -Cdot * effectiveMass;
@@ -82,6 +88,7 @@ class FixedJoint : Joint
   
     void ApplyAngularConstraint(Vec3 axis)
     {
+        angularEffectiveMass = 1.0f / (rigidA.invInertia + rigidB.invInertia);
         Vec3 wRel = rigidB.angularVelocity - rigidA.angularVelocity;
 
         float Cdot = Vec3.Dot(wRel, axis);
@@ -93,12 +100,84 @@ class FixedJoint : Joint
         rigidB.angularVelocity += impulse* rigidB.invInertia;
     }
 
+    /// <summary>
+    /// 틀어진 위치를 되돌림
+    /// 두 anchor는 항상 같은 위치
+    /// </summary>
     void SolveLinearPosition()
     {
+        // 월드 anchor
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
 
+        Vec3 pA = rigidA.position + rA;
+        Vec3 pB = rigidB.position + rB;
+
+        // position error, 제약식, drift
+        Vec3 C = pB - pA;
+
+        // 허용 오차 (slop), 두 물체의 anchor위치가 같은지 검사
+        float slop = 0.001f;
+        if (C.Square < slop * slop)//제약식 만족이라 위치 조절 필요없음
+            return;
+
+        // Baumgarte 계수
+        float beta = 0.2f;
+
+        // effective mass (선형만)
+        float invMassSum = rigidA.invMass + rigidB.invMass;
+        if (invMassSum == 0.0f)//둘다 정적인 물체
+            return;
+
+        Vec3 correction = -(beta / invMassSum) * C;
+
+        rigidA.position -= correction * rigidA.invMass;
+        rigidB.position += correction * rigidB.invMass;
     }
-    void SolveAngularPosition()
+    /// <summary>
+    /// 틀어진 회전을 되돌림
+    /// 두 rigid의 상대 회전이 0이 되게 만들어라
+    /// 축+각도로 생각
+    /// Fixed Joint는 회전 자유도도 0
+    /// </summary>
+    void SolveAngularPosition(float dt)
     {
+        CustomQuaternion qA = rigidA.rotation;
+        CustomQuaternion qB = rigidB.rotation;
 
+        //qerror​=qB​⋅qA^(-1) : 상대 회전
+        // 현재 상대 회전
+        CustomQuaternion qRel = QuaternionUtility.Inverse(qA)*qB;
+
+        // 초기 상대 회전은 joint 생성 시 저장해둔다고 가정
+        CustomQuaternion qError =
+            qRel * QuaternionUtility.Inverse(initialRelativeRotation);
+
+        // 작은 각도 근사
+        Vec3 axisError = qError.vec*2.0f;
+
+        float slop = 0.001f;
+        if (axisError.Square < slop * slop)
+            return;
+
+        float beta = 0.2f;
+        Vec3 correction = -beta * axisError;
+
+        rigidA.rotation = IntegrateRotation(rigidA.rotation, correction * rigidA.invInertia*(-1), dt);
+        rigidB.rotation = IntegrateRotation(rigidB.rotation, correction * rigidB.invInertia, dt);
+    }
+    /// <summary>
+    /// 회전 적분
+    /// </summary>
+    /// <param name="rot"></param>
+    /// <param name="corr"></param>
+    /// <param name="dt"></param>
+    /// <returns></returns>
+    CustomQuaternion IntegrateRotation(CustomQuaternion rot, Vec3 corr, float dt)
+    {
+        CustomQuaternion omegaQ = new CustomQuaternion(0.0f, corr);
+        CustomQuaternion dq = rot * omegaQ;
+        CustomQuaternion nextRot = rot + dq * (0.5f * dt);
+        return nextRot.Normalized;
     }
 }
