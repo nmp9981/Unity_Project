@@ -26,6 +26,8 @@ class SliderJoint : Joint
     float motorImpulse;
     //각속도
     float motorAngularSpeed;
+    float angularMotorImpulse;
+    float maxAngularMotorTorque;
 
     //Impulse 제한
     float lowerLimitImpulse;
@@ -51,8 +53,9 @@ class SliderJoint : Joint
         SolveLinearVelocityPerp();   // ⟂ 축
         SolveLinearVelocityLimit();  // ∥ 축 (선택)
         SolveLinearVelocityMotor(dt);  // 원하는 선속도 부여
-        SolveAngularVelocityMotor(dt);//각속도
-        SolveAngularVelocity();
+       
+        SolveAngularVelocity();//회전 정렬
+        SolveAngularVelocityMotor(dt);//회전 모터
     }
 
     public override void SolvePosition(float dt)
@@ -344,10 +347,11 @@ class SliderJoint : Joint
 
         Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
         Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
+        //월드 축
         Vec3 axis = GetWorldAxis();
 
-        //상대 속도
-        Vec3 vRel = GetRelativeVelocity(rA, rB);
+        //상대 각속도
+        Vec3 vRel = rigidB.angularVelocity - rigidA.angularVelocity;
         //motor 제약식
         float Cdot = Vec3.Dot(vRel, axis) - motorLinearSpeed;
 
@@ -356,17 +360,18 @@ class SliderJoint : Joint
 
         float lambda = -Cdot / k;
 
-        // 모터 힘 제한 (중요!)
-        float oldImpulse = motorImpulse;
-        motorImpulse = MathUtility.ClampValue(
-            motorImpulse + lambda,
-            -maxMotorForce * dt,
-             maxMotorForce * dt
+        //각 모터 힘 제한 (중요!)
+        float oldImpulse = angularMotorImpulse;
+        angularMotorImpulse = MathUtility.ClampValue(
+            angularMotorImpulse + lambda,
+            -maxAngularMotorTorque * dt,
+             maxAngularMotorTorque * dt
         );
-        lambda = motorImpulse - oldImpulse;
+        lambda = angularMotorImpulse - oldImpulse;
 
         Vec3 impulse = axis * lambda;
-        ApplyLinearImpulse(impulse, rA, rB);
+        rigidA.angularVelocity -= impulse * rigidA.invInertia;
+        rigidB.angularVelocity += impulse * rigidB.invInertia;
     }
 
     #region 공통 함수 - 추후 타 클래스로 옮길예정
