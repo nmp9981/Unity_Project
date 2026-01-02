@@ -18,6 +18,19 @@ class SliderJoint : Joint
     float minLimit;
     float maxLimit;
 
+    //속도 제어
+    bool enableMotor;
+    //선속도
+    float motorLinearSpeed;
+    float maxMotorForce;
+    float motorImpulse;
+    //각속도
+    float motorAngularSpeed;
+
+    //Impulse 제한
+    float lowerLimitImpulse;
+    float upperLimitImpulse;
+
     //생성자
     public SliderJoint(CustomRigidBody a, CustomRigidBody b, Vec3 worldAnchor, Vec3 worldAxis)
     {
@@ -37,6 +50,8 @@ class SliderJoint : Joint
     {
         SolveLinearVelocityPerp();   // ⟂ 축
         SolveLinearVelocityLimit();  // ∥ 축 (선택)
+        SolveLinearVelocityMotor(dt);  // 원하는 선속도 부여
+        SolveAngularVelocityMotor(dt);//각속도
         SolveAngularVelocity();
     }
 
@@ -47,7 +62,7 @@ class SliderJoint : Joint
         SolveAngularPosition(dt);
     }
     /// <summary>
-    /// 선속 Solver
+    /// 축 수직 이동 제한
     /// </summary>
     void SolveLinearVelocityPerp()
     {
@@ -145,7 +160,7 @@ class SliderJoint : Joint
     }
 
     /// <summary>
-    /// 틀어진 위치를 되돌림
+    /// 틀어진 위치를 되돌림, 축 수직 위치 제한
     /// 두 anchor는 항상 같은 위치
     /// </summary>
     void SolveLinearPositionPerp()
@@ -215,7 +230,7 @@ class SliderJoint : Joint
         rigidB.rotation = QuaternionUtility.IntegrateRotation(rigidB.rotation, correction * rigidB.invInertia, dt);
     }
     /// <summary>
-    /// 속도 Limit
+    /// 축 방향 Limit제한
     /// </summary>
     void SolveLinearVelocityLimit()
     {
@@ -254,7 +269,7 @@ class SliderJoint : Joint
     }
 
     /// <summary>
-    /// 위치 Limit
+    /// 축 방향 Limit 제한
     /// </summary>
     void SolveLinearPositionLimit()
     {
@@ -287,6 +302,74 @@ class SliderJoint : Joint
         ApplyLinearImpulse(impulse, rA, rB);
     }
 
+    /// <summary>
+    /// 축방향 원하는 속도 부여 - 순수 속도 제약
+    /// </summary>
+    void SolveLinearVelocityMotor(float dt)
+    {
+        if (!enableMotor) return;
+
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
+        Vec3 axis = GetWorldAxis();
+
+        //상대 속도
+        Vec3 vRel = GetRelativeVelocity(rA, rB);
+        //motor 제약식
+        float Cdot = Vec3.Dot(vRel, axis) - motorLinearSpeed;
+
+        float k = ComputeLinearK(axis, rA, rB);
+        if (k == 0) return;
+
+        float lambda = -Cdot / k;
+
+        // 모터 힘 제한 (중요!)
+        float oldImpulse = motorImpulse;
+        motorImpulse = MathUtility.ClampValue(
+            motorImpulse + lambda,
+            -maxMotorForce * dt,
+             maxMotorForce * dt
+        );
+        lambda = motorImpulse - oldImpulse;
+
+        Vec3 impulse = axis * lambda;
+        ApplyLinearImpulse(impulse, rA, rB);
+    }
+    /// <summary>
+    /// 축방향 원하는 속도 부여 - 순수 속도 제약
+    /// </summary>
+    void SolveAngularVelocityMotor(float dt)
+    {
+        if (!enableMotor) return;
+
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
+        Vec3 axis = GetWorldAxis();
+
+        //상대 속도
+        Vec3 vRel = GetRelativeVelocity(rA, rB);
+        //motor 제약식
+        float Cdot = Vec3.Dot(vRel, axis) - motorLinearSpeed;
+
+        float k = ComputeLinearK(axis, rA, rB);
+        if (k == 0) return;
+
+        float lambda = -Cdot / k;
+
+        // 모터 힘 제한 (중요!)
+        float oldImpulse = motorImpulse;
+        motorImpulse = MathUtility.ClampValue(
+            motorImpulse + lambda,
+            -maxMotorForce * dt,
+             maxMotorForce * dt
+        );
+        lambda = motorImpulse - oldImpulse;
+
+        Vec3 impulse = axis * lambda;
+        ApplyLinearImpulse(impulse, rA, rB);
+    }
+
+    #region 공통 함수 - 추후 타 클래스로 옮길예정
     /// <summary>
     /// K값 계산
     /// </summary>
@@ -347,4 +430,5 @@ class SliderJoint : Joint
         rigidA.angularVelocity -= Vec3.Cross(rA, impulse) * rigidA.invInertia;
         rigidB.angularVelocity += Vec3.Cross(rB, impulse) * rigidB.invInertia;
     }
+    #endregion
 }
