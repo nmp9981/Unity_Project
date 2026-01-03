@@ -20,6 +20,7 @@ class SliderJoint : Joint
 
     //속도 제어
     bool enableMotor;
+
     //선속도
     float motorLinearSpeed;
     float maxMotorForce;
@@ -28,6 +29,11 @@ class SliderJoint : Joint
     float motorAngularSpeed;
     float angularMotorImpulse;
     float maxAngularMotorTorque;
+
+    //회전 제어
+    bool enableAngularLimit;
+    float minAngle;
+    float maxAngle;
 
     //Impulse 제한
     float lowerLimitImpulse;
@@ -72,6 +78,7 @@ class SliderJoint : Joint
         SolveLinearPositionPerp();   // ⟂ 축
         SolveLinearPositionLimit();  // ∥ 축 (선택)
         SolveAngularPosition(dt);
+        SolveAngularPositionLimit(dt);
     }
 
     public override void WarmStart()
@@ -359,7 +366,7 @@ class SliderJoint : Joint
         if (!enableMotor) return;
 
         // 🔥 Limit에 걸려 있고, motor가 더 침범하려 하면 차단
-        float motorDir = Math.Sign(motorLinearSpeed);
+        float motorDir = MathUtility.Sin(motorLinearSpeed);
         if (limitActive && motorDir == limitSign)
             return;
 
@@ -423,6 +430,49 @@ class SliderJoint : Joint
         Vec3 impulse = axis * lambda;
         rigidA.angularVelocity -= impulse * rigidA.invInertia;
         rigidB.angularVelocity += impulse * rigidB.invInertia;
+    }
+    /// <summary>
+    /// 각도 오차 복구
+    /// </summary>
+    void SolveAngularPositionLimit(float dt)
+    {
+        if (!enableAngularLimit) return;
+
+        Vec3 axis = GetWorldAxis();
+
+        CustomQuaternion qError =
+            QuaternionUtility.Inverse(rigidA.rotation) * rigidB.rotation;
+
+        //제약식
+        float angle = Vec3.Dot(qError.vec, axis);
+
+        float C = 0;
+        if (angle < minAngle) C = angle - minAngle;
+        else if (angle > maxAngle) C = angle - maxAngle;
+        else return;
+
+        float k = rigidA.invInertia + rigidB.invInertia;
+        if (k == 0) return;
+
+        float beta = 0.2f;
+        float lambda = -beta * C / k;
+
+        Vec3 impulse = axis * lambda;
+
+        //서로 반대 방향으로 회전
+        rigidA.rotation =
+            QuaternionUtility.IntegrateRotation(
+                rigidA.rotation,
+                impulse *(-1) * rigidA.invInertia,
+                dt
+            );
+
+        rigidB.rotation =
+            QuaternionUtility.IntegrateRotation(
+                rigidB.rotation,
+                impulse * rigidB.invInertia,
+                dt
+            );
     }
 
     #region 공통 함수 - 추후 타 클래스로 옮길예정
