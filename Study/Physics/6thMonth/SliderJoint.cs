@@ -32,6 +32,12 @@ class SliderJoint : Joint
     //Impulse 제한
     float lowerLimitImpulse;
     float upperLimitImpulse;
+    float limitImpulse;
+    float perpImpulse;
+
+    //limit 변수
+    bool limitActive;
+    int limitSign; // -1 = min, +1 = max
 
     //생성자
     public SliderJoint(CustomRigidBody a, CustomRigidBody b, Vec3 worldAnchor, Vec3 worldAxis)
@@ -50,6 +56,9 @@ class SliderJoint : Joint
     //속도는 미리 제어, 위치는 과거 오차 바로 잡기
     public override void SolveVelocity(float dt)
     {
+        limitActive = false;   // 🔥 매 프레임 초기화
+        limitSign = 0;
+
         SolveLinearVelocityPerp();   // ⟂ 축
         SolveLinearVelocityLimit();  // ∥ 축 (선택)
         SolveLinearVelocityMotor(dt);  // 원하는 선속도 부여
@@ -64,6 +73,30 @@ class SliderJoint : Joint
         SolveLinearPositionLimit();  // ∥ 축 (선택)
         SolveAngularPosition(dt);
     }
+
+    public override void WarmStart()
+    {
+        //축 위치 계산
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
+        Vec3 axis = GetWorldAxis();
+
+        ApplyLinearImpulse(axis * motorImpulse, rA, rB);
+        ApplyLinearImpulse(axis * limitImpulse, rA, rB);
+        ApplyLinearImpulse(axis * perpImpulse, rA, rB);
+
+        rigidA.angularVelocity -= axis * angularMotorImpulse * rigidA.invInertia;
+        rigidB.angularVelocity += axis * angularMotorImpulse * rigidB.invInertia;
+    }
+
+    public override void OnWake()
+    {
+        motorImpulse = 0;
+        limitImpulse = 0;
+        perpImpulse = 0;
+        angularMotorImpulse = 0;
+    }
+
     /// <summary>
     /// 축 수직 이동 제한
     /// </summary>
@@ -249,9 +282,22 @@ class SliderJoint : Joint
 
         //Limit
         float C = 0.0f;
-        if (d < minLimit) C = d - minLimit;
-        else if (d > maxLimit) C = d - maxLimit;
+        if (d < minLimit)
+        {
+            C = d - minLimit;
+            limitActive = true;   // ✅ 추가
+            limitSign = -1;       // minLimit
+        }
+        else if (d > maxLimit)
+        {
+            C = d - maxLimit;
+            limitActive = true;   // ✅ 추가
+            limitSign = 1;       // maxLimit
+        }
         else return;
+
+        limitActive = true;
+        limitSign = (C < 0) ? -1 : 1;
 
         //상대속도를 축에 투영
         Vec3 vRel = GetRelativeVelocity(rA,rB);
@@ -311,6 +357,11 @@ class SliderJoint : Joint
     void SolveLinearVelocityMotor(float dt)
     {
         if (!enableMotor) return;
+
+        // 🔥 Limit에 걸려 있고, motor가 더 침범하려 하면 차단
+        float motorDir = Math.Sign(motorLinearSpeed);
+        if (limitActive && motorDir == limitSign)
+            return;
 
         Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
         Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
