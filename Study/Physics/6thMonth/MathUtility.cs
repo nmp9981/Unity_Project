@@ -125,5 +125,39 @@ public static class MathUtility
 
         return Sin(x+0.5f*PI);
     }
+    /// <summary>
+/// Atan값(2변수)
+/// </summary>
+/// <param name="x">cos 값</param>
+/// <param name="y">sin 값</param>
+/// <returns></returns>
+public static float Atan2(float x, float y)
+{
+    if (x == 0.0f)
+        return y > 0 ? PI/2 : -PI/2;
+
+    float absY = Math.Abs(y);
+    float absX = Math.Abs(x);
+
+    float angle;
+    if (absY <= absX)
+    {
+        float z = y / x;
+        float z2 = z * z;
+        angle = z - z2 * z / 3 + z2 * z2 * z / 5;
+    }
+    else
+    {
+        float z = x / y;
+        float z2 = z * z;
+        angle = PI/2 - (z - z2 * z / 3 + z2 * z2 * z / 5);
+    }
+
+    // 사분면 보정
+    if (x < 0)
+        angle += (y >= 0) ? PI : -PI;
+
+    return angle;
+}
     #endregion
 }
