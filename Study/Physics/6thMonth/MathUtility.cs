@@ -136,8 +136,8 @@ public static float Atan2(float x, float y)
     if (x == 0.0f)
         return y > 0 ? PI/2 : -PI/2;
 
-    float absY = Math.Abs(y);
-    float absX = Math.Abs(x);
+  float absY = Abs(y);
+float absX = Abs(x);
 
     float angle;
     if (absY <= absX)
