@@ -1,7 +1,15 @@
+using UnityEngine;
+
+class SixDOFJoint : Joint
+{
+    DOFConstraint linear[3];
+    DOFConstraint angular[3];
+}
+
 /// <summary>
 /// 최소 단위 Constraint
 /// </summary>
-struct ConstraintRow
+public struct ConstraintRow
 {
     Vec3 JLinearA;
     Vec3 JAngularA;
@@ -14,7 +22,8 @@ struct ConstraintRow
     float accumulatedImpulse;
 }
 
+
 public class Constraint
 {
-    
+    //Joint = ConstraintRow[];
 }
