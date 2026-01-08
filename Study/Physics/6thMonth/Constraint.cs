@@ -1,9 +1,43 @@
 using UnityEngine;
 
-class SixDOFJoint : Joint
+/// <summary>
+/// 자유도
+/// </summary>
+enum ConstraintDOF
 {
-    DOFConstraint linear[3];
-    DOFConstraint angular[3];
+    LinearX, LinearY, LinearZ,
+    AngularX, AngularY, AngularZ
+}
+
+/// <summary>
+/// 모드
+/// </summary>
+enum ConstraintMode
+{
+    Free,
+    Lock,
+    Limit,
+    Motor
+}
+
+struct ConstraintRowDenug
+{
+    int jointId;            // 어느 Joint 소속인지
+    int rowIndex;           // Joint 내부 index
+
+    ConstraintDOF dof;
+    ConstraintMode mode;
+
+    Vec3 axisWorld;         // 월드 기준 축
+    float effectiveMass;    
+
+    float Cdot;             // 속도 오차
+    float bias;             // Baumgarte or bias term
+
+    float impulse;          // 이번 step에서 적용된 impulse
+    float accumulatedImpulse;
+
+    bool active;            // 이번 iteration에서 실제 solve 되었는가
 }
 
 /// <summary>
