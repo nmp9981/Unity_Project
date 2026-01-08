@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 자유도
 /// </summary>
-enum ConstraintDOF
+public enum ConstraintDOF
 {
     LinearX, LinearY, LinearZ,
     AngularX, AngularY, AngularZ
@@ -12,52 +13,66 @@ enum ConstraintDOF
 /// <summary>
 /// 모드
 /// </summary>
-enum ConstraintMode
+public enum ConstraintMode
 {
     Free,
     Lock,
     Limit,
     Motor
 }
-
-struct ConstraintRowDenug
+/// <summary>
+/// Debug (관측)용
+/// </summary>
+public struct ConstraintRowDebug
 {
-    int jointId;            // 어느 Joint 소속인지
-    int rowIndex;           // Joint 내부 index
+    public int jointId;            // 어느 Joint 소속인지
+    public int rowIndex;           // Joint 내부 index
 
-    ConstraintDOF dof;
-    ConstraintMode mode;
+    public ConstraintDOF dof;
+    public ConstraintMode mode;
 
-    Vec3 axisWorld;         // 월드 기준 축
-    float effectiveMass;    
+    public Vec3 axisWorld;         // 월드 기준 축
+    public float effectiveMass;    
 
-    float Cdot;             // 속도 오차
-    float bias;             // Baumgarte or bias term
+    public float Cdot;             // 속도 오차
+    public float bias;             // Baumgarte or bias term
 
-    float impulse;          // 이번 step에서 적용된 impulse
-    float accumulatedImpulse;
+    public float impulse;          // 이번 step에서 적용된 impulse
+    public float accumulatedImpulse;
 
-    bool active;            // 이번 iteration에서 실제 solve 되었는가
+    public bool active;            // 이번 iteration에서 실제 solve 되었는가
 }
 
 /// <summary>
-/// 최소 단위 Constraint
+/// 최소 단위 Constraint, solver용
 /// </summary>
 public struct ConstraintRow
 {
-    Vec3 JLinearA;
-    Vec3 JAngularA;
-    Vec3 JLinearB;
-    Vec3 JAngularB;
+    //메타 정보
+    public int jointId;
+    public int rowIndex;
+    public ConstraintDOF dof;
+    public ConstraintMode mode;
 
-    float effectiveMass;
-    float bias;
+    public Vec3 JLinearA;
+    public Vec3 JAngularA;
+    public Vec3 JLinearB;
+    public Vec3 JAngularB;
 
-    float accumulatedImpulse;
+    public float effectiveMass;
+    public float bias;
+
+    public float accumulatedImpulse;
+
+#if DEBUG_CONSTRAINT
+    public float lastImpulse; // 🔥 이번 step λ, 값 저장용
+#endif
 }
 
 
 public class Constraint
 {
     //Joint = ConstraintRow[];
+    public Dictionary<int, List<ConstraintRowDebug>> jointDebugMap;
+
 }
