@@ -92,7 +92,7 @@ public class PhysicsWorld : MonoBehaviour
             // 🔥 Joint Warm Start
             foreach (var joint in island.joints)
             {
-                joint.WarmStart();
+                joint.WarmStart(dt);
             }
         }
 
@@ -104,7 +104,7 @@ public class PhysicsWorld : MonoBehaviour
                 continue;
 
             // 5. Velocity Solver, 속도 -> 위치
-            SolveVelocityConstraints(island.manifolds, dt);
+            ContactSolver.SolveVelocityConstraints(island.manifolds, dt);
             //Joint 추가
             //SolveJointVelocity(dt);
 
@@ -115,6 +115,8 @@ public class PhysicsWorld : MonoBehaviour
             //Impulse 값 저장
             if (!island.isSleeping)
                 ContactSolver.SaveImpulse(island);
+            //debug
+            JointCommon.DebugSnapshot();
         }
 
         //Ground 판정
@@ -185,35 +187,6 @@ public class PhysicsWorld : MonoBehaviour
             Vec3 lerped = Vec3.Lerp(rb.previousState.position, rb.currentState.position, alpha01);
 
             rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
-        }
-    }
-   
-    /// <summary>
-    /// Contact Solver (GS Iteration)
-    /// 1. 노말 벡터
-    /// 2. 접선 벡터
-    /// </summary>
-    /// <param name="manifolds"></param>
-    void SolveVelocityConstraints(List<ContactManifold> manifolds, float dt)
-    {
-        for (int iter = 0; iter < solverIterations; iter++)
-        {
-            //Normal Impulse, 구조를 세움
-            foreach (var manifold in manifolds)
-            {
-                foreach (var cp in manifold.points)
-                {
-                    ContactSolver.ContactSolverNormal(cp,manifold);
-                }
-            }
-            //TangentImpulse, 미끄럼 억제
-            foreach (var manifold in manifolds)
-            {
-                foreach (var cp in manifold.points)
-                {
-                    ContactSolver.ContactSolverTangent(cp, manifold);
-                }
-            }
         }
     }
 
