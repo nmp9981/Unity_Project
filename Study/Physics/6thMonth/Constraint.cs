@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// 자유도
@@ -20,6 +19,15 @@ public enum ConstraintMode
     Limit,
     Motor
 }
+/// <summary>
+/// 각도 공간의 방향
+/// </summary>
+public enum LimitType
+{
+    Lower,
+    Upper
+}
+
 /// <summary>
 /// Debug (관측)용
 /// </summary>
@@ -59,14 +67,16 @@ public struct ConstraintRow
     public Vec3 JLinearB;
     public Vec3 JAngularB;
 
+    public Vec3 axisWorld;
     public float effectiveMass;
     public float bias;
 
     public float accumulatedImpulse;
 
-#if DEBUG_CONSTRAINT
-    public float lastImpulse; // 🔥 이번 step λ, 값 저장용
-#endif
+    public float minImpulse;
+    public float maxImpulse;
+
+    public float lastImpulse;
 }
 
 
