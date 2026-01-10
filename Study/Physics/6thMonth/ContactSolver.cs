@@ -1,12 +1,121 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// Constraint Solver
+/// - Joint / Contact가 만들어준 ConstraintRow만 처리
+/// - Sequential Impulse (Gauss-Seidel)
+/// </summary>
 public static class ContactSolver
 {
     //Contact 매칭 거리
     const float CONTACT_MATCH_DIST = 0.02f;
     const float restitutionThreshold = 0.5f;//이 접촉을 ‘충돌’로 볼 것인가, 아니면 ‘정지 접촉(resting contact)’으로 볼 것인가를 가르는 속도 기준값
     const float RestingVelocityThreshold = 0.1f; // m/s, resting contact 판단 값(튐 허용 기준)
+
+    // =========================
+    // Warm Start
+    // =========================
+    public static void WarmStart(List<ConstraintRow> rows,List<CustomRigidBody> bodies)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            ConstraintRow row = rows[i];
+            float lambda = row.accumulatedImpulse;
+
+            if (MathUtility.Abs(lambda) < 1e-6f)
+                continue;
+
+            var bodyA = bodies[row.bodyA];
+            var bodyB = bodies[row.bodyB];
+
+            bodyA.velocity += row.JLinearA * (lambda * bodyA.invMass);
+            bodyA.angularVelocity += row.JAngularA * (lambda * bodyA.invInertia);
+
+            bodyB.velocity += row.JLinearB * (lambda * bodyB.invMass);
+            bodyB.angularVelocity += row.JAngularB * (lambda * bodyB.invInertia);
+        }
+    }
+    // -----------------------------
+    // Velocity Constraints
+    // -----------------------------
+    public static void SolveVelocityConstraints(
+        List<ConstraintRow> rows,
+        List<CustomRigidBody> bodies,
+        int iterationCount)
+    {
+        for (int iter = 0; iter < iterationCount; iter++)
+        {
+            for (int i = 0; i < rows.Count; i++)
+            {
+                ConstraintRow row = rows[i];
+
+                CustomRigidBody bodyA = bodies[row.bodyA];
+                CustomRigidBody bodyB = bodies[row.bodyB];
+
+                // J · v
+                float Cdot =
+                    Vec3.Dot(row.JLinearA, bodyA.velocity) +
+                    Vec3.Dot(row.JAngularA, bodyA.angularVelocity) +
+                    Vec3.Dot(row.JLinearB, bodyB.velocity) +
+                    Vec3.Dot(row.JAngularB, bodyB.angularVelocity);
+
+                // λ
+                float lambda = -(Cdot + row.bias) * row.effectiveMass;
+
+                // 누적 impulse clamp
+                float oldImpulse = row.accumulatedImpulse;
+                float newImpulse = oldImpulse + lambda;
+
+                if (newImpulse < row.minImpulse)
+                    newImpulse = row.minImpulse;
+                else if (newImpulse > row.maxImpulse)
+                    newImpulse = row.maxImpulse;
+
+                lambda = newImpulse - oldImpulse;
+                row.accumulatedImpulse = newImpulse;
+
+                // impulse 적용
+                bodyA.velocity += row.JLinearA * (lambda * bodyA.invMass);
+                bodyA.angularVelocity += row.JAngularA * (lambda * bodyA.invInertia);
+
+                bodyB.velocity += row.JLinearB * (lambda * bodyB.invMass);
+                bodyB.angularVelocity += row.JAngularB * (lambda * bodyB.invInertia);
+
+                // struct 반영
+                rows[i] = row;
+            }
+        }
+    }
+
+    // -----------------------------
+    // Position Constraints (선택적, 최소)
+    // -----------------------------
+    public static void SolvePositionConstraints(
+        List<ConstraintRow> rows,
+        List<CustomRigidBody> bodies,
+        int iterationCount)
+    {
+        for (int iter = 0; iter < iterationCount; iter++)
+        {
+            for (int i = 0; i < rows.Count; i++)
+            {
+                ConstraintRow row = rows[i];
+
+                if (row.bias == 0.0f)
+                    continue;
+
+                CustomRigidBody bodyA = bodies[row.bodyA];
+                CustomRigidBody bodyB = bodies[row.bodyB];
+
+                // positional correction은 velocity와 동일 구조
+                float lambda = -row.bias * row.effectiveMass;
+
+                bodyA.position += row.JLinearA * (lambda * bodyA.invMass);
+                bodyB.position += row.JLinearB * (lambda * bodyB.invMass);
+            }
+        }
+    }
 
     /// <summary>
     /// 노말벡터 계산
@@ -109,6 +218,7 @@ public static class ContactSolver
         {
             rigidB.velocity += deltaImpulse * invMassB;
         }
+
     }
 
     /// <summary>
@@ -197,7 +307,7 @@ public static class ContactSolver
         // 2. contact 없는 오래된 cp 제거 (화요일 마무리 단계)
         foreach (var manifold in manifolds)
         {
-            RemoveStaleContacts(manifold);
+            
         }
     }
 
@@ -293,6 +403,12 @@ public static class ContactSolver
     /// <param name="manifolds"></param>
     public static void SolveVelocityConstraints(List<ContactManifold> manifolds, float dt)
     {
+#if DEBUG_CONSTRAINT
+row.debug.active = (lambda != 0);
+row.debug.impulse = lambda;
+row.debug.accumulatedImpulse = row.accumulatedImpulse;
+row.debug.Cdot = Cdot;
+#endif
         int solverIterations = 10;
         for (int iter = 0; iter < solverIterations; iter++)
         {
@@ -322,6 +438,12 @@ public static class ContactSolver
     /// <param name="dt"></param>
     public static void SolvePositionConstraints(List<ContactManifold> manifolds, float dt)
     {
+#if DEBUG_CONSTRAINT
+row.debug.active = (lambda != 0);
+row.debug.impulse = lambda;
+row.debug.accumulatedImpulse = row.accumulatedImpulse;
+row.debug.Cdot = Cdot;
+#endif
         const float slop = 0.01f;//허용 침투량
        
         int positionIterations = 5;
