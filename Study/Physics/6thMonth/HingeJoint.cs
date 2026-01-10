@@ -61,12 +61,13 @@ class HingeJoint : Joint
 
     //Solver 구현 : 추상 클래스 상속 후 구현
     //속도는 미리 제어, 위치는 과거 오차 바로 잡기
+    //Row 배열을 순회하는 느낌
     public override void SolveVelocity(float dt)
     {
-        SolveLinearVelocity();           // anchor 속도 제거
-        SolveAngularVelocityPerp();      // ⟂ 회전 제거
-        SolveAngularVelocityLimit();     // 각속도 제한
-        SolveAngularVelocityMotor(dt);   // 모터
+        SolveLinearVelocity();           // anchor 속도 제거, Row x3
+        SolveAngularVelocityPerp();      // ⟂ 회전 제거, Row x2
+        SolveAngularVelocityLimit();     // 각속도 제한, Row x1(conditional)
+        SolveAngularVelocityMotor(dt);   // 모터, Row x1(optional)
     }
 
     public override void SolvePosition(float dt)
@@ -123,9 +124,23 @@ class HingeJoint : Joint
         // Angular motor
         angularMotorImpulse = 0.0f;
     }
+    public override void BuildConstraintRows(float dt)
+    {
+        constraintRows.Clear();
+
+        BuildLinearLockRows();
+        BuildAngularPerpLockRows();
+
+        if (enableAngularLimit)
+            BuildAngularLimitRow();
+
+        if (enableMotor)
+            BuildAngularMotorRow(dt);
+    }
     #region Velocity
     /// <summary>
     /// 선속 Solver
+    /// Linear DOF (X,Y,Z) - Locked
     /// </summary>
     void SolveLinearVelocity()
     {
@@ -147,6 +162,7 @@ class HingeJoint : Joint
 
     /// <summary>
     /// 각속도 Solver
+    /// Angular DOF ⟂ (2 DOF) - Locked
     /// </summary>
     void SolveAngularVelocityPerp()
     {
@@ -161,6 +177,7 @@ class HingeJoint : Joint
     }
     /// <summary>
     /// 각속도 제한
+    /// Angular DOF Axis (1 DOF)
     /// </summary>
     void SolveAngularVelocityLimit()
     {
@@ -199,6 +216,7 @@ class HingeJoint : Joint
     }
     /// <summary>
     /// 힌지 축 방향 각속도가 목표
+    /// Angular DOF Axis (1 DOF)
     /// </summary>
     /// <param name="dt"></param>
     void SolveAngularVelocityMotor(float dt)
@@ -380,7 +398,7 @@ class HingeJoint : Joint
         float sin = Vec3.Dot(axis, Vec3.Cross(uA, uB));
         float cos = Vec3.Dot(uA, uB);
 
-        return MathUtility.Atan2(sin, cos); // -PI ~ PI
+        return MathUtility.Atan2(cos,sin); // -PI ~ PI
     }
     /// <summary>
     /// 힌지 축 / 직교축 계산
@@ -400,4 +418,195 @@ class HingeJoint : Joint
         n2 = Vec3.Cross(axis, n1);
     }
     #endregion
+
+    void BuildLinearLockRows()
+    {
+        Vec3 rA = Vec3.Rotation3DVec(rigidA.rotation, localAnchorA);
+        Vec3 rB = Vec3.Rotation3DVec(rigidB.rotation, localAnchorB);
+
+        AddLinearRow(VectorMathUtils.RightVector3D(), rA, rB, ConstraintDOF.LinearX);
+        AddLinearRow(VectorMathUtils.UpVector3D(), rA, rB, ConstraintDOF.LinearY);
+        AddLinearRow(VectorMathUtils.FrontVector3D(), rA, rB, ConstraintDOF.LinearZ);
+    }
+    void BuildAngularPerpLockRows()
+    {
+        GetHingeBasis(out Vec3 axis, out Vec3 n1, out Vec3 n2);
+
+        AddAngularLockRow(n1, ConstraintDOF.AngularX);
+        AddAngularLockRow(n2, ConstraintDOF.AngularY);
+    }
+    void BuildAngularLimitRow()
+    {
+        GetHingeBasis(out Vec3 axis, out _, out _);
+
+        float angle = CurrentHingeAngle();
+        bool lower = angle <= minAngle;
+        bool upper = angle >= maxAngle;
+
+        if (!lower && !upper)
+            return;
+
+        AddAngularLimitRow(
+            axis,
+            lower ? LimitType.Lower : LimitType.Upper
+        );
+    }
+    void BuildAngularMotorRow(float dt)
+    {
+        GetHingeBasis(out Vec3 axis, out _, out _);
+
+        AddAngularMotorRow(
+            axis,
+            motorSpeed,
+            maxAngularMotorTorque,
+            dt
+        );
+    }
+    /// <summary>
+    /// 속도 축 
+    /// Linear X/Y/Z = 3 DOF 제거
+    /// </summary>
+    /// <param name="axis"></param>
+    /// <param name="rA"></param>
+    /// <param name="rB"></param>
+    /// <param name="dof"></param>
+    void AddLinearRow(Vec3 axis, Vec3 rA, Vec3 rB, ConstraintDOF dof)
+    {
+        ConstraintRow row = new ConstraintRow();
+
+        // Jacobian
+        row.JLinearA = axis*(-1);//-n
+        row.JLinearB = axis;//n
+        row.JAngularA = Vec3.Cross(rA, axis)*(-1);//-ra x n
+        row.JAngularB = Vec3.Cross(rB, axis);//rb x n
+
+        // Effective Mass (K)
+        float k = JointCommon.ComputeLinearK(
+            axis, rA, rB, rigidA, rigidB
+        );
+
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // Bias (position correction은 position solver에서)
+        row.bias = 0.0f;
+
+        // Warm start용
+        row.accumulatedImpulse = 0.0f;
+
+        // Debug / semantic
+        row.dof = dof;
+        row.mode = ConstraintMode.Lock;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// 각도 제한
+    /// 축 1개 제외, 나머지 각속도 제거
+    /// </summary>
+    /// <param name="axis"></param>
+    /// <param name="dof"></param>
+    void AddAngularLockRow(Vec3 axis, ConstraintDOF dof)
+    {
+        ConstraintRow row = new ConstraintRow();
+
+        //회전이므로 속도는 0
+        row.JLinearA = VectorMathUtils.ZeroVector3D();
+        row.JLinearB = VectorMathUtils.ZeroVector3D();
+        row.JAngularA = axis *(-1);
+        row.JAngularB = axis;
+
+        float k = rigidA.invInertia + rigidB.invInertia;
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        row.bias = 0.0f;
+        row.accumulatedImpulse = 0.0f;
+
+        row.dof = dof;
+        row.mode = ConstraintMode.Lock;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// 힌지 각도 제한
+    /// 항상 λ ≥ 0 형태로 Solver에 넣는다
+    /// Dirction : Jacobian
+    /// </summary>
+    /// <param name="axis"></param>
+    /// <param name="type"></param>
+    void AddAngularLimitRow(Vec3 axis, LimitType type)
+    {
+        ConstraintRow row = new ConstraintRow();
+
+        bool isLower = (type == LimitType.Lower);
+
+        // Jacobian (부호가 핵심)
+        Vec3 sign = isLower ? axis : axis*(-1);
+
+        row.JLinearA = VectorMathUtils.ZeroVector3D();
+        row.JLinearB = VectorMathUtils.ZeroVector3D();
+        row.JAngularA = sign*(-1);
+        row.JAngularB = sign;
+
+        // Effective mass
+        float k = rigidA.invInertia + rigidB.invInertia;
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // Bias (Baumgarte / ERP)
+        float angleError = isLower
+            ? (minAngle - CurrentHingeAngle())
+            : (CurrentHingeAngle() - maxAngle);
+
+        float beta = 0.2f;
+        row.bias = beta * angleError;
+
+        // Warm start
+        row.accumulatedImpulse = 0.0f;
+
+        // Clamp range (inequality)
+        row.minImpulse = 0.0f;
+        row.maxImpulse = float.PositiveInfinity;
+
+        row.dof = ConstraintDOF.AngularZ;
+        row.mode = ConstraintMode.Limit;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// 힌지 축 방향 상대 각속도를 목표값으로 만든다
+    /// </summary>
+    /// <param name="axis"></param>
+    /// <param name="targetSpeed"></param>
+    /// <param name="maxTorque"></param>
+    /// <param name="dt"></param>
+    void AddAngularMotorRow(Vec3 axis,float targetSpeed,float maxTorque, float dt)
+    {
+        ConstraintRow row = new ConstraintRow();
+
+        // Jacobian
+        row.JLinearA = VectorMathUtils.ZeroVector3D();
+        row.JLinearB = VectorMathUtils.ZeroVector3D();
+        row.JAngularA = axis*(-1);
+        row.JAngularB = axis;
+
+        // Effective mass
+        float k = rigidA.invInertia + rigidB.invInertia;
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // Motor는 bias가 아니라 목표 속도
+        // Solver에서 Cdot = J·v - targetSpeed 형태로 처리
+        row.bias = targetSpeed;
+
+        // Warm start
+        row.accumulatedImpulse = 0.0f;
+
+        // Motor는 양방향 토크 제한
+        float maxImpulse = maxTorque * dt;
+        row.minImpulse = -maxImpulse;
+        row.maxImpulse = maxImpulse;
+
+        row.dof = ConstraintDOF.AngularZ;
+        row.mode = ConstraintMode.Motor;
+
+        constraintRows.Add(row);
+    }
 }
