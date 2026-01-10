@@ -29,7 +29,7 @@ public enum LimitType
 }
 
 /// <summary>
-/// Debug (관측)용
+/// Debug (관측)용 - solver에 전달 금지
 /// </summary>
 public struct ConstraintRowDebug
 {
@@ -52,37 +52,28 @@ public struct ConstraintRowDebug
 }
 
 /// <summary>
-/// 최소 단위 Constraint, solver용
+/// 최소 단위 Constraint, solver 전용
 /// </summary>
 public struct ConstraintRow
 {
-    //메타 정보
-    public int jointId;
-    public int rowIndex;
-    public ConstraintDOF dof;
-    public ConstraintMode mode;
+    // Solver가 접근할 Body index
+    public int bodyA;
+    public int bodyB;
 
-    public Vec3 JLinearA;
-    public Vec3 JAngularA;
-    public Vec3 JLinearB;
-    public Vec3 JAngularB;
+    //jacobian
+    public Vec3 JLinearA, JAngularA;
+    public Vec3 JLinearB, JAngularB;
 
-    public Vec3 axisWorld;
+    //Solver 파라미터
     public float effectiveMass;
     public float bias;
 
+    // Impulse
     public float accumulatedImpulse;
-
     public float minImpulse;
     public float maxImpulse;
 
-    public float lastImpulse;
-}
-
-
-public class Constraint
-{
-    //Joint = ConstraintRow[];
-    public Dictionary<int, List<ConstraintRowDebug>> jointDebugMap;
-
+    // Debug / semantic (임시 유지)
+    public ConstraintMode mode;
+    public ConstraintDOF dof;
 }
