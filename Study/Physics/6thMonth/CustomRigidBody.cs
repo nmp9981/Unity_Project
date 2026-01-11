@@ -10,6 +10,8 @@ public struct RigidbodyState
 
 public class CustomRigidBody : MonoBehaviour
 {
+    public int id;//고유 식별 번호
+
     [Header("Physical Properties")]
     public Mass mass = new Mass();//질량
     public Vec3 gravity3D = new Vec3(0, -9.81f,0);
@@ -347,9 +349,21 @@ public class CustomRigidBody : MonoBehaviour
     /// <returns></returns>
     public Vec3 WorldToLocal(Vec3 world)
     {
-        CustomQuaternion rot = QuaternionUtility.Inverse(rotation);
-        Vec3 diffWorldPos = world - position;
-        return rot*diffWorldPos;
+        // world offset
+        Vec3 diff = world - position;
+
+        // vector → quaternion
+        CustomQuaternion qv =
+            new CustomQuaternion(0.0f, diff);
+
+        // inverse rotation
+        CustomQuaternion inv = rotation.Conjugate;
+
+        // rotate back: q^-1 * v * q
+        CustomQuaternion local =
+            inv * qv * rotation;
+
+        return local.vec;
     }
     /// <summary>
     /// 월드 회전 -> 로컬 회전
@@ -359,19 +373,35 @@ public class CustomRigidBody : MonoBehaviour
     public Vec3 WorldToLocalDirection(Vec3 worldDir)
     {
         CustomQuaternion qInv = QuaternionUtility.Inverse(rotation);
-        CustomQuaternion vQ = new CustomQuaternion(0.0f, worldDir);
-        CustomQuaternion localQ = qInv * vQ * rotation;
-        return localQ.vec;
+        return Vec3.Rotation3DVec(qInv, worldDir);
     }
-     /// <summary>
- /// 로컬 회전 -> 월드 회전
- /// </summary>
- /// <param name="localDir"></param>
- /// <returns></returns>
- public Vec3 LocalToWorldDirection(Vec3 localDir)
- {
-     CustomQuaternion vQ = new CustomQuaternion(0.0f, localDir);
-     CustomQuaternion worldQ = rotation * vQ * QuaternionUtility.Inverse(rotation);
-     return worldQ.vec;
- }
+    /// <summary>
+    /// 로컬 회전 -> 월드 회전
+    /// </summary>
+    /// <param name="localDir"></param>
+    /// <returns></returns>
+    public Vec3 LocalToWorldDirection(Vec3 localDir)
+    {
+        CustomQuaternion vQ = new CustomQuaternion(0.0f, localDir);
+        CustomQuaternion worldQ = rotation * vQ * QuaternionUtility.Inverse(rotation);
+        return worldQ.vec;
+    }
+    /// <summary>
+    /// RigidBody의 로컬 앵커 좌표를 현재 월드 위치 + 회전 상태 기준으로 변환
+    /// </summary>
+    /// <param name="localAnchor"></param>
+    /// <returns></returns>
+    public Vec3 LocalToWorld(Vec3 localAnchor)
+    {
+        // local vector as quaternion (0, v)
+        CustomQuaternion qv =
+            new CustomQuaternion(0.0f, localAnchor);
+
+        // rotate: q * v * q^-1
+        CustomQuaternion rotated =
+            rotation * qv * rotation.Conjugate;
+
+        // translate
+        return position + rotated.vec;
+    }
 }
