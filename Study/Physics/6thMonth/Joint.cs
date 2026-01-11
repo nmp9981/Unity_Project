@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.PackageManager;
 // Joint
 // - ConstraintRow를 생성한다
 // - Solver 로직 없음
@@ -182,27 +183,33 @@ public abstract class Joint
             rigidA.invInertia * Vec3.Dot(n, n) +
             rigidB.invInertia * Vec3.Dot(n, n);
 
-        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+        float beta = 0.2f;      // stiffness
+        float gamma = 0.01f;   // damping (softness)
 
-        const float baumgarte = 0.2f;
+        row.softness = gamma;
 
+        // effective mass
+        row.effectiveMass = (k + gamma > 0.0f)? 1.0f / (k + gamma) : 0.0f;
+
+        // --- limit 판단 ---
         if (angle < minAngle)
         {
             float error = minAngle - angle;
-            row.bias = (baumgarte / SolverSettings.timeStep) * error;
+
+            row.bias = (beta / SolverSettings.timeStep) * error;
             row.minImpulse = 0.0f;
             row.maxImpulse = float.PositiveInfinity;
         }
-        else
+        else // angle > maxAngle
         {
             float error = angle - maxAngle;
-            row.bias = -(baumgarte / SolverSettings.timeStep) * error;
+
+            row.bias = -(beta / SolverSettings.timeStep) * error;
             row.minImpulse = float.NegativeInfinity;
             row.maxImpulse = 0.0f;
         }
 
         row.accumulatedImpulse = 0.0f;
-
         // 메타데이터는 남겨도 됨 (디버그용)
         row.isLimit = true;
 
