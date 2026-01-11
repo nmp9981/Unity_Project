@@ -58,13 +58,9 @@ public abstract class Joint
         // axis는 반드시 정규화
         Vec3 n = axis.Normalized;
 
-        // 월드 앵커
-        Vec3 worldAnchorA = rigidA.LocalToWorld(localAnchorA);
-        Vec3 worldAnchorB = rigidB.LocalToWorld(localAnchorB);
-
-        // 레버암
-        Vec3 rA = worldAnchorA - rigidA.position;
-        Vec3 rB = worldAnchorB - rigidB.position;
+        //Rigidbody
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
 
         // Jacobian
         row.JLinearA = (-1f) * n;
@@ -74,19 +70,15 @@ public abstract class Joint
         row.JAngularB = Vec3.Cross(rB, n);
 
         // Bias (position correction), 상대앵커 위치를 축으로 투영
-        float positionalError =
-            Vec3.Dot(worldAnchorB - worldAnchorA, n);
-
-        // Baumgarte (보통 0.1~0.2)
+        float positionalError = Vec3.Dot((rB + rigidB.position) - (rA + rigidA.position), n);
         const float baumgarte = 0.2f;
         row.bias = -(baumgarte / SolverSettings.timeStep) * positionalError;
 
-        // Impulse 제한 없음
+        row.accumulatedImpulse = 0f;
         row.minImpulse = float.NegativeInfinity;
         row.maxImpulse = float.PositiveInfinity;
 
-        row.accumulatedImpulse = 0.0f;
-
+        row.mode = ConstraintMode.Lock;
         constraintRows.Add(row);
     }
     /// <summary>
@@ -170,6 +162,11 @@ public abstract class Joint
             return;
 
         ConstraintRow row = new ConstraintRow();
+        Vec3 n = axisWorld.Normalized;
+
+        //Rigidbody
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
 
         // Angular Jacobian
         row.JAngularA = (-1f)*axisWorld;
@@ -177,8 +174,6 @@ public abstract class Joint
 
         row.JLinearA = VectorMathUtils.ZeroVector3D();
         row.JLinearB = VectorMathUtils.ZeroVector3D();
-
-        Vec3 n = axisWorld.Normalized;
 
         row.JAngularA = (-1f)*n;
         row.JAngularB = n;
