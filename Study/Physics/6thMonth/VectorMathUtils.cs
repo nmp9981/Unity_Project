@@ -61,7 +61,7 @@ public struct Vec3
     public static Vec3 operator *(Vec3 a, float d)
        => new Vec3(a.x*d, a.y*d, a.z*d);
     public static Vec3 operator *(float d, Vec3 a)
-       => new Vec3(a.x * d, a.y * d, a.z * d);
+   => new Vec3(d*a.x, d*a.y, d*a.z);
     public static Vec3 operator /(Vec3 a, float d)
        => new Vec3(a.x/d, a.y/d, a.z/d);
 
