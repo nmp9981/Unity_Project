@@ -48,6 +48,42 @@ public abstract class Joint
     {
 
     }
+    #region Warm Start
+    /// <summary>
+    /// Warm Start
+    /// </summary>
+    /// <param name="dt"></param>
+    public virtual void WarmStart(float dt)
+    {
+        if (constraintRows == null)
+            return;
+
+        foreach (var row in constraintRows)
+        {
+            float impulse = row.accumulatedImpulse;
+            if (impulse == 0.0f)
+                continue;
+
+            ApplyImpulse(row, impulse);
+        }
+    }
+    void ApplyImpulse(ConstraintRow row, float lambda)
+    {
+        if (rigidA.invMass > 0.0f)
+        {
+            rigidA.velocity += row.JLinearA * (lambda * rigidA.invMass);
+            rigidA.angularVelocity +=
+                row.JAngularA * (lambda * rigidA.invInertia);
+        }
+
+        if (rigidB.invMass > 0.0f)
+        {
+            rigidB.velocity += row.JLinearB * (lambda * rigidB.invMass);
+            rigidB.angularVelocity +=
+                row.JAngularB * (lambda * rigidB.invInertia);
+        }
+    }
+    #endregion
     /// <summary>
     /// 선속 축 잠금
     /// </summary>
@@ -416,57 +452,6 @@ public abstract class Joint
 
         row.accumulatedImpulse = 0.0f;
         row.isLimit = true;
-
-        constraintRows.Add(row);
-    }
-    /// <summary>
-    /// SpeculativeContactRow 생성
-    /// </summary>
-    /// <param name="contactPoint"></param>
-    /// <param name="normal"></param>
-    /// <param name="separation"></param>
-    /// <param name="dt"></param>
-    public void AddSpeculativeContactRow(
-    Vec3 contactPoint,
-    Vec3 normal,
-    float separation,
-    float dt)
-    {
-        ConstraintRow row = new ConstraintRow();
-
-        Vec3 n = normal.Normalized;
-
-        Vec3 rA = contactPoint - rigidA.position;
-        Vec3 rB = contactPoint - rigidB.position;
-
-        // Jacobian (standard contact)
-        row.JLinearA = n*(-1f);
-        row.JLinearB = n;
-
-        row.JAngularA = Vec3.Cross(rA, n)*(-1f);
-        row.JAngularB = Vec3.Cross(rB, n);
-
-        row.bodyA = rigidA.id;
-        row.bodyB = rigidB.id;
-
-        // effective mass
-        float k =
-            rigidA.invMass +
-            rigidB.invMass +
-            rigidA.invInertia * Vec3.Dot(row.JAngularA, row.JAngularA) +
-            rigidB.invInertia * Vec3.Dot(row.JAngularB, row.JAngularB);
-
-        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
-
-        // speculative → bias 없음
-        row.bias = 0.0f;
-
-        // contact는 항상 pushing only
-        row.minImpulse = 0.0f;
-        row.maxImpulse = float.PositiveInfinity;
-
-        row.accumulatedImpulse = 0.0f;
-        row.isSpeculative = true;
 
         constraintRows.Add(row);
     }
