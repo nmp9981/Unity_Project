@@ -62,4 +62,37 @@ public static class QuaternionUtility
         CustomQuaternion nextRot = rot + dq * (0.5f * dt);
         return nextRot.Normalized;
     }
+    /// <summary>
+/// q 회전 중에서 주어진 axis 방향으로 “얼마나 회전했는가” (signed angle)
+/// </summary>
+/// <param name="q"></param>
+/// <param name="axis"></param>
+/// <returns></returns>
+public static float TwistAngle(CustomQuaternion q, Vec3 axis)
+{
+    // 반드시 정규화
+    Vec3 n = axis.Normalized;
+
+    // quaternion vector part
+    Vec3 v = q.vec;
+
+    // twist 성분 추출 (projection)
+    Vec3 vTwist = n * Vec3.Dot(v, n);
+
+    // twist quaternion
+    CustomQuaternion qTwist = new CustomQuaternion(
+        q.scala,
+        vTwist
+    );
+
+    qTwist = qTwist.Normalized;
+
+    // angle = 2 * acos(w)
+    float angle = 2.0f * MathUtility.Acos(MathUtility.ClampValue(qTwist.scala, -1f, 1f));
+
+    // 부호 결정 (축 방향)
+    float sign = Vec3.Dot(vTwist, n) >= 0.0f ? 1.0f : -1.0f;
+
+    return angle * sign;
+}
 }
