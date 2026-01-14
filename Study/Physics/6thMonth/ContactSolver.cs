@@ -660,4 +660,61 @@ row.debug.Cdot = Cdot;
             }
         }
     }
+    /// <summary>
+/// SpeculativeContactRow 생성
+/// </summary>
+/// <param name="contactPoint"></param>
+/// <param name="normal"></param>
+/// <param name="penetration"></param>
+/// <param name="dt"></param>
+public static void AddSpeculativeContactRow(CustomRigidBody rigidA, CustomRigidBody rigidB,
+Vec3 contactPoint,
+Vec3 normal,
+float penetration,
+float dt)
+{
+    // separating velocity
+    Vec3 ra = contactPoint - rigidA.position;
+    Vec3 rb = contactPoint - rigidB.position;
+
+    Vec3 velA = rigidA.velocity + Vec3.Cross(rigidA.angularVelocity, ra);
+    Vec3 velB = rigidB.velocity + Vec3.Cross(rigidB.angularVelocity, rb);
+
+    float relVelN = Vec3.Dot(velB - velA, normal);
+
+    // 이미 분리 중이면 speculative 필요 없음
+    if (relVelN > 0.0f)
+        return;
+
+    ConstraintRow row = new ConstraintRow();
+
+    row.JLinearA = normal*(-1f);
+    row.JLinearB = normal;
+
+    row.JAngularA = Vec3.Cross(ra, normal)*(-1f);
+    row.JAngularB = Vec3.Cross(rb, normal);
+
+    // Baumgarte X, Speculative velocity bias
+    float targetVelocity = penetration / dt;
+
+    row.bias = targetVelocity;
+
+    // effective mass
+    float k =
+        rigidA.invMass +
+        rigidB.invMass +
+        rigidA.invInertia * Vec3.Dot(row.JAngularA, row.JAngularA) +
+        rigidB.invInertia * Vec3.Dot(row.JAngularB, row.JAngularB);
+
+    row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+    // contact는 항상 pushing only
+    row.minImpulse = 0.0f;
+    row.maxImpulse = float.PositiveInfinity;
+
+    row.accumulatedImpulse = 0.0f;
+    row.isSpeculative = true;
+
+    contactRows.Add(row);
+}
 }
