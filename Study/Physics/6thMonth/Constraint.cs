@@ -73,7 +73,11 @@ public struct ConstraintRow
     public float minImpulse;
     public float maxImpulse;
 
-    // Debug / semantic (임시 유지)
-    public ConstraintMode mode;
-    public ConstraintDOF dof;
+   public bool isSpeculative;
+// Debug / semantic (임시 유지)
+public bool isLimit;//Solver에서는 금지
+public ConstraintMode mode;
+public ConstraintDOF dof;
+
+public float softness; // γ (CFM)
 }
