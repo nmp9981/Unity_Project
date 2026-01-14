@@ -145,6 +145,87 @@ public abstract class Joint
         // Angular free DOF:
         // 아무 제약도 추가하지 않는다.
     }
+
+    /// <summary>
+    /// 선속 축 제한
+    /// 특정 축 방향으로 위치 오차가 한쪽 방향으로만 허용되는 제약
+    /// </summary>
+    /// <param name="axisWorld"></param>
+    /// <param name="position"></param>
+    /// <param name="minLimit"></param>
+    /// <param name="maxLimit"></param>
+    protected void AddLinearLimitRow(
+    Vec3 axisWorld,
+    float position,
+    float minLimit,
+    float maxLimit)
+    {
+        // 범위 안이면 제약 없음
+        if (position >= minLimit && position <= maxLimit)
+            return;
+
+        ConstraintRow row = new ConstraintRow();
+
+        Vec3 n = axisWorld.Normalized;
+
+        // bodies
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
+
+        // anchors
+        Vec3 worldA = rigidA.LocalToWorld(localAnchorA);
+        Vec3 worldB = rigidB.LocalToWorld(localAnchorB);
+
+        Vec3 rA = worldA - rigidA.position;
+        Vec3 rB = worldB - rigidB.position;
+
+        // Jacobian
+        row.JLinearA = (-1f)*n;
+        row.JLinearB = n;
+        row.JAngularA = (-1f)*Vec3.Cross(rA, n);
+        row.JAngularB = Vec3.Cross(rB, n);
+
+        // effective mass
+        float k =
+            rigidA.invMass +
+            rigidB.invMass +
+            rigidA.invInertia * Vec3.Dot(Vec3.Cross(rA, n), Vec3.Cross(rA, n)) +
+            rigidB.invInertia * Vec3.Dot(Vec3.Cross(rB, n), Vec3.Cross(rB, n));
+
+        // soft limit
+        float beta = 0.2f;
+        float gamma = 0.01f;
+
+        row.softness = gamma;
+
+        row.effectiveMass = (k + gamma > 0.0f)
+            ? 1.0f / (k + gamma)
+            : 0.0f;
+
+        // limit 판단
+        if (position < minLimit)
+        {
+            float error = minLimit - position;
+
+            row.bias = (beta / SolverSettings.timeStep) * error;
+            row.minImpulse = 0.0f;
+            row.maxImpulse = float.PositiveInfinity;
+        }
+        else // position > maxLimit
+        {
+            float error = position - maxLimit;
+
+            row.bias = -(beta / SolverSettings.timeStep) * error;
+            row.minImpulse = float.NegativeInfinity;
+            row.maxImpulse = 0.0f;
+        }
+
+        row.accumulatedImpulse = 0.0f;
+        row.isLimit = true;
+
+        constraintRows.Add(row);
+    }
+
     /// <summary>
     /// 회전 제한
     /// </summary>
@@ -212,6 +293,180 @@ public abstract class Joint
         row.accumulatedImpulse = 0.0f;
         // 메타데이터는 남겨도 됨 (디버그용)
         row.isLimit = true;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// 다음 프레임에 제약을 위반할 게 확실하면, 미리 constraint row를 만들어서 속도 단계에서 잡는다
+    /// </summary>
+    /// <param name="axisWorld"></param>
+    /// <param name="position"></param>
+    /// <param name="velocityAlongAxis"></param>
+    /// <param name="minLimit"></param>
+    /// <param name="maxLimit"></param>
+    /// <param name="dt"></param>
+    protected void AddSpeculativeLinearLimitRow(Vec3 axisWorld,float position,float velocityAlongAxis, float minLimit,float maxLimit,float dt)
+    {
+        //Speculative limit 조건
+        float predicted = position + velocityAlongAxis * dt;
+        if (predicted >= minLimit && predicted <= maxLimit)
+            return;
+
+        ConstraintRow row = new ConstraintRow();
+
+        Vec3 n = axisWorld.Normalized;
+
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
+
+        // anchors
+        Vec3 worldA = rigidA.LocalToWorld(localAnchorA);
+        Vec3 worldB = rigidB.LocalToWorld(localAnchorB);
+
+        Vec3 rA = worldA - rigidA.position;
+        Vec3 rB = worldB - rigidB.position;
+
+        // Jacobian
+        row.JLinearA = n*(-1f);
+        row.JLinearB = n;
+        row.JAngularA = Vec3.Cross(rA, n)*(-1f);
+        row.JAngularB = Vec3.Cross(rB, n);
+
+        // effective mass (no softness)
+        float k =
+            rigidA.invMass +
+            rigidB.invMass +
+            rigidA.invInertia * Vec3.Dot(Vec3.Cross(rA, n), Vec3.Cross(rA, n)) +
+            rigidB.invInertia * Vec3.Dot(Vec3.Cross(rB, n), Vec3.Cross(rB, n));
+
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // bias = 0 (pure velocity constraint)
+        row.bias = 0.0f;
+
+        // unilateral
+        if (predicted < minLimit)
+        {
+            row.minImpulse = 0.0f;
+            row.maxImpulse = float.PositiveInfinity;
+        }
+        else
+        {
+            row.minImpulse = float.NegativeInfinity;
+            row.maxImpulse = 0.0f;
+        }
+
+        row.accumulatedImpulse = 0.0f;
+        row.isLimit = true;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// 각도 예측
+    /// 다음 프레임에 제약을 위반할 게 확실하면, 미리 constraint row를 만들어서 각속도 단계에서 잡는다
+    /// </summary>
+    /// <param name="axisWorld"></param>
+    /// <param name="angle"></param>
+    /// <param name="angularVelocityAlongAxis"></param>
+    /// <param name="minAngle"></param>
+    /// <param name="maxAngle"></param>
+    /// <param name="dt"></param>
+    protected void AddSpeculativeAngularLimitRow(Vec3 axisWorld,float angle,float angularVelocityAlongAxis,float minAngle,float maxAngle,float dt)
+    {
+        //다음 프레임 예측
+        float predicted = angle + angularVelocityAlongAxis * dt;
+
+        if (predicted >= minAngle && predicted <= maxAngle)
+            return;
+
+        ConstraintRow row = new ConstraintRow();
+
+        Vec3 n = axisWorld.Normalized;
+
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
+
+        // Angular Jacobian
+        row.JLinearA = VectorMathUtils.ZeroVector3D();
+        row.JLinearB = VectorMathUtils.ZeroVector3D();
+        row.JAngularA = n*(-1f);
+        row.JAngularB = n;
+
+        // effective mass
+        float k =
+            rigidA.invInertia * Vec3.Dot(n, n) +
+            rigidB.invInertia * Vec3.Dot(n, n);
+
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // speculative → bias 없음
+        row.bias = 0.0f;
+
+        // unilateral impulse
+        if (predicted < minAngle)
+        {
+            row.minImpulse = 0.0f;
+            row.maxImpulse = float.PositiveInfinity;
+        }
+        else // predicted > maxAngle
+        {
+            row.minImpulse = float.NegativeInfinity;
+            row.maxImpulse = 0.0f;
+        }
+
+        row.accumulatedImpulse = 0.0f;
+        row.isLimit = true;
+
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// SpeculativeContactRow 생성
+    /// </summary>
+    /// <param name="contactPoint"></param>
+    /// <param name="normal"></param>
+    /// <param name="separation"></param>
+    /// <param name="dt"></param>
+    public void AddSpeculativeContactRow(
+    Vec3 contactPoint,
+    Vec3 normal,
+    float separation,
+    float dt)
+    {
+        ConstraintRow row = new ConstraintRow();
+
+        Vec3 n = normal.Normalized;
+
+        Vec3 rA = contactPoint - rigidA.position;
+        Vec3 rB = contactPoint - rigidB.position;
+
+        // Jacobian (standard contact)
+        row.JLinearA = n*(-1f);
+        row.JLinearB = n;
+
+        row.JAngularA = Vec3.Cross(rA, n)*(-1f);
+        row.JAngularB = Vec3.Cross(rB, n);
+
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
+
+        // effective mass
+        float k =
+            rigidA.invMass +
+            rigidB.invMass +
+            rigidA.invInertia * Vec3.Dot(row.JAngularA, row.JAngularA) +
+            rigidB.invInertia * Vec3.Dot(row.JAngularB, row.JAngularB);
+
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+
+        // speculative → bias 없음
+        row.bias = 0.0f;
+
+        // contact는 항상 pushing only
+        row.minImpulse = 0.0f;
+        row.maxImpulse = float.PositiveInfinity;
+
+        row.accumulatedImpulse = 0.0f;
+        row.isSpeculative = true;
 
         constraintRows.Add(row);
     }
