@@ -30,8 +30,16 @@ class SliderJoint : Joint
         Vec3 delta = worldB - worldA;
         float currentPos = Vec3.Dot(delta, sliderAxisWorld);
 
-        // Linear
+        // Limit
         AddLinearLimitRow(sliderAxisWorld, currentPos, minPos, maxPos);
+
+        //Motor
+        if (enableMotor)
+        {
+            AddLinearMotorRow(sliderAxisWorld, motorSpeed, maxMotorForce);
+        }
+        
+        //Lock
         AddLinearLockRow(perpAxis1);
         AddLinearLockRow(perpAxis2);
 
