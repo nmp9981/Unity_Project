@@ -27,6 +27,14 @@ public struct CustomQuaternion
             );
     public static CustomQuaternion operator *(CustomQuaternion q, float d)
         => new CustomQuaternion(q.scala * d, q.vec * d);
+      public static Vec3 operator *(CustomQuaternion q, Vec3 v)
+  {
+      // 벡터를 quaternion으로 변환
+      CustomQuaternion qv = new CustomQuaternion(0.0f, v);
+      // 회전: q * v * q^-1
+      CustomQuaternion result = q * qv * q.Conjugate;
+      return result.vec;
+  }
     public static CustomQuaternion operator /(CustomQuaternion q, float d)
         => new CustomQuaternion(q.scala/d,q.vec/d);
 
