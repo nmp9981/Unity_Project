@@ -230,4 +230,26 @@ public static class VectorMathUtils
     {
         return -(1 + e) * relVelAlongNormal / (1 / m1 + 1 / m2);
     }
+    /// <summary>
+/// Vector a에 임의 수직인 축 계산
+/// </summary>
+/// <param name="a"></param>
+/// <returns></returns>
+public static Vec3 AnyPerpendicular(Vec3 a)
+{
+    // this는 정규화된 벡터라고 가정
+    Vec3 n = a.Normalized;
+
+    //축이 거의 평행할 때 cross가 0 되는 걸 피해야 함
+    Vec3 basis;
+    if (MathUtility.Abs(n.x) < 0.9f)
+        basis = new Vec3(1, 0, 0);
+    else
+        basis = new Vec3(0, 1, 0);
+
+    // 수직 벡터 생성
+    Vec3 perp = Vec3.Cross(n, basis);
+
+    return perp.Normalized;
+}
 }
