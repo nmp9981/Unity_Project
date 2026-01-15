@@ -116,7 +116,7 @@ public static class MathUtility
         return x - d3 + d5;
     }
     /// <summary>
-    /// sin값
+    /// cos값
     /// </summary>
     /// <param name="x"></param>
     public static float Cos(float x)
@@ -125,6 +125,37 @@ public static class MathUtility
 
         return Sin(x+0.5f*PI);
     }
+     /// <summary>
+ /// Asin값
+ /// </summary>
+ /// <param name="x"></param>
+ /// <returns></returns>
+ public static float Asin(float x)
+ {
+     //5차항까지
+     float x2 = x * x;
+     float x4 = x2 * x2;
+     float d3 = (x2 * x) / 6;
+     float d5 = (3 * x4 * x) * 0.025f;
+
+     return x + d3 + d5;
+ }
+ /// <summary>
+ /// Acos값
+ /// </summary>
+ /// <param name="x"></param>
+ /// <returns></returns>
+ public static float Acos(float x)
+ {
+     float halfPI = PI / 2;
+     //5차항까지
+     float x2 = x * x;
+     float x4 = x2 * x2;
+     float d3 = (x2 * x) / 6;
+     float d5 = (3 * x4 * x) * 0.025f;
+
+     return halfPI - (x+d3+d5);
+ }
     /// <summary>
 /// Atan값(2변수)
 /// </summary>
