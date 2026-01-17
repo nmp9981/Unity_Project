@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEditor.PackageManager;
+
 // Joint
 // - ConstraintRow를 생성한다
 // - Solver 로직 없음
@@ -15,7 +15,7 @@ public abstract class Joint
     protected Vec3 localAnchorA;
     protected Vec3 localAnchorB;
 
-    protected List<ConstraintRow> constraintRows;
+    public List<ConstraintRow> constraintRows;
     #endregion
 
     //BuildConstraintRows()에서 계산
@@ -30,9 +30,7 @@ public abstract class Joint
 
     // Angular limit
     protected bool enableAngularLimit;
-    protected float angularMin;
-    protected float angularMax;
-
+   
     // Motor
     protected bool enableMotor;
     protected float motorSpeed;
@@ -455,92 +453,94 @@ public abstract class Joint
 
         constraintRows.Add(row);
     }
+
     /// <summary>
-/// Motor 속도
-/// </summary>
-/// <param name="axis"></param>
-/// <param name="targetSpeed"></param>
-/// <param name="maxForce"></param>
-protected void AddLinearMotorRow(Vec3 axis, float targetSpeed, float maxForce)
-{
-    ConstraintRow row = new ConstraintRow();
+    /// Motor 속도
+    /// </summary>
+    /// <param name="axis"></param>
+    /// <param name="targetSpeed"></param>
+    /// <param name="maxForce"></param>
+    protected void AddLinearMotorRow(Vec3 axis, float targetSpeed, float maxForce)
+    {
+        ConstraintRow row = new ConstraintRow();
 
-    Vec3 n = axis.Normalized;
+        Vec3 n = axis.Normalized;
 
-    row.bodyA = rigidA.id;
-    row.bodyB = rigidB.id;
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
 
-    // Jacobian
-    row.JLinearA = n*(-1f);
-    row.JLinearB = n;
+        // Jacobian
+        row.JLinearA = n*(-1f);
+        row.JLinearB = n;
 
-    row.JAngularA = Vec3.Cross(rA, n) * (-1f);
-    row.JAngularB = Vec3.Cross(rB, n);
+        row.JAngularA = Vec3.Cross(rA, n) * (-1f);
+        row.JAngularB = Vec3.Cross(rB, n);
 
-    // Effective mass
-    float k =
-        rigidA.invMass +
-        rigidB.invMass +
-        Vec3.Dot(row.JAngularA, rigidA.invInertia * row.JAngularA) +
-        Vec3.Dot(row.JAngularB, rigidB.invInertia * row.JAngularB);
+        // Effective mass
+        float k =
+            rigidA.invMass +
+            rigidB.invMass +
+            Vec3.Dot(row.JAngularA, rigidA.invInertia * row.JAngularA) +
+            Vec3.Dot(row.JAngularB, rigidB.invInertia * row.JAngularB);
 
-    row.effectiveMass = k > 0.0f ? 1.0f / k : 0.0f;
+        row.effectiveMass = k > 0.0f ? 1.0f / k : 0.0f;
 
-    // Motor = velocity constraint
-    row.bias = targetSpeed;
+        // Motor = velocity constraint
+        row.bias = -targetSpeed;
 
-    // Force limit
-    float maxImpulse = maxForce * SolverSettings.timeStep;
-    row.minImpulse = -maxImpulse;
-    row.maxImpulse = maxImpulse;
+        // Force limit
+        float maxImpulse = maxForce * SolverSettings.timeStep;
+        row.minImpulse = -maxImpulse;
+        row.maxImpulse = maxImpulse;
 
-    row.accumulatedImpulse = 0.0f;
+        row.accumulatedImpulse = 0.0f;
+        row.mode = ConstraintMode.Motor;
 
-    constraintRows.Add(row);
-}
-/// <summary>
-/// Motor 각도
-/// </summary>
-/// <param name="axisWorld"></param>
-/// <param name="targetSpeed"></param>
-/// <param name="maxTorque"></param>
-/// <param name="dt"></param>
-protected void AddAngularMotorRow(Vec3 axisWorld, float targetSpeed, float maxTorque, float dt)
-{
-    ConstraintRow row = new ConstraintRow();
+        constraintRows.Add(row);
+    }
+    /// <summary>
+    /// Motor 각도
+    /// </summary>
+    /// <param name="axisWorld"></param>
+    /// <param name="targetSpeed"></param>
+    /// <param name="maxTorque"></param>
+    /// <param name="dt"></param>
+    protected void AddAngularMotorRow(Vec3 axisWorld, float targetAngularSpeed, float maxTorque, float dt)
+    {
+        ConstraintRow row = new ConstraintRow();
 
-    Vec3 n = axisWorld.Normalized;
+        Vec3 n = axisWorld.Normalized;
 
-    row.bodyA = rigidA.id;
-    row.bodyB = rigidB.id;
+        row.bodyA = rigidA.id;
+        row.bodyB = rigidB.id;
 
-    // Angular Jacobian
-    row.JLinearA = VectorMathUtils.ZeroVector3D();
-    row.JLinearB = VectorMathUtils.ZeroVector3D();
-    row.JAngularA = n * (-1f);
-    row.JAngularB = n;
+        // Angular Jacobian
+        row.JLinearA = VectorMathUtils.ZeroVector3D();
+        row.JLinearB = VectorMathUtils.ZeroVector3D();
+        row.JAngularA = n * (-1f);
+        row.JAngularB = n;
 
-    // effective mass
-    float k =
-        rigidA.invInertia * Vec3.Dot(n, n) +
-        rigidB.invInertia * Vec3.Dot(n, n);
+        // effective mass
+        float k =
+            rigidA.invInertia * Vec3.Dot(n, n) +
+            rigidB.invInertia * Vec3.Dot(n, n);
 
-    row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
+        row.effectiveMass = (k > 0.0f) ? 1.0f / k : 0.0f;
 
-    // motor → velocity constraint
-    // Cdot = (ωB − ωA)·n − targetSpeed
-    row.bias = -targetSpeed;
+        // motor → velocity constraint
+        // Cdot = (ωB − ωA)·n − targetSpeed,목표 각속도
+        row.bias = -targetAngularSpeed;
 
-    // torque clamp → impulse clamp
-    float maxImpulse = maxTorque * dt;
+        // torque clamp → impulse clamp
+        float maxImpulse = maxTorque * dt;
 
-    row.minImpulse = -maxImpulse;
-    row.maxImpulse = maxImpulse;
+        row.minImpulse = -maxImpulse;
+        row.maxImpulse = maxImpulse;
 
-    row.accumulatedImpulse = 0.0f;
+        row.accumulatedImpulse = 0.0f;
 
-    row.mode = ConstraintMode.Motor;
+        row.mode = ConstraintMode.Motor;
 
-    constraintRows.Add(row);
-}
+        constraintRows.Add(row);
+    }
 }
