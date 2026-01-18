@@ -418,4 +418,37 @@ public class CustomRigidBody : MonoBehaviour
         // translate
         return position + rotated.vec;
     }
+    #region RayCast
+/// <summary>
+/// RayCast 기능
+/// 순회, 최소 t 선택, layer 필터
+/// </summary>
+/// <param name="ray"></param>
+/// <param name="maxDistance"></param>
+/// <param name="hit"></param>
+/// <param name="layerMask"></param>
+/// <returns></returns>
+public bool RayCast(Ray3D ray, float maxT, out RaycastHit3D bestHit, int layerMask = ~0) 
+{
+    bestHit = default;
+    bool hasHit = false;
+    float bestT = maxT;
+
+    foreach (var col in collider3DList)
+    {
+        if ((col.layer & layerMask) == 0) continue;
+
+        if (col.RayCast(ray, bestT, out RaycastHit3D hit))
+        {
+            if (hit.t < bestT)
+            {
+                bestT = hit.t;
+                bestHit = hit;
+                hasHit = true;
+            }
+        }
+    }
+    return hasHit;
+}
+#endregion
 }
