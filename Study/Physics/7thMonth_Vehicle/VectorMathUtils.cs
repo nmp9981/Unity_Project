@@ -37,7 +37,7 @@ public struct Vec2
         => a.x * b.y - a.y * b.x;
 
     //배열 변환
-    public static float[] Array(Vec2 a) => new float[]{a.x,a.y};
+    public float[] Array => new float[] { x, y};
 }
 
 [System.Serializable]
@@ -99,7 +99,7 @@ public struct Vec3
         => a+(b-a)*alpha;
 
     //배열 변환
-    public static float[] Array(Vec3 a) => new float[] { a.x, a.y, a.z };
+    public float[] Array => new float[] { x,y,z };
 }
 
 
