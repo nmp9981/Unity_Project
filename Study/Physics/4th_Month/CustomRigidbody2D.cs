@@ -7,6 +7,26 @@ public struct RigidbodyState2D
     public Vec2 accel;
 }
 
+/// <summary>
+/// Ray 구조체
+/// </summary>
+public struct Ray2D
+{
+    public Vec2 origin;
+    public Vec2 dir;   // 반드시 normalize
+}
+
+/// <summary>
+/// RayCast 구조체
+/// </summary>
+public struct RaycastHit2D
+{
+    public float t;                // ray parameter
+    public Vec2 position;          // O + tD
+    public Vec2 normal;            // constraint normal
+    public CustomCollider2D collider;
+}
+
 public class CustomRigidbody2D : MonoBehaviour
 {
     [Header("Physical Properties")]
