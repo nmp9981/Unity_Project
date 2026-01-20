@@ -38,6 +38,12 @@ public struct Vec2
 
     //배열 변환
     public float[] Array => new float[] { x, y};
+
+     //회전
+ public static Vec2 Rotation(Vec2 v, float theta)
+ {
+     return new Vec2(MathUtility.Cos(theta) * v.x + MathUtility.Sin(theta) * v.y, -MathUtility.Sin(theta) * v.x + MathUtility.Cos(theta) * v.y);
+ }
 }
 
 [System.Serializable]
