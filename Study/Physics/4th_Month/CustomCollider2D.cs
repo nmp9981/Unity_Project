@@ -6,6 +6,8 @@ public abstract class CustomCollider2D : MonoBehaviour
     public CustomPhysicsMaterial material;
     public Vec2 size = VectorMathUtils.OneVector2D();
 
+    int layer;
+    
     [Header("Material")]
     public CustomPhysicsMaterial physicMaterial;//재질
 
@@ -37,5 +39,5 @@ public abstract class CustomCollider2D : MonoBehaviour
         float yMax = transform.position.y + size.y * 0.5f;
         return new Vec2(xMax, yMax);
     }
-    public abstract bool RayCast2D(Ray3D ray, float maxT, out RaycastHit3D hit);
+    public abstract bool RayCast2D(Ray2D ray, float maxT, out RaycastHit2D hit);
 }
