@@ -88,9 +88,9 @@ public static class MatrixUtility
     public static float[,] MatrixToArray3(Mat3 a)
     {
         float[,] array = new float[3, 3];
-        array[0,0] = a.m00; array[0, 1] = a.m00; array[0, 2] = a.m02;
-        array[1, 0] = a.m10; array[1, 1] = a.m10; array[1, 2] = a.m12;
-        array[2, 0] = a.m20; array[2, 1] = a.m20; array[2, 2] = a.m22;
+        array[0,0] = a.m00; array[0, 1] = a.m01; array[0, 2] = a.m02;
+        array[1, 0] = a.m10; array[1, 1] = a.m11; array[1, 2] = a.m12;
+        array[2, 0] = a.m20; array[2, 1] = a.m21; array[2, 2] = a.m22;
         return array;
     }
     /// <summary>
@@ -119,7 +119,7 @@ public static class MatrixUtility
         float[,] newArray = new float[3,3];
         newArray[row2, 0] = array[row1, 0]; newArray[row2, 1] = array[row1, 1]; newArray[row2, 2] = array[row1, 2];
         newArray[row1, 0] = array[row2, 0]; newArray[row1, 1] = array[row2, 1]; newArray[row1, 2] = array[row2, 2];
-        newArray[restRow,0] = array[restRow, 0]; newArray[restRow, 1] = newArray[restRow, 1]; newArray[restRow, 2] = array[restRow, 2];
+        newArray[restRow,0] = array[restRow, 0]; newArray[restRow, 1] = array[restRow, 1]; newArray[restRow, 2] = array[restRow, 2];
         return newArray;
     }
 
@@ -137,7 +137,7 @@ public static class MatrixUtility
         //역행렬이 없음
         if (Mat3.Det(a) == 0)
         {
-            return float.MaxValue*Mat3.I();
+            return Mat3.O();
         }
 
         //가우스 죠르단 소거법
@@ -184,6 +184,22 @@ public static class MatrixUtility
         return invMat3;
     }
 
+    public static Vec2 MulPoint(Vec2 p, Mat3 m)
+    {
+        return new Vec2(
+            m.m00 * p.x + m.m01 * p.y + m.m02,
+            m.m10 * p.x + m.m11 * p.y + m.m12
+        );
+    }
+
+    public static Vec2 MulVector(Vec2 v, Mat3 m)
+    {
+        return new Vec2(
+            m.m00 * v.x + m.m01 * v.y,
+            m.m10 * v.x + m.m11 * v.y
+        );
+    }
+
     /// <summary>
     /// 위치 변환
     /// </summary>
@@ -210,7 +226,7 @@ public static class MatrixUtility
         Mat3 Matrix = new Mat3();
         Matrix.m00 = cos; Matrix.m01 = -sin; Matrix.m02 = 0;
         Matrix.m10 = sin; Matrix.m11 = cos; Matrix.m12 = 0;
-        Matrix.m20 = 0; Matrix.m21 = 0; Matrix.m22 = 0;
+        Matrix.m20 = 0; Matrix.m21 = 0; Matrix.m22 = 1;
         return Matrix;
     }
     /// <summary>
