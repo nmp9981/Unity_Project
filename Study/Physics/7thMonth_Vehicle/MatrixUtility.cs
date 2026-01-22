@@ -1,4 +1,5 @@
-using static UnityEditor.PlayerSettings;
+using System;
+using UnityEngine;
 
 /// <summary>
 /// 3*3행렬 구조체
@@ -42,13 +43,29 @@ public struct Mat3
           a.m10 / b, a.m11 / b, a.m12 / b,
           a.m20 / b, a.m21 / b, a.m22 / b);
 
-    //길이, 방향
-    public float Det => x * x + y * y;
-   
+    //행렬식
+    public static float Det(Mat3 a) {
+        float first = a.m00 * (a.m11*a.m22-a.m12*a.m21);
+        float second =a.m01* (a.m10 * a.m22 - a.m12 * a.m20);
+        float third = a.m02 * (a.m10 * a.m21 - a.m11 * a.m20);
+        return first-second+third;
+    }
 
-    //내적, 행렬식
-    public static float Dot(Vec2 a, Vec2 b)
-        => a.x * b.x + a.y * b.y;
+    //단위 행렬, 0행렬
+    public static Mat3 I()
+        => new Mat3
+        {
+            m00 = 1,m01 = 0,m02 = 0,
+            m10 = 0,m11 = 1,m12 = 0,
+            m20 = 0,m21 = 0,m22 = 1
+        };
+    public static Mat3 O()
+        => new Mat3
+        {
+            m00 = 0,m01 = 0,m02 = 0,
+            m10 = 0,m11 = 0,m12 = 0,
+            m20 = 0,m21 = 0,m22 = 0
+        };
 }
 
 public class Transform2D
@@ -63,6 +80,110 @@ public class Transform2D
 
 public static class MatrixUtility
 {
+    /// <summary>
+    /// 3*3행렬을 3*3배열로 변환
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static float[,] MatrixToArray3(Mat3 a)
+    {
+        float[,] array = new float[3, 3];
+        array[0,0] = a.m00; array[0, 1] = a.m00; array[0, 2] = a.m02;
+        array[1, 0] = a.m10; array[1, 1] = a.m10; array[1, 2] = a.m12;
+        array[2, 0] = a.m20; array[2, 1] = a.m20; array[2, 2] = a.m22;
+        return array;
+    }
+    /// <summary>
+    /// 3*3배열을 3*3행렬로 변환
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static Mat3 ArrayToMatrix3(float[,] array)
+    {
+        Mat3 m = new Mat3();
+        m.m00 = array[0, 0]; m.m01 = array[0, 1]; m.m02 = array[0, 2];
+        m.m10 = array[1, 0]; m.m11 = array[1, 1]; m.m12 = array[1, 2];
+        m.m20 = array[2, 0]; m.m21 = array[2, 1]; m.m22 = array[2, 2];
+        return m;
+    }
+    /// <summary>
+    /// 행 swap연산
+    /// </summary>
+    /// <param name="array">배열</param>
+    /// <param name="row1">이동 전</param>
+    /// <param name="row2">이동 후</param>
+    /// <param name="restRow">나머지 행번호</param>
+    /// <returns></returns>
+    public static float[,] SwapRow(float[,] array, int row1, int row2, int restRow)
+    {
+        float[,] newArray = new float[3,3];
+        newArray[row2, 0] = array[row1, 0]; newArray[row2, 1] = array[row1, 1]; newArray[row2, 2] = array[row1, 2];
+        newArray[row1, 0] = array[row2, 0]; newArray[row1, 1] = array[row2, 1]; newArray[row1, 2] = array[row2, 2];
+        newArray[restRow,0] = array[restRow, 0]; newArray[restRow, 1] = newArray[restRow, 1]; newArray[restRow, 2] = array[restRow, 2];
+        return newArray;
+    }
+
+
+    /// <summary>
+    /// 역행렬
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static Mat3 Inv(Mat3 a)
+    {
+        float[,] origin = MatrixToArray3(a);
+        float[,] invArray = MatrixToArray3(Mat3.I());
+
+        //역행렬이 없음
+        if (Mat3.Det(a) == 0)
+        {
+            return float.MaxValue*Mat3.I();
+        }
+
+        //가우스 죠르단 소거법
+        for(int i = 0; i < 3; i++)
+        {
+            //행 Swap
+            if (origin[i, i] == 0)//기준
+            {
+                if (i == 0)
+                {
+                    if (origin[i + 1, i] == 0)
+                    {
+                        origin = SwapRow(origin, i, i + 2, 1);
+                        invArray = SwapRow(invArray, i, i + 2, 1);
+                    }
+                    else
+                    {
+                        origin = SwapRow(origin, i, i + 1, 2);
+                        invArray = SwapRow(invArray, i, i + 1, 2);
+                    }
+                }else if (i == 1)
+                {
+                    origin = SwapRow(origin, i, i + 1, 0);
+                    invArray = SwapRow(invArray, i, i + 1, 0);
+                }
+            }
+            //선도행 계산
+            for(int j = 0; j < 3; j++)
+            {
+                origin[i, j] = origin[i, j] / origin[i, i];
+                invArray[i, j] = invArray[i, j] / origin[i, i];
+
+                for(int k = 0; k < 3; k++)
+                {
+                    if (k == i) continue;
+                    
+                    origin[k, j] = -origin[k,i]*origin[i, j]+origin[k,j];
+                    invArray[k, j] = -origin[k, i] * invArray[i, j] + invArray[k, j];
+                }
+            }
+        }
+
+        Mat3 invMat3 = ArrayToMatrix3(invArray);
+        return invMat3;
+    }
+
     /// <summary>
     /// 위치 변환
     /// </summary>
@@ -107,6 +228,6 @@ public static class MatrixUtility
 
     public static Mat3 TRS(Transform2D trans)
     {
-        return Translate(trans.position)+Rotate(trans.rotation)+Scale(trans.scale);
+        return Translate(trans.position)*Rotate(trans.rotation)*Scale(trans.scale);
     }
 }
