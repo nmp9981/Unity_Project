@@ -135,7 +135,7 @@ public static class MatrixUtility
         float[,] invArray = MatrixToArray3(Mat3.I());
 
         //역행렬이 없음
-        if (Mat3.Det(a) == 0)
+        if (Mat3.Det(a) < MathUtility.EPSILON)
         {
             return Mat3.O();
         }
@@ -246,4 +246,12 @@ public static class MatrixUtility
     {
         return Translate(trans.position)*Rotate(trans.rotation)*Scale(trans.scale);
     }
+    public static Mat3 InverseTRS(Vec2 pos, float rot, Vec2 scale)
+{
+    Mat3 invScale = Scale(new Vec2(1 / scale.x, 1 / scale.y));
+    Mat3 invRot = Rotate(-rot);
+    Mat3 invTrans = Translate(pos*(-1));
+
+    return invScale * invRot * invTrans;
+}
 }
