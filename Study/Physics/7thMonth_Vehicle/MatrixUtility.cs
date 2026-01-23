@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 /// <summary>
 /// 3*3행렬 구조체
 /// </summary>
@@ -68,14 +65,109 @@ public struct Mat3
         };
 }
 
-public class Transform2D
+/// <summary>
+/// 4*4행렬 구조체
+/// </summary>
+[System.Serializable]
+public struct Mat4
 {
-    public Vec2 position;
-    public float rotation;
-    public Vec2 scale;
+    public float m00, m01, m02,m03;
+    public float m10, m11, m12,m13;
+    public float m20, m21, m22,m23;
+    public float m30, m31, m32, m33;
 
-    public Mat3 LocalToWorld;
-    public Mat3 WorldToLocal;
+    //생성자
+    public Mat4(float m00, float m01, float m02, float m03
+        , float m10, float m11, float m12, float m13,
+        float m20, float m21, float m22, float m23,
+        float m30, float m31, float m32, float m33)
+    {
+        this.m00 = m00; this.m01 = m01; this.m02 = m02; this.m03 = m03;
+        this.m10 = m10; this.m11 = m11; this.m12 = m12; this.m13 = m13;
+        this.m20 = m20; this.m21 = m21; this.m22 = m22; this.m23 = m23;
+        this.m30 = m30; this.m31 = m31; this.m32 = m32; this.m33 = m33;
+    }
+
+    //기본 연산자 오버로딩
+    public static Mat4 operator +(Mat4 a, Mat4 b)
+        => new Mat4(a.m00 + b.m00, a.m01 + b.m01, a.m02 + b.m02, a.m03 + b.m03,
+            a.m10 + b.m10, a.m11 + b.m11, a.m12 + b.m12, a.m13 + b.m13,
+            a.m20 + b.m20, a.m21 + b.m21, a.m22 + b.m22, a.m23+b.m23,
+            a.m30 + b.m30, a.m31 + b.m31, a.m32 + b.m32, a.m33 + b.m33);
+    public static Mat4 operator -(Mat4 a, Mat4 b)
+       => new Mat4(a.m00 - b.m00, a.m01 - b.m01, a.m02 - b.m02,a.m03 - b.m03,
+           a.m10 - b.m10, a.m11 - b.m11, a.m12 - b.m12, a.m13 - b.m13,
+           a.m20 - b.m20, a.m21 - b.m21, a.m22 - b.m22, a.m23-b.m23,
+           a.m30 - b.m30, a.m31 - b.m31, a.m32 - b.m32, a.m33 - b.m33);
+    public static Mat4 operator *(float a, Mat4 b)
+       => new Mat4(a * b.m00, a * b.m01, a * b.m02, a* b.m03,
+           a * b.m10, a * b.m11, a * b.m12,a* b.m13,
+           a * b.m20, a * b.m21, a * b.m22, a*b.m23,
+           a * b.m30, a * b.m31, a * b.m32, a * b.m33);
+    public static Mat4 operator *(Mat4 a, Mat4 b)
+       => new Mat4(a.m00 * b.m00 + a.m01 * b.m10 + a.m02 * b.m20+a.m03*b.m30, 
+           a.m00 * b.m01 + a.m01 * b.m11 + a.m02 * b.m21 + a.m03 * b.m31, 
+           a.m00 * b.m02 + a.m01 * b.m12 + a.m02 * b.m22 + a.m03 * b.m32,
+           a.m00 * b.m03 + a.m01 * b.m13 + a.m02 * b.m23 + a.m03 * b.m33,
+           a.m10 * b.m00 + a.m11 * b.m10 + a.m12 * b.m20 + a.m13 * b.m30, 
+           a.m10 * b.m01 + a.m11 * b.m11 + a.m12 * b.m21 + a.m13 * b.m31, 
+           a.m10 * b.m02 + a.m11 * b.m12 + a.m12 * b.m22 + a.m13 * b.m32,
+           a.m10 * b.m03 + a.m11 * b.m13 + a.m12 * b.m23 + a.m13 * b.m33,
+           a.m20 * b.m00 + a.m21 * b.m10 + a.m22 * b.m20 + a.m23 * b.m30, 
+           a.m20 * b.m01 + a.m21 * b.m11 + a.m22 * b.m21 + a.m23 * b.m31, 
+           a.m20 * b.m02 + a.m21 * b.m12 + a.m22 * b.m22 + a.m23 * b.m32,
+           a.m20 * b.m03 + a.m21 * b.m13 + a.m22 * b.m23 + a.m23 * b.m33,
+           a.m30 * b.m00 + a.m31 * b.m10 + a.m32 * b.m20 + a.m33 * b.m30,
+           a.m30 * b.m01 + a.m31 * b.m11 + a.m32 * b.m21 + a.m33 * b.m31,
+           a.m30 * b.m02 + a.m31 * b.m12 + a.m32 * b.m22 + a.m33 * b.m32,
+           a.m30 * b.m03 + a.m31 * b.m13 + a.m32 * b.m23 + a.m33 * b.m33);
+    public static Mat4 operator /(Mat4 a, float b)
+      => new Mat4(a.m00 / b, a.m01 / b, a.m02 / b, a.m03/b,
+          a.m10 / b, a.m11 / b, a.m12 / b, a.m13/b,
+          a.m20 / b, a.m21 / b, a.m22 / b, a.m23/b,
+          a.m30 / b, a.m31 / b, a.m32 / b, a.m33 / b);
+
+    //단위 행렬, 0행렬
+    public static Mat4 I()
+        => new Mat4
+        {
+            m00 = 1,
+            m01 = 0,
+            m02 = 0,
+            m03 = 0,
+            m10 = 0,
+            m11 = 1,
+            m12 = 0,
+            m13 = 0,
+            m20 = 0,
+            m21 = 0,
+            m22 = 1,
+            m23 = 0,
+            m30 = 0,
+            m31 = 0,
+            m32 = 0,
+            m33 = 1,
+        };
+    public static Mat4 O()
+        => new Mat4
+        {
+            m00 = 0,
+            m01 = 0,
+            m02 = 0,
+            m03 = 0,
+            m10 = 0,
+            m11 = 0,
+            m12 = 0,
+            m13 = 0,
+            m20 = 0,
+            m21 = 0,
+            m22 = 0,
+            m23 = 0,
+            m30 = 0,
+            m31 = 0,
+            m32 = 0,
+            m33 = 0
+        };
 }
 
 public static class MatrixUtility
@@ -184,6 +276,13 @@ public static class MatrixUtility
         return invMat3;
     }
 
+    /// <summary>
+    /// 점 변환 -> 이동
+    /// 동차좌표에서 (x, y, 1) 을 곱함
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="m"></param>
+    /// <returns></returns>
     public static Vec2 MulPoint(Vec2 p, Mat3 m)
     {
         return new Vec2(
@@ -191,7 +290,13 @@ public static class MatrixUtility
             m.m10 * p.x + m.m11 * p.y + m.m12
         );
     }
-
+    /// <summary>
+    /// 방향 변환 -> 방향과 스케일
+    /// 동차좌표에서 (x, y, 0) 을 곱함
+    /// </summary>
+    /// <param name="v"></param>
+    /// <param name="m"></param>
+    /// <returns></returns>
     public static Vec2 MulVector(Vec2 v, Mat3 m)
     {
         return new Vec2(
@@ -199,7 +304,36 @@ public static class MatrixUtility
             m.m10 * v.x + m.m11 * v.y
         );
     }
-
+    /// <summary>
+    /// 점 변환 -> 이동
+    /// 동차좌표에서 (x, y, z, 1) 을 곱함
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="m"></param>
+    /// <returns></returns>
+    public static Vec3 MulPoint(Vec3 p, Mat4 m)
+    {
+        return new Vec3(
+            m.m00 * p.x + m.m01 * p.y + m.m02*p.z+m.m03,
+            m.m10 * p.x + m.m11 * p.y + m.m12*p.z+m.m13,
+            m.m20 * p.x + m.m21 * p.y + m.m22 * p.z + m.m23
+        );
+    }
+    /// <summary>
+    /// 방향 변환 -> 방향과 스케일
+    /// 동차좌표에서 (x, y, z, 0) 을 곱함
+    /// </summary>
+    /// <param name="v"></param>
+    /// <param name="m"></param>
+    /// <returns></returns>
+    public static Vec3 MulVector(Vec3 v, Mat4 m)
+    {
+        return new Vec3(
+            m.m00 * v.x + m.m01 * v.y + m.m02*v.z,
+            m.m10 * v.x + m.m11 * v.y + m.m12 * v.z,
+            m.m20 * v.x + m.m21 * v.y + m.m22 * v.z
+        );
+    }
     /// <summary>
     /// 위치 변환
     /// </summary>
@@ -242,16 +376,82 @@ public static class MatrixUtility
         return Matrix;
     }
 
+    /// <summary>
+    /// TR 역행렬
+    /// </summary>
+    /// <returns></returns>
+    public static Mat4 InverseTR(Mat4 m)
+    {
+        // 1. R 추출
+        // (row-major 기준)
+        float r00 = m.m00, r01 = m.m01, r02 = m.m02;
+        float r10 = m.m10, r11 = m.m11, r12 = m.m12;
+        float r20 = m.m20, r21 = m.m21, r22 = m.m22;
+
+        // 2. R^T (전치)
+        float t00 = r00, t01 = r10, t02 = r20;
+        float t10 = r01, t11 = r11, t12 = r21;
+        float t20 = r02, t21 = r12, t22 = r22;
+
+        // 3. translation
+        Vec3 t = new Vec3(m.m03, m.m13, m.m23);
+
+        // 4. -R^T * t
+        Vec3 invT = new Vec3(
+            -(t00 * t.x + t01 * t.y + t02 * t.z),
+            -(t10 * t.x + t11 * t.y + t12 * t.z),
+            -(t20 * t.x + t21 * t.y + t22 * t.z)
+        );
+
+        // 5. 역행렬 구성
+        return new Mat4(
+            t00, t01, t02, invT.x,
+            t10, t11, t12, invT.y,
+            t20, t21, t22, invT.z,
+            0, 0, 0, 1
+        );
+    }
+
+    /// <summary>
+    /// 위치 변환
+    /// </summary>
+    /// <param name="t"></param>
+    /// <returns></returns>
+    public static Mat4 Translate(Vec3 t)
+    {
+        Mat4 Matrix = new Mat4();
+        Matrix.m00 = 1; Matrix.m01 = 0; Matrix.m02 = 0; Matrix.m03 = t.x;
+        Matrix.m10 = 0; Matrix.m11 = 1; Matrix.m12 = 0; Matrix.m13 = t.y;
+        Matrix.m20 = 0; Matrix.m21 = 0; Matrix.m22 = 1; Matrix.m23 = t.z;
+        Matrix.m30 = 0; Matrix.m31 = 0; Matrix.m32 = 0; Matrix.m33 = 1;
+        return Matrix;
+    }
+   
+    /// <summary>
+    /// 크기 변환
+    /// </summary>
+    /// <param name="s"></param>
+    /// <returns></returns>
+    public static Mat4 Scale(Vec3 s)
+    {
+        Mat4 Matrix = new Mat4(s.x, 0, 0,0,
+            0, s.y, 0,0,
+            0,0, s.z, 0,
+            0, 0, 0,1);
+        return Matrix;
+    }
+
     public static Mat3 TRS(Transform2D trans)
     {
         return Translate(trans.position)*Rotate(trans.rotation)*Scale(trans.scale);
     }
+  
     public static Mat3 InverseTRS(Vec2 pos, float rot, Vec2 scale)
-{
-    Mat3 invScale = Scale(new Vec2(1 / scale.x, 1 / scale.y));
-    Mat3 invRot = Rotate(-rot);
-    Mat3 invTrans = Translate(pos*(-1));
+    {
+        Mat3 invScale = Scale(new Vec2(1 / scale.x, 1 / scale.y));
+        Mat3 invRot = Rotate(-rot);
+        Mat3 invTrans = Translate(pos*(-1));
 
-    return invScale * invRot * invTrans;
-}
+        return invScale * invRot * invTrans;
+    }
 }
