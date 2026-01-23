@@ -2,7 +2,21 @@ public class TransformUtility
 {
     
 }
+public class Transform
+{
+    public Vec3 position;
+    public Mat3 rotation;
+    public Vec3 scale;
 
+    public Mat3 LocalToWorld;
+    public Mat3 WorldToLocal;
+
+    public void UpdateMatrices()
+    {
+        LocalToWorld = MatrixUtility.TRS(position, rotation, scale);
+        WorldToLocal = MatrixUtility.Inv(LocalToWorld);
+    }
+}
 public class Transform2D
 {
     public Vec2 position;
