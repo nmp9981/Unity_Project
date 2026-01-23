@@ -1,5 +1,3 @@
-using System;
-
 public class Box2DRayCast : CustomCollider2D
 {
     Vec2 position;        // world, OBB중심의 월드 좌표
@@ -60,9 +58,9 @@ public class Box2DRayCast : CustomCollider2D
             Vec2 axisEnterNormal = VectorMathUtils.ZeroVector2D();//현재 축 slab에 진입하는 면의 로컬 normal
             Vec2 axisExitNormal = VectorMathUtils.ZeroVector2D();//현재 축 slab에서 빠져나가는 면의 로컬 normal
 
-            axisEnterNormal.Array[axis] = (t1 < t2) ? -1 : 1;
+            axisEnterNormal.Array[axis] = (dir > 0) ? -1 : 1;
             axisExitNormal.Array[axis] = -axisEnterNormal.Array[axis];
-
+            
             if (enter > tMin)
             {
                 tMin = enter;
@@ -75,13 +73,6 @@ public class Box2DRayCast : CustomCollider2D
                 exitNormalLocal = axisExitNormal;
             }
 
-            //Ray 전체가 Box 뒤쪽에 있는 경우 제거
-            if (tMax < 0.0f)
-            {
-                hit = default;
-                return false;
-            }
-
             //겹치는 지점 없음
             if (tMin > tMax)
             {
@@ -90,9 +81,23 @@ public class Box2DRayCast : CustomCollider2D
             }
         }
 
+        //Ray 전체가 Box 뒤쪽에 있는 경우 제거
+        if (tMax < 0.0f)
+        {
+            hit = default;
+            return false;
+        }
+
         //최종 Hit 결정
         bool inside = (tMin < 0.0f);
         hit.t = inside ? tMax : tMin;//실제 충돌 지점의 Ray parameter
+        //Raycast 최대 거리 밖에서 맞은 경우
+        if (hit.t < 0.0f || hit.t > maxT)
+        {
+            hit = default;
+            return false;
+        }
+
         hit.normal = Vec2.Rotation((inside ? exitNormalLocal : enterNormalLocal),angle); //월드 좌표로 변환해야함, Box면의 월드공간 법선
         hit.normal = hit.normal.Normalized;
         hit.position = ray.origin + hit.t * ray.dir;//월드 좌표 충돌 지점
