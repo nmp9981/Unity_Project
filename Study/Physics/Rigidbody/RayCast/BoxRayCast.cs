@@ -1,23 +1,24 @@
 public class BoxRayCast : CustomCollider3D
 {
-    Vec3 position;        // world, OBB중심의 월드 좌표
-    Mat3 rotation;        // world (orthonormal), Box의 로컬 축 → 월드 축 변환 행렬
-    Vec3 halfExtent;      // local, Box의 로컬 좌표계에서 각 축 방향으로의 반길이
+    public Vec3 halfExtent;        // 🔥 Box의 로컬 반길이
 
     /// <summary>
     /// Box Raycast
     /// normal은 오직 tMin이 갱신될 때만 바뀐다
     /// </summary>
     /// <param name="ray"></param>
-    /// <param name="maxT"></param>
-    /// <param name="hit"></param>
+    /// <param name="maxT">최대 거리</param>
+    /// <param name="hit">부딪힌 물체</param>
     /// <returns></returns>
     public override bool RayCast(Ray3D ray, float maxT, out RaycastHit3D hit)
     {
+        //최신화
+        transform3D.UpdateMatrices();
+
         // 1. localRay : Box의 로컬 좌표계에서 본 Ray 정보
         Ray3D localRay;
-        localRay.origin = rotation.Transpose() * (ray.origin - position);//점 변환, ray 시작점
-        localRay.dir = rotation.Transpose() * ray.dir;//벡터 변환
+        localRay.origin = MatrixUtility.MulPoint(ray.origin, transform3D.LocalToWorld);
+        localRay.dir = MatrixUtility.MulVector(ray.dir, transform3D.WorldToLocal);
 
         // 2. slab test using halfExtent
         // P(t) = origin + t * dir
@@ -91,7 +92,9 @@ public class BoxRayCast : CustomCollider3D
         //최종 Hit 결정
         bool inside = (tMin < 0.0f);
         hit.t = inside ? tMax : tMin;//실제 충돌 지점의 Ray parameter
-        hit.normal = rotation * (inside ? exitNormalLocal : enterNormalLocal); //월드 좌표로 변환해야함, Box면의 월드공간 법선
+        Vec3 localNormal = inside ? exitNormalLocal : enterNormalLocal;
+
+        hit.normal = MatrixUtility.MulVector(localNormal, transform3D.LocalToWorld);
         hit.normal = hit.normal.Normalized;
         hit.position = ray.origin + hit.t * ray.dir;//월드 좌표 충돌 지점
         hit.collider = this;//충돌한 collider (this)
