@@ -31,6 +31,10 @@ public struct Mat3
        => new Mat3(a* b.m00, a* b.m01, a*b.m02,
            a*b.m10, a* b.m11, a*b.m12,
            a* b.m20, a* b.m21, a*b.m22);
+    public static Vec3 operator *(Mat3 a, Vec3 b)
+       => new Vec3(a.m00 * b.x+ a.m01 * b.y+ a.m02 * b.z,
+           a.m10 * b.x+ a.m11 * b.y+ a.m12 * b.z,
+           a.m20 * b.x+ a.m21 * b.y+ a.m22 * b.z);
     public static Mat3 operator *(Mat3 a, Mat3 b)
        => new Mat3(a.m00 * b.m00 + a.m01*b.m10+a.m02*b.m20, a.m00 * b.m01 + a.m01 * b.m11 + a.m02 * b.m21, a.m00 * b.m02 + a.m01 * b.m12 + a.m02 * b.m22,
            a.m10 * b.m00 + a.m11 * b.m10 + a.m12 * b.m20, a.m10 * b.m01 + a.m11 * b.m11 + a.m12 * b.m21, a.m10 * b.m02 + a.m11 * b.m12 + a.m12 * b.m22,
@@ -63,6 +67,13 @@ public struct Mat3
             m10 = 0,m11 = 0,m12 = 0,
             m20 = 0,m21 = 0,m22 = 0
         };
+
+    //전치행렬
+    public static Mat3 Transpose(Mat3 a)
+    {
+        Mat3 transMat = new Mat3(a.m00,a.m10,a.m20,a.m01,a.m11,a.m21,a.m02,a.m12,a.m22);
+        return transMat;
+    }
 }
 
 /// <summary>
@@ -168,6 +179,13 @@ public struct Mat4
             m32 = 0,
             m33 = 0
         };
+    //전치행렬
+    public static Mat4 Transpose(Mat4 a)
+    {
+        Mat4 transMat = new Mat4(a.m00, a.m10, a.m20, a.m30,a.m01, a.m11, a.m21,a.m31, 
+            a.m02, a.m12, a.m22,a.m32, a.m03, a.m13, a.m23, a.m33);
+        return transMat;
+    }
 }
 
 public static class MatrixUtility
@@ -375,41 +393,49 @@ public static class MatrixUtility
             0,0,1);
         return Matrix;
     }
-
     /// <summary>
-    /// TR 역행렬
+    /// TR Matrix
     /// </summary>
+    /// <param name="position"></param>
+    /// <param name="rotation"></param>
     /// <returns></returns>
-    public static Mat4 InverseTR(Mat4 m)
+    public static Mat4 TR(Vec3 position, Mat3 rotation)
     {
-        // 1. R 추출
-        // (row-major 기준)
-        float r00 = m.m00, r01 = m.m01, r02 = m.m02;
-        float r10 = m.m10, r11 = m.m11, r12 = m.m12;
-        float r20 = m.m20, r21 = m.m21, r22 = m.m22;
+        Mat4 m = Mat4.I();
 
-        // 2. R^T (전치)
-        float t00 = r00, t01 = r10, t02 = r20;
-        float t10 = r01, t11 = r11, t12 = r21;
-        float t20 = r02, t21 = r12, t22 = r22;
+        m.m00 = rotation.m00; m.m01 = rotation.m01; m.m02 = rotation.m02;
+        m.m10 = rotation.m10; m.m11 = rotation.m11; m.m12 = rotation.m12;
+        m.m20 = rotation.m20; m.m21 = rotation.m21; m.m22 = rotation.m22;
 
-        // 3. translation
-        Vec3 t = new Vec3(m.m03, m.m13, m.m23);
+        m.m03 = position.x;
+        m.m13 = position.y;
+        m.m23 = position.z;
 
-        // 4. -R^T * t
-        Vec3 invT = new Vec3(
-            -(t00 * t.x + t01 * t.y + t02 * t.z),
-            -(t10 * t.x + t11 * t.y + t12 * t.z),
-            -(t20 * t.x + t21 * t.y + t22 * t.z)
-        );
+        return m;
+    }
+    /// <summary>
+    /// TR역행렬
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="rotation"></param>
+    /// <returns></returns>
+    public static Mat4 InverseTR(Vec3 position, Mat3 rotation)
+    {
+        // R^-1 = R^T
+        Mat3 rT = Mat3.Transpose(rotation);
+        Vec3 t = (-1f)*(rT * position);
 
-        // 5. 역행렬 구성
-        return new Mat4(
-            t00, t01, t02, invT.x,
-            t10, t11, t12, invT.y,
-            t20, t21, t22, invT.z,
-            0, 0, 0, 1
-        );
+        Mat4 m = Mat4.I();
+
+        m.m00 = rT.m00; m.m01 = rT.m01; m.m02 = rT.m02;
+        m.m10 = rT.m10; m.m11 = rT.m11; m.m12 = rT.m12;
+        m.m20 = rT.m20; m.m21 = rT.m21; m.m22 = rT.m22;
+
+        m.m03 = t.x;
+        m.m13 = t.y;
+        m.m23 = t.z;
+
+        return m;
     }
 
     /// <summary>
@@ -453,5 +479,23 @@ public static class MatrixUtility
         Mat3 invTrans = Translate(pos*(-1));
 
         return invScale * invRot * invTrans;
+    }
+    public static Mat3 FromQuaternion(CustomQuaternion q)
+    {
+        float xx = q.vec.x * q.vec.x;
+        float yy = q.vec.y * q.vec.y;
+        float zz = q.vec.z * q.vec.z;
+        float xy = q.vec.x * q.vec.y;
+        float xz = q.vec.x * q.vec.z;
+        float yz = q.vec.y * q.vec.z;
+        float wx = q.scala * q.vec.x;
+        float wy = q.scala * q.vec.y;
+        float wz = q.scala * q.vec.z;
+
+        return new Mat3(
+            1f - 2f * (yy + zz), 2f * (xy - wz), 2f * (xz + wy),
+            2f * (xy + wz), 1f - 2f * (xx + zz), 2f * (yz - wx),
+            2f * (xz - wy), 2f * (yz + wx), 1f - 2f * (xx + yy)
+        );
     }
 }
