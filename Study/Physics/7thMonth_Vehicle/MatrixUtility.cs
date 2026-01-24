@@ -233,6 +233,26 @@ public static class MatrixUtility
         return newArray;
     }
 
+    /// <summary>
+    /// 역행렬, 회전행렬 전용
+    /// R^-1 = R^t
+    /// </summary>
+    /// <param name="a"></param>
+    /// <returns></returns>
+    public static Mat3 Transpose(Mat3 a)
+    {
+        Mat3 invMat3 = new Mat3();
+        invMat3.m00 = a.m00;
+        invMat3.m01 = a.m10;
+        invMat3.m02 = a.m20;
+        invMat3.m10 = a.m01;
+        invMat3.m11 = a.m11;
+        invMat3.m12 = a.m21;
+        invMat3.m20 = a.m02;
+        invMat3.m21 = a.m12;
+        invMat3.m22 = a.m22;
+        return invMat3;
+    }
 
     /// <summary>
     /// 역행렬
