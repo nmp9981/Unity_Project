@@ -223,39 +223,39 @@ public class PhysicsWorld : MonoBehaviour
             rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
         }
     }
-    /// <summary>
-    /// RayCast 3D
-    /// </summary>
-    /// <param name="ray"></param>
-    /// <param name="maxDistance"></param>
-    /// <param name="hit"></param>
-    /// <param name="layerMask"></param>
-    /// <returns></returns>
-    public bool Raycast(Ray3D ray,float maxDistance,out RaycastHit3D hit,int layerMask = ~0)
-    {
-        bool hasHit = false;
-        float bestT = maxDistance;
-        RaycastHit3D bestHit = default;
+   /// <summary>
+ /// RayCast 3D
+ /// </summary>
+ /// <param name="ray"></param>
+ /// <param name="maxDistance"></param>
+ /// <param name="hit"></param>
+ /// <param name="layerMask"></param>
+ /// <returns></returns>
+ public bool Raycast(Ray3D ray,float maxDistance,out RaycastHit3D finalHit,int layerMask = ~0)
+ {
+     finalHit = default;
+     float minT = float.MaxValue;
+     bool hasHit = false;
 
-        foreach (var col in colliders3D)
-        {
-            if (((1 << col.layer) & layerMask) == 0)
-                continue;
+     float bestT = maxDistance;
+     foreach (var collider in colliders3D)
+     {
+         if (((1 << collider.layer) & layerMask) == 0)
+             continue;
 
-            if (col.RayCast(ray, bestT, out RaycastHit3D tempHit))
-            {
-                if (tempHit.t < bestT)
-                {
-                    bestT = tempHit.t;
-                    bestHit = tempHit;
-                    hasHit = true;
-                }
-            }
-        }
+         if (!collider.RayCast(ray,bestT, out RaycastHit3D hit))
+             continue;
 
-        hit = bestHit;
-        return hasHit;
-    }
+         if (hit.t < minT)
+         {
+             minT = hit.t;
+             finalHit = hit;
+             hasHit = true;
+         }
+     }
+   
+     return hasHit;
+ }
     /// <summary>
     /// 조건 만족하는 object전부 소환
     /// </summary>
