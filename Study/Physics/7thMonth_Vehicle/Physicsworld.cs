@@ -240,6 +240,11 @@ public class PhysicsWorld : MonoBehaviour
      float bestT = maxDistance;
      foreach (var collider in colliders3D)
      {
+      //broadCast
+ if (!collider.RaycastAABB(ray, collider.minPosition(), collider.maxPosition(), maxDistance, out _))
+     continue;
+
+ //NarrowCast
          if (((1 << collider.layer) & layerMask) == 0)
              continue;
 
@@ -270,6 +275,11 @@ public class PhysicsWorld : MonoBehaviour
 
         foreach (var col in colliders3D)
         {
+         //broadCast
+if (!col.RaycastAABB(ray, col.minPosition(), col.maxPosition(), maxDistance, out _))
+    continue;
+
+//NarrowCast
             if (((1 << col.layer) & layerMask) == 0)
                 continue;
 
