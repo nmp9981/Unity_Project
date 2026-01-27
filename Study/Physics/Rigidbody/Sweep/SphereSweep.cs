@@ -159,4 +159,45 @@ public class SphereSweep
 
         return true;
     }
+    /// <summary>
+/// 구와 OBB충돌 검사
+/// </summary>
+/// <param name="s"></param>
+/// <param name="obb"></param>
+/// <param name="dir"></param>
+/// <param name="maxT"></param>
+/// <param name="hit"></param>
+/// <returns></returns>
+public static bool SweepSphereOBB(SphereCollider s,CustomCollider3D obb,Vec3 dir,float maxT,out SweepHit hit)
+{
+    //world -> OBB Local
+    Mat3 R = obb.transform3D.rotation;//회전 행렬
+    Mat3 invR = MatrixUtility.Transpose(R);//전치(역)행렬
+
+    Vec3 sCenter = new Vec3(s.center.x, s.center.y, s.center.z);
+    float sRadius = s.radius;
+
+    Vec3 localCenter = invR*(sCenter-obb.CenterPosition());//로컬 중심 좌표
+    Vec3 localDir = invR* dir;//로컬 방향
+
+    //Local AABB 정의, 확장
+    Vec3 min = (-1f)*obb.size/2 - VectorMathUtils.OneVector3D() * s.radius;
+    Vec3 max = obb.size/2 + VectorMathUtils.OneVector3D() * s.radius;
+
+    //Ray vs AABB
+    float t;
+    Vec3 localNormal;
+    hit = default;
+    if (!ColiisionUtility.RayAABB3D(localCenter, localDir, min, max, maxT, out t, out localNormal))
+        return false;
+
+    //결과 복원(Local->world)
+    Vec3 worldNormal = R * localNormal;
+
+    hit.t = t;
+    hit.normal = worldNormal;
+    hit.point = sCenter + dir * t - worldNormal * sRadius;
+    
+    return true;
+}
 }
