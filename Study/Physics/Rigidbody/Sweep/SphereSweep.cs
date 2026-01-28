@@ -1,7 +1,11 @@
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class SphereSweep
 {
+    BoxRayCast boxRayCast;
     /// <summary>
     /// 구와 평면 충돌
     /// </summary>
@@ -101,7 +105,7 @@ public class SphereSweep
     /// <param name="maxT"></param>
     /// <param name="hit"></param>
     /// <returns></returns>
-    bool SweepSphereBox(SphereCollider s,CustomCollider3D b,Vec3 d,float maxT,out SweepHit hit)
+    public static bool SweepSphereBox(SphereCollider s,CustomCollider3D b,Vec3 d,float maxT,out SweepHit hit)
     {
         hit = default;
 
@@ -116,8 +120,8 @@ public class SphereSweep
         //각 축별로 계산
         for (int axis = 0; axis < 3; axis++)
         {
-            float p = s.center[axis];
-            float v = d.Array[axis];
+            float p = s.center[axis];//각 축 point
+            float v = d.Array[axis];//각 축별 방향
 
             if (Mathf.Abs(v) < MathUtility.EPSILON)
             {
@@ -159,45 +163,157 @@ public class SphereSweep
 
         return true;
     }
+
     /// <summary>
-/// 구와 OBB충돌 검사
-/// </summary>
-/// <param name="s"></param>
-/// <param name="obb"></param>
-/// <param name="dir"></param>
-/// <param name="maxT"></param>
-/// <param name="hit"></param>
-/// <returns></returns>
-public static bool SweepSphereOBB(SphereCollider s,CustomCollider3D obb,Vec3 dir,float maxT,out SweepHit hit)
-{
-    //world -> OBB Local
-    Mat3 R = obb.transform3D.rotation;//회전 행렬
-    Mat3 invR = MatrixUtility.Transpose(R);//전치(역)행렬
+    /// 구와 OBB충돌 검사
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="obb"></param>
+    /// <param name="dir"></param>
+    /// <param name="maxT"></param>
+    /// <param name="hit"></param>
+    /// <returns></returns>
+    public static bool SweepSphereOBB(SphereCollider s,CustomCollider3D obb,Vec3 dir,float maxT,out SweepHit hit)
+    {
+        //world -> OBB Local
+        Mat3 R = obb.transform3D.rotation;//회전 행렬
+        Mat3 invR = MatrixUtility.Transpose(R);//전치(역)행렬
 
-    Vec3 sCenter = new Vec3(s.center.x, s.center.y, s.center.z);
-    float sRadius = s.radius;
+        Vec3 sCenter = new Vec3(s.center.x, s.center.y, s.center.z);
+        float sRadius = s.radius;
 
-    Vec3 localCenter = invR*(sCenter-obb.CenterPosition());//로컬 중심 좌표
-    Vec3 localDir = invR* dir;//로컬 방향
+        Vec3 localCenter = invR*(sCenter-obb.CenterPosition());//로컬 중심 좌표
+        Vec3 localDir = invR* dir;//로컬 방향
 
-    //Local AABB 정의, 확장
-    Vec3 min = (-1f)*obb.size/2 - VectorMathUtils.OneVector3D() * s.radius;
-    Vec3 max = obb.size/2 + VectorMathUtils.OneVector3D() * s.radius;
+        //Local AABB 정의, 확장
+        Vec3 min = (-1f)*obb.size/2 - VectorMathUtils.OneVector3D() * s.radius;
+        Vec3 max = obb.size/2 + VectorMathUtils.OneVector3D() * s.radius;
 
-    //Ray vs AABB
-    float t;
-    Vec3 localNormal;
-    hit = default;
-    if (!ColiisionUtility.RayAABB3D(localCenter, localDir, min, max, maxT, out t, out localNormal))
-        return false;
+        //Ray vs AABB
+        float t;
+        Vec3 localNormal;
+        hit = default;
+        if (!ColiisionUtility.RayAABB3D(localCenter, localDir, min, max, maxT, out t, out localNormal))
+            return false;
 
-    //결과 복원(Local->world)
-    Vec3 worldNormal = R * localNormal;
+        //결과 복원(Local->world)
+        Vec3 worldNormal = R * localNormal;
 
-    hit.t = t;
-    hit.normal = worldNormal;
-    hit.point = sCenter + dir * t - worldNormal * sRadius;
-    
-    return true;
-}
+        hit.t = t;
+        hit.normal = worldNormal;
+        hit.point = sCenter + dir * t - worldNormal * sRadius;
+        
+        return true;
+    }
+    /// <summary>
+    /// 캡슐과 평면의 충돌
+    /// </summary>
+    /// <param name="A"></param>
+    /// <param name="B"></param>
+    /// <param name="r"></param>
+    /// <param name="v"></param>
+    /// <param name="plane"></param>
+    /// <param name="maxT"></param>
+    /// <param name="tHit"></param>
+    /// <param name="normal"></param>
+    /// <returns></returns>
+    public static bool SweepCapsulePlane(Vec3 A, Vec3 B, float r,Vec3 v, Plane plane, float maxT, out float tHit,out Vec3 normal)
+    {
+        tHit = maxT;
+        normal = plane.normal;
+
+        float dA = Vec3.Dot(plane.normal, A) - plane.d;//점 A거리
+        float dB = Vec3.Dot(plane.normal, B) - plane.d;//점 B거리
+        float vN = Vec3.Dot(plane.normal, v);//캡슐 속도 방향
+
+        //멀어짐
+        if (vN >= 0.0f)
+            return false;
+
+        bool hit = false;
+
+        float tA = (r - dA) / vN;
+        if(tA>=0 && tA <= tHit)//점A에 부딪힘
+        {
+            tHit = tA;
+            hit = true;
+        }
+        float tB = (r - dB) / vN;
+        if (tB >= 0 && tB <= tHit)//점B에 부딪힘
+        {
+            tHit = tB;
+            hit = true;
+        }
+        return hit;
+    }
+    /// <summary>
+    /// 캡슐 충돌
+    /// </summary>
+    /// <param name="A"></param>
+    /// <param name="B"></param>
+    /// <param name="r"></param>
+    /// <param name="v"></param>
+    /// <param name="plane"></param>
+    /// <param name="maxT"></param>
+    /// <param name="tHit"></param>
+    /// <param name="normal"></param>
+    /// <returns></returns>
+    public static bool SweepCapsuleSphere(Capsule capsule, Vec3 capsuleVel, Sphere sphere, Vec3 sphereVel, float maxT, out SweepHit hit)
+    {
+        hit = default;
+
+        
+
+        return true;
+    }
+    /// <summary>
+    /// 구 vs 기둥
+    /// </summary>
+    /// <param name="capsule"></param>
+    /// <param name="sphereCenter"></param>
+    /// <param name="relVel"></param>
+    /// <param name="radius"></param>
+    /// <param name="maxT"></param>
+    /// <param name="t"></param>
+    /// <param name="normal"></param>
+    /// <returns></returns>
+    public static bool SweepSphereCapsuleSide(Capsule capsule,Vec3 sphereCenter,Vec3 relVel,float radius,float maxT,out float t,out Vec3 normal)
+    {
+        t = 0;
+        normal = VectorMathUtils.ZeroVector3D();
+
+        //축 정의
+        Vec3 d = capsule.b - capsule.a;//실제 거리
+        float len = d.Magnitude;//거리
+        Vec3 axis = d / len;//축
+
+        //상대 위치를 축에 분해
+        Vec3 m = sphereCenter - capsule.a;
+        Vec3 mPerp = m - axis * Vec3.Dot(m, axis);
+        Vec3 vPerp = relVel - axis * Vec3.Dot(relVel, axis);
+
+        //원기둥 충돌 방정식
+        float a = Vec3.Dot(vPerp, vPerp);
+        float b = 2 * Vec3.Dot(mPerp, vPerp);
+        float c = Vec3.Dot(mPerp, mPerp) - radius * radius;
+
+        //방정식 풀이
+        float hitT = (t0 >= 0) ? t0 : t1;
+        //해 범위를 벗어남
+        if (hitT < 0 || hitT > maxT) return false; 
+
+        //선분 범위 체크
+        float s = Vec3.Dot(axis, m+hitT*relVel);
+        //선분 범위를 벗어남
+        if (s < 0 || s > len) return false;
+
+        t = hitT;
+
+        //충돌체 정보
+        Vec3 hitCenter = sphereCenter + t * relVel;
+        Vec3 closest = capsule.a + s * axis;
+        normal = (hitCenter - closest).Normalized;
+
+        return true;
+    }
 }
