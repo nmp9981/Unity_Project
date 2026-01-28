@@ -11,9 +11,17 @@ public struct Plane
 /// </summary>
 public struct Capsule
 {
-    Vec3 a;//Start Point
-    Vec3 b;//End Point
-    float r;//Raduis
+    public Vec3 a;//Start Point
+    public Vec3 b;//End Point
+    public float r;//Raduis
+}
+/// <summary>
+/// Shpere Info
+/// </summary>
+public struct Sphere
+{
+    public Vec3 center;
+    public float radius;
 }
 /// <summary>
 /// 공용 수식/헬퍼
