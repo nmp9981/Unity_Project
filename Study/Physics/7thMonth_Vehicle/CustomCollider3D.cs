@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class CustomCollider3D : MonoBehaviour
@@ -87,54 +88,63 @@ public abstract class CustomCollider3D : MonoBehaviour
         float zMax = transform.position.z + size.z * 0.5f;
         return new Vec3(xMax, yMax,zMax);
     }
-/// <summary>
-/// Narraw Coliider 판정
-/// 대략적인 충돌 범위내에 들어가는지 판정
-/// </summary>
-/// <param name="ray"></param>
-/// <param name="min"></param>
-/// <param name="max"></param>
-/// <param name="maxT"></param>
-/// <param name="tEnter"></param>
-/// <returns></returns>
-public bool RaycastAABB(Ray3D ray,Vec3 min,Vec3 max,float maxT,out float tEnter)
-{
-    tEnter = 0.0f;
-    float tExit = maxT;
-
-    for (int i = 0; i < 3; i++)
+    /// <summary>
+    /// Narraw Coliider 판정
+    /// 대략적인 충돌 범위내에 들어가는지 판정
+    /// </summary>
+    /// <param name="ray"></param>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <param name="maxT"></param>
+    /// <param name="tEnter"></param>
+    /// <returns></returns>
+    public bool RaycastAABB(Ray3D ray,Vec3 min,Vec3 max,float maxT,out float tEnter, out Vec3 normal)
     {
-        float origin = ray.origin.Array[i];
-        float dir = ray.dir.Array[i];
+        tEnter = 0.0f;
+        float tExit = maxT;
+        normal = VectorMathUtils.ZeroVector3D();
 
-        if (Math.Abs(dir) < MathUtility.EPSILON)
+        for (int i = 0; i < 3; i++)
         {
-            // Ray가 slab과 평행
-            if (origin < min.Array[i] || origin > max.Array[i])
-                return false;
-        }
-        else
-        {
-            float invD = 1.0f / dir;
-            float t1 = (min.Array[i] - origin) * invD;
-            float t2 = (max.Array[i] - origin) * invD;
+            float origin = ray.origin.Array[i];
+            float dir = ray.dir.Array[i];
 
-            if (t1 > t2)
+            if (MathUtility.Abs(dir) < MathUtility.EPSILON)
             {
-                float tmp = t1;
-                t1 = t2;
-                t2 = tmp;
+                // Ray가 slab과 평행
+                if (origin < min.Array[i] || origin > max.Array[i])
+                    return false;
             }
+            else
+            {
+                float invD = 1.0f / dir;
+                float t1 = (min.Array[i] - origin) * invD;
+                float t2 = (max.Array[i] - origin) * invD;
 
-            tEnter = Math.Max(tEnter, t1);
-            tExit = Math.Min(tExit, t2);
+                //진입점, 탈출점
+                float enter = MathUtility.Min(t1, t2);
+                float exit = MathUtility.Max(t1, t2);
 
-            if (tEnter > tExit)
-                return false;
+                // 들어오는 면 normal
+                Vec3 axisNormal = VectorMathUtils.ZeroVector3D();
+                axisNormal.Array[i] = (t1 < t2) ? -1.0f : 1.0f;
+
+                if (enter > tEnter)
+                {
+                    tEnter = enter;
+                    normal = axisNormal;
+                }
+
+                tExit = MathUtility.Min(tExit, exit);
+
+                //충돌 X
+                if (tEnter > tExit)
+                    return false;
+            }
         }
+        return true;
     }
-    return true;
-}
 
     public abstract bool RayCast(Ray3D ray, float maxT, out RaycastHit3D hit);
+
 }
