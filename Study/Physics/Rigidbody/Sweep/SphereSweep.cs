@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 using UnityEngine.Rendering;
@@ -262,8 +263,53 @@ public class SphereSweep
     {
         hit = default;
 
-        
+        Vec3 relVel = sphereVel - capsuleVel;
+        float R = capsule.r + sphere.radius;
 
+        bool hasHit = false;
+        float bestT = maxT;
+        Vec3 bestNormal = VectorMathUtils.ZeroVector3D();
+
+        // 1️⃣ Sphere vs Capsule A
+        if (SweepSpherePoint(sphere.center, relVel, capsule.a, R, maxT, out float tA, out Vec3 nA))
+        {
+            if (tA < bestT)
+            {
+                bestT = tA;
+                bestNormal = nA;
+                hasHit = true;
+            }
+        }
+
+        // 2️⃣ Sphere vs Capsule B
+        if (SweepSpherePoint(sphere.center, relVel, capsule.b, R, maxT, out float tB, out Vec3 nB))
+        {
+            if (tB < bestT)
+            {
+                bestT = tB;
+                bestNormal = nB;
+                hasHit = true;
+            }
+        }
+
+        // 3️⃣ Sphere vs Capsule Side (Infinite Cylinder)
+        if (SweepSphereCapsuleSide(capsule, sphere.center, relVel, R, maxT, out float tSide, out Vec3 nSide))
+        {
+            if (tSide < bestT)
+            {
+                bestT = tSide;
+                bestNormal = nSide;
+                hasHit = true;
+            }
+        }
+
+        if (!hasHit)
+            return false;
+
+        //충돌체 정보
+        hit.t = bestT;
+        hit.normal = bestNormal.Normalized;
+        hit.point = sphere.center + bestT * sphereVel - hit.normal * sphere.radius;
         return true;
     }
     /// <summary>
@@ -298,6 +344,8 @@ public class SphereSweep
         float c = Vec3.Dot(mPerp, mPerp) - radius * radius;
 
         //방정식 풀이
+        if (!MathUtility.SolveEquation2(a, b, c, out float t0, out float t1))
+            return false;
         float hitT = (t0 >= 0) ? t0 : t1;
         //해 범위를 벗어남
         if (hitT < 0 || hitT > maxT) return false; 
@@ -313,6 +361,43 @@ public class SphereSweep
         Vec3 hitCenter = sphereCenter + t * relVel;
         Vec3 closest = capsule.a + s * axis;
         normal = (hitCenter - closest).Normalized;
+
+        return true;
+    }
+    /// <summary>
+    /// 끝구
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="vel"></param>
+    /// <param name="point"></param>
+    /// <param name="radius"></param>
+    /// <param name="maxT"></param>
+    /// <param name="t"></param>
+    /// <param name="normal"></param>
+    /// <returns></returns>
+    public static bool SweepSpherePoint(Vec3 center,Vec3 vel,Vec3 point,float radius,float maxT,out float t,out Vec3 normal)
+    {
+        t = 0;
+        normal = VectorMathUtils.ZeroVector3D();
+
+        Vec3 m = center - point;
+
+        //구 방정식
+        float a = Vec3.Dot(vel, vel);
+        float b = 2 * Vec3.Dot(vel, m);
+        float c = Vec3.Dot(m, m) - radius * radius;
+
+        //방정식 풀이
+        if (!MathUtility.SolveEquation2(a, b, c, out float t0, out float t1))
+            return false;
+        float hitT = (t0 >= 0) ? t0 : t1;
+        //해 범위를 벗어남
+        if (hitT < 0 || hitT > maxT) return false;
+
+        t = hitT;
+        //충돌체 정보
+        Vec3 hitPos = center + t * vel;
+        normal = (hitPos-point).Normalized;
 
         return true;
     }
