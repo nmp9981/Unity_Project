@@ -1,11 +1,32 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.ShaderData;
 
 public struct RigidbodyState
 {
     public Vec3 position;
     public Vec3 velocity;
     public Vec3 accel;
+}
+
+/// <summary>
+/// Ray 구조체
+/// </summary>
+public struct Ray3D
+{
+    public Vec3 origin;
+    public Vec3 dir;   // 반드시 normalize
+}
+
+/// <summary>
+/// RayCast 구조체
+/// </summary>
+public struct RaycastHit3D
+{
+    public float t;                // ray parameter
+    public Vec3 position;          // O + tD
+    public Vec3 normal;            // constraint normal
+    public CustomCollider3D collider;
 }
 
 public class CustomRigidBody : MonoBehaviour
@@ -21,6 +42,7 @@ public class CustomRigidBody : MonoBehaviour
     //질량 관련
     public float massValue;
     public Mass mass = new Mass();//질량
+    public Mat3 invInertiaWorld;
     public Vec3 localCenterOfMass = VectorMathUtils.ZeroVector3D();
     public Vec3 WorldCenterOfMass
     {
@@ -29,6 +51,9 @@ public class CustomRigidBody : MonoBehaviour
             return position + LocalToWorldDirection(localCenterOfMass);
         }
     }
+
+    //위치 객체 : 물리 바디의 월드 상태
+    public Transform3D transform3D;
 
     // 상태는 position만 관리
     public Vec3 position;//위치
@@ -53,6 +78,9 @@ public class CustomRigidBody : MonoBehaviour
     public bool hasGroundContact;      // 이번 프레임에 지면 접촉이 있었는가?
     public Vec3 groundNormal = new Vec3(0,0,0);          // 가장 신뢰할 수 있는 접촉 normal
 
+    //시간 스텝
+    public float timeStep;
+
     //외력 여부
     public bool hasExternalForce;
 
@@ -70,6 +98,9 @@ public class CustomRigidBody : MonoBehaviour
     //관성 모먼트
     public float inertia;
     public float invInertia;
+
+    //충돌 리스트
+    public List<CustomCollider3D> collider3DList = new();
 
     [Header("Force")]
     public Vec3 externalForce = VectorMathUtils.ZeroVector3D();//외력
@@ -244,6 +275,30 @@ public class CustomRigidBody : MonoBehaviour
     {
         accumulatedForce += f;
     }
+    /// <summary>
+    /// 한점에서의 속도
+    /// </summary>
+    /// <param name="worldPoint"></param>
+    /// <returns></returns>
+    public Vec3 GetVelocityAtPoint(Vec3 worldPoint) {
+        Vec3 r = worldPoint - transform3D.position;
+        return velocity + Vec3.Cross(angularVelocity, r);
+    }
+    /// <summary>
+    /// 한 점에서 힘 주기
+    /// </summary>
+    /// <param name="force"></param>
+    /// <param name="worldPoint"></param>
+    public void ApplyForceAtPoint(Vec3 force, Vec3 worldPoint) {
+        // 1. 선형 힘
+        velocity += force * invMass * timeStep;
+
+        // 2. 토크
+        Vec3 r = worldPoint - transform3D.position;
+        Vec3 torque = Vec3.Cross(r, force);
+
+        angularVelocity += invInertiaWorld * torque * timeStep;
+    }
 
     /// <summary>
     /// 커밋 단계 - 이번 프레임의 물리 계산이 끝났다.
@@ -318,7 +373,7 @@ public class CustomRigidBody : MonoBehaviour
         currentState.position += deltaPosition;
         deltaPosition = VectorMathUtils.ZeroVector3D();
     }
-
+    #region 적분기
     /// <summary>
     /// 속도 적분
     /// </summary>
@@ -337,6 +392,7 @@ public class CustomRigidBody : MonoBehaviour
     {
         deltaPosition = (velocity * dt);
     }
+    #endregion
 
     /// <summary>
     /// Nan 방지
@@ -355,7 +411,7 @@ public class CustomRigidBody : MonoBehaviour
         if (float.IsNaN(deltaPosition.y) || float.IsInfinity(deltaPosition.y)) deltaPosition.y = 0;
         if (float.IsNaN(deltaPosition.z) || float.IsInfinity(deltaPosition.z)) deltaPosition.z = 0;
     }
-
+    #region 좌표 변환
     /// <summary>
     /// 월드 좌표 -> 로컬 좌표
     /// </summary>
@@ -418,37 +474,5 @@ public class CustomRigidBody : MonoBehaviour
         // translate
         return position + rotated.vec;
     }
-    #region RayCast
-/// <summary>
-/// RayCast 기능
-/// 순회, 최소 t 선택, layer 필터
-/// </summary>
-/// <param name="ray"></param>
-/// <param name="maxDistance"></param>
-/// <param name="hit"></param>
-/// <param name="layerMask"></param>
-/// <returns></returns>
-public bool RayCast(Ray3D ray, float maxT, out RaycastHit3D bestHit, int layerMask = ~0) 
-{
-    bestHit = default;
-    bool hasHit = false;
-    float bestT = maxT;
-
-    foreach (var col in collider3DList)
-    {
-        if ((col.layer & layerMask) == 0) continue;
-
-        if (col.RayCast(ray, bestT, out RaycastHit3D hit))
-        {
-            if (hit.t < bestT)
-            {
-                bestT = hit.t;
-                bestHit = hit;
-                hasHit = true;
-            }
-        }
-    }
-    return hasHit;
-}
-#endregion
+    #endregion
 }
