@@ -223,44 +223,46 @@ public class PhysicsWorld : MonoBehaviour
             rb.transform.position = new Vector3(lerped.x, lerped.y, lerped.z);
         }
     }
-   /// <summary>
- /// RayCast 3D
- /// </summary>
- /// <param name="ray"></param>
- /// <param name="maxDistance"></param>
- /// <param name="hit"></param>
- /// <param name="layerMask"></param>
- /// <returns></returns>
- public bool Raycast(Ray3D ray,float maxDistance,out RaycastHit3D finalHit,int layerMask = ~0)
- {
-     finalHit = default;
-     float minT = float.MaxValue;
-     bool hasHit = false;
+    /// <summary>
+    /// RayCast 3D
+    /// </summary>
+    /// <param name="ray"></param>
+    /// <param name="maxDistance"></param>
+    /// <param name="hit"></param>
+    /// <param name="layerMask"></param>
+    /// <returns></returns>
+    public bool Raycast(Ray3D ray,float maxDistance,out RaycastHit3D finalHit,int layerMask = ~0)
+    {
+        finalHit = default;
+        float minT = float.MaxValue;
+        bool hasHit = false;
+        Vec3 normal = VectorMathUtils.ZeroVector3D();
 
-     float bestT = maxDistance;
-     foreach (var collider in colliders3D)
-     {
-      //broadCast
- if (!collider.RaycastAABB(ray, collider.minPosition(), collider.maxPosition(), maxDistance, out _))
-     continue;
+        //NarraowCast
+        float bestT = maxDistance;
+        foreach (var collider in colliders3D)
+        {
+            //broadCast
+            if (!collider.RaycastAABB(ray, collider.minPosition(), collider.maxPosition(), maxDistance, out minT,out normal))
+                continue;
 
- //NarrowCast
-         if (((1 << collider.layer) & layerMask) == 0)
-             continue;
+            //NarrowCast
+            if (((1 << collider.layer) & layerMask) == 0)
+                continue;
 
-         if (!collider.RayCast(ray,bestT, out RaycastHit3D hit))
-             continue;
+            if (!collider.RayCast(ray,bestT, out RaycastHit3D hit))
+                continue;
 
-         if (hit.t < minT)
-         {
-             minT = hit.t;
-             finalHit = hit;
-             hasHit = true;
-         }
-     }
-   
-     return hasHit;
- }
+            if (hit.t < minT)
+            {
+                minT = hit.t;
+                finalHit = hit;
+                hasHit = true;
+            }
+        }
+      
+        return hasHit;
+    }
     /// <summary>
     /// 조건 만족하는 object전부 소환
     /// </summary>
@@ -275,11 +277,11 @@ public class PhysicsWorld : MonoBehaviour
 
         foreach (var col in colliders3D)
         {
-         //broadCast
-if (!col.RaycastAABB(ray, col.minPosition(), col.maxPosition(), maxDistance, out _))
-    continue;
+            //broadCast
+            if (!col.RaycastAABB(ray, col.minPosition(), col.maxPosition(), maxDistance, out _, out _))
+                continue;
 
-//NarrowCast
+            //NarrowCast
             if (((1 << col.layer) & layerMask) == 0)
                 continue;
 
@@ -292,5 +294,106 @@ if (!col.RaycastAABB(ray, col.minPosition(), col.maxPosition(), maxDistance, out
         results.Sort((a, b) => a.t.CompareTo(b.t));
 
         return results.Count;
+    }
+    /// <summary>
+    /// capsule 충돌 판정
+    /// Sweep결과중 최소 t선택
+    /// </summary>
+    /// <param name="capsule"></param>
+    /// <param name="capsuleVel"></param>
+    /// <param name="maxT"></param>
+    /// <param name="bestHit"></param>
+    /// <returns></returns>
+    bool SweepWorldCapsule(CapsuleCollider3D capsuleCol, Vec3 capsuleVel, float maxT,out SweepHit bestHit)
+    {
+        bestHit = default;
+        bool hasHit = false;
+        float bestT = maxT;
+
+        Capsule capsule = capsuleCol.GetWorldCapsule();
+
+        foreach (var collider in colliders3D)
+        {
+            if (collider == capsuleCol) continue;//자기 자신
+
+            //Sphere or box
+            if (collider is SphereCollider3D sphereCol)
+            {
+                //구 생성
+                Sphere sphere = new Sphere
+                {
+                    center = sphereCol.transform3D.position,
+                    radius = sphereCol.radius,
+                    collider = sphereCol
+                };
+
+                Vec3 sphereVel = VectorMathUtils.ZeroVector3D();
+                if (sphereCol.rigidBody != null)
+                    sphereVel = sphereCol.rigidBody.velocity;
+
+                if (SphereSweep.SweepCapsuleSphere(capsule, capsuleVel, sphere,sphereVel,maxT, out SweepHit hit))
+                {
+                    if (hit.t < bestT)
+                    {
+                        bestT = hit.t;
+                        bestHit = hit;
+                        hasHit = true;
+                    }
+                }
+            }
+            if (collider is BoxCollider3D boxCol)
+            {
+                Box box = new Box
+                {
+                    center = boxCol.transform3D.position,
+                    rotation = boxCol.transform3D.rotation,
+                    halfExtent = boxCol.halfExtent,
+                    collider=boxCol
+                };
+
+                Vec3 boxVel = VectorMathUtils.ZeroVector3D();
+                if (boxCol.rigidBody != null)
+                    boxVel = boxCol.rigidBody.velocity;
+
+                if (SphereSweep.SweepCapsuleOBB(capsule, capsuleVel,box,boxVel,maxT, out SweepHit hit))
+                {
+                    if (hit.t < bestT)
+                    {
+                        bestT = hit.t;
+                        bestHit = hit;
+                        hasHit = true;
+                    }
+                }
+            }
+        }
+        return hasHit;
+    }
+
+    public bool SweepSphere(Vec3 center,
+    float radius,
+    Vec3 dir,
+    float maxT,
+    out SweepHit hit)
+    {
+        hit = default;
+        bool hasHit = false;
+        float bestT = maxT;
+
+        foreach (var collider in colliders3D)
+        {
+            if (collider.SweepSphere(
+                center, radius, dir, maxT,
+                out SweepHit temp))
+            {
+                if (temp.t < bestT)
+                {
+                    bestT = temp.t;
+                    hit = temp;
+                    hasHit = true;
+                }
+            }
+        }
+
+        return hasHit;
     }
 }
