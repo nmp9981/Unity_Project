@@ -1,12 +1,7 @@
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 public class SphereSweep
 {
-    BoxRayCast boxRayCast;
     /// <summary>
     /// 구와 평면 충돌
     /// </summary>
@@ -174,21 +169,21 @@ public class SphereSweep
     /// <param name="maxT"></param>
     /// <param name="hit"></param>
     /// <returns></returns>
-    public static bool SweepSphereOBB(SphereCollider s,CustomCollider3D obb,Vec3 dir,float maxT,out SweepHit hit)
+    public static bool SweepSphereOBB(Vec3 sphereCenter,float sphereRadius,Vec3 dir,float maxT, Transform3D obbTransform,Vec3 obbHalfExtent, CustomCollider3D collider,out SweepHit hit)
     {
         //world -> OBB Local
-        Mat3 R = obb.transform3D.rotation;//회전 행렬
+        Mat3 R = obbTransform.rotation;//회전 행렬
         Mat3 invR = MatrixUtility.Transpose(R);//전치(역)행렬
 
-        Vec3 sCenter = new Vec3(s.center.x, s.center.y, s.center.z);
-        float sRadius = s.radius;
+        Vec3 sCenter = sphereCenter;
+        float sRadius = sphereRadius;
 
-        Vec3 localCenter = invR*(sCenter-obb.CenterPosition());//로컬 중심 좌표
+        Vec3 localCenter = invR*(sCenter-obbTransform.position);//로컬 중심 좌표
         Vec3 localDir = invR* dir;//로컬 방향
 
         //Local AABB 정의, 확장
-        Vec3 min = (-1f)*obb.size/2 - VectorMathUtils.OneVector3D() * s.radius;
-        Vec3 max = obb.size/2 + VectorMathUtils.OneVector3D() * s.radius;
+        Vec3 min = (-1f)*obbTransform.scale/2 - VectorMathUtils.OneVector3D() * sRadius;
+        Vec3 max = obbTransform.scale/2 + VectorMathUtils.OneVector3D() * sRadius;
 
         //Ray vs AABB
         float t;
@@ -399,6 +394,83 @@ public class SphereSweep
         Vec3 hitPos = center + t * vel;
         normal = (hitPos-point).Normalized;
 
+        return true;
+    }
+    /// <summary>
+    /// 캡슐 vs OBB box
+    /// </summary>
+    /// <param name="capsule"></param>
+    /// <param name="capsuleVel"></param>
+    /// <param name="box"></param>
+    /// <param name="boxVel"></param>
+    /// <param name="maxT"></param>
+    /// <param name="hit"></param>
+    /// <returns></returns>
+    public static bool SweepCapsuleOBB(Capsule capsule,Vec3 capsuleVel,Box box,Vec3 boxVel,float maxT,out SweepHit hit)
+    {
+        hit = default;
+
+        // 1️⃣ 상대 속도
+        Vec3 relVel = capsuleVel - boxVel;
+
+        // 2️⃣ OBB → 로컬
+        Vec3 localA = box.WorldToLocalPoint(capsule.a);
+        Vec3 localB = box.WorldToLocalPoint(capsule.b);
+        Vec3 localVel = box.WorldToLocalVector(relVel);
+
+        // 3️⃣ Minkowski 확장 AABB
+        Vec3 expand = new Vec3(capsule.r, capsule.r, capsule.r);
+        Vec3 min = (-1)*box.halfExtent - expand;
+        Vec3 max = box.halfExtent + expand;
+
+        bool hasHit = false;
+        float bestT = maxT;
+        Vec3 bestNormalLocal = VectorMathUtils.ZeroVector3D();
+
+        // 4️⃣ A endpoint
+        Ray3D aRay = new Ray3D();
+        aRay.origin = localA;
+        aRay.dir = localVel;
+        if (ColiisionUtility.RayAABB3D(localA,localVel,min, max, maxT,out float tA, out Vec3 nA))
+        {
+            if (!hasHit || tA < bestT)
+            {
+                bestT = tA;
+                bestNormalLocal = nA;
+                hasHit = true;
+            }
+        }
+
+        // 5️⃣ B endpoint
+        Ray3D bRay = new Ray3D();
+        bRay.origin = localB;
+        bRay.dir = localVel;
+        if (ColiisionUtility.RayAABB3D(localB,localVel,min, max, maxT,out float tB, out Vec3 nB))
+        {
+            if (!hasHit || tB < bestT)
+            {
+                bestT = tB;
+                bestNormalLocal = nB;
+                hasHit = true;
+            }
+        }
+
+        if (!hasHit)
+            return false;
+
+        // 6️⃣ 월드 복원
+        hit.t = bestT;
+        hit.normal = box.LocalToWorldVector(bestNormalLocal).Normalized;
+        if (Vec3.Dot(hit.normal, relVel) > 0)//normal방향 보정
+            hit.normal = (-1)*hit.normal;
+
+        Vec3 dirLocal = box.WorldToLocalVector(capsule.b - capsule.a);
+
+        Vec3 supportLocal =Vec3.Dot(dirLocal, bestNormalLocal) > 0? localB: localA;
+
+        Vec3 support = box.LocalToWorldPoint(supportLocal);
+        hit.point = support + capsuleVel * bestT - hit.normal * capsule.r;
+        hit.collider = box.collider;
         return true;
     }
 }
