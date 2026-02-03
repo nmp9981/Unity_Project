@@ -1,0 +1,144 @@
+using System;
+using UnityEngine;
+
+public static class ImageHash
+{
+    //이미지 중복 판정 변수
+    const int PER_IMAGE_THRESHOLD = 6;
+    const int MATCH_THRESHOLD = 5;
+
+    /// <summary>
+    /// 64bit dHash
+    /// </summary>
+    /// <param name="tex"></param>
+    /// <returns></returns>
+    public static ulong ComputeDHash(Texture2D tex)
+    {
+        // 1. Resize to 9x8
+        Texture2D resized = Resize(tex, 9, 8);
+
+        // 2. Get pixels (grayscale)
+        Color32[] pixels = resized.GetPixels32();
+
+        ulong hash = 0UL;
+        int bitIndex = 0;
+
+        for (int y = 0; y < 8; y++)
+        {
+            int row = y * 9;
+            for (int x = 0; x < 8; x++)
+            {
+                byte left = pixels[row + x].r;     // grayscale
+                byte right = pixels[row + x + 1].r;
+
+                if (left > right)
+                    hash |= (1UL << bitIndex);
+
+                bitIndex++;
+            }
+        }
+
+        UnityEngine.Object.Destroy(resized);
+        return hash;
+    }
+
+    /// <summary>
+    /// 빠른 리사이즈 (GPU 사용 가능)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
+    private static Texture2D Resize(Texture2D source, int width, int height)
+    {
+        RenderTexture rt = RenderTexture.GetTemporary(width, height);
+        Graphics.Blit(source, rt);
+
+        RenderTexture prev = RenderTexture.active;
+        RenderTexture.active = rt;
+
+        Texture2D tex = new Texture2D(width, height, TextureFormat.R8, false);
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        tex.Apply();
+
+        RenderTexture.active = prev;
+        RenderTexture.ReleaseTemporary(rt);
+
+        return tex;
+    }
+    /// <summary>
+    /// 세트 해시 생성
+    /// </summary>
+    /// <param name="hashes"></param>
+    /// <returns></returns>
+    public static ulong ComputeSetHash(ulong[] hashes)
+    {
+        ulong[] temp = (ulong[]) hashes.Clone();
+        Array.Sort(temp);
+
+        ulong setHash = 0UL;
+        for (int i = 0; i < temp.Length; i++)
+            setHash ^= temp[i];
+
+        return setHash;
+    }
+    /// <summary>
+    /// 해밍 거리
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static int HammingDistance(ulong a, ulong b)
+    {
+        ulong x = a ^ b;
+        int count = 0;
+
+        while (x != 0)
+        {
+            x &= x - 1; // popcount trick
+            count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// 이미지 중복 판정 함수
+    /// 6*6매칭 기반
+    /// </summary>
+    /// <param name="newHashes"></param>
+    /// <param name="oldHashes"></param>
+    /// <returns></returns>
+    public static bool IsDuplicateSet(ulong[] newHashes, ulong[] oldHashes)
+    {
+        bool[] used = new bool[6];
+        int matchCount = 0;
+
+        for (int i = 0; i < 6; i++)//newHash
+        {
+            int bestDist = int.MaxValue;
+            int bestIdx = -1;
+
+            for (int j = 0; j < 6; j++)//oldHash
+            {
+                if (used[j]) continue;
+
+                //해밍 거리 갱신
+                int dist = HammingDistance(newHashes[i], oldHashes[j]);
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestIdx = j;
+                }
+            }
+            //중복 판단
+            if (bestDist <= PER_IMAGE_THRESHOLD)
+            {
+                used[bestIdx] = true;
+                matchCount++;
+            }
+        }
+        //5장 이상이 일치시 중복
+        return matchCount >= MATCH_THRESHOLD;
+    }
+}
