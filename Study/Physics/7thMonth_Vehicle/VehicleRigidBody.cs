@@ -1,9 +1,9 @@
-using UnityEngine;
-using UnityEngine.InputSystem.HID;
-
 public class VehicleRigidBody : CustomRigidBody
 {
     Wheel[] wheels;
+
+    //접지 판정 임계값
+    const float kMinCompression = 0.001f;
 
     public void SolveVehicle(float dt)
     {
@@ -40,8 +40,6 @@ public class VehicleRigidBody : CustomRigidBody
                 maxSweep,
                 out SweepHit hit))
             {
-                wheel.isGrounded = true;
-
                 // 4. 접촉 정보
                 wheel.contactNormal = hit.normal;
                 wheel.contactPoint = hit.point;
@@ -49,6 +47,24 @@ public class VehicleRigidBody : CustomRigidBody
                 float distance = Vec3.Dot(hit.point - wheelWorldPos, (-1) * down);
 
                 wheel.compression = wheel.suspension.restLength - distance;
+
+                //접지 판정
+                if (wheel.compression > kMinCompression) wheel.isGrounded = true;
+                else
+                {
+                    wheel.isGrounded = false;
+                    wheel.compression = 0;
+                }
+
+                //Hit는 났는데 서스펜션 축 기준이 아닐때 필터
+                Vec3 suspensionDir = (-1f)*down;
+                float alignment =Vec3.Dot(wheel.contactNormal, suspensionDir);
+
+                if (alignment < 0.2f)//서스펜션 방향과 어긋난 접촉
+                {
+                    wheel.isGrounded = false;
+                    wheel.compression = 0;
+                }
             }
             else
             {
@@ -70,6 +86,13 @@ public class VehicleRigidBody : CustomRigidBody
         for (int i= 0; i<wheels.Length;i++)
         {
             Wheel wheel = wheels[i];//구조체라 값복사 문제가 있어 따로 빼야함
+
+            //접지 상태가 아님
+            if (!wheel.isGrounded)
+            {
+                continue;
+            }
+
             // 1. 스프링 힘
             float springForce = wheel.suspension.stiffness * wheel.compression;
 
