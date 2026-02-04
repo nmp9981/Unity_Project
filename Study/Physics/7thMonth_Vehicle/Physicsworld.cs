@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class PhysicsWorld : MonoBehaviour
 {
+ //싱글톤
+ public static PhysicsWorld Instance { get; private set; }
+ 
     [SerializeField]
     List<CustomRigidBody> rigidBodies3D = new List<CustomRigidBody>();
     [SerializeField]
