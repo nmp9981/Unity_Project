@@ -125,15 +125,52 @@ public class VehicleRigidBody : CustomRigidBody
             wheels[i] = wheel;
         }
     }
-    /// <summary>
-    /// 접촉점 속도 계산
-    /// lateral / longitudinal 분해
-    /// 마찰력 계산
-    /// ApplyForceAtPoint
-    /// </summary>
-    /// <param name="dt"></param>
-    private void SolveTireForces(float dt)
-    {
+     /// <summary>
+  /// 접촉점 속도 계산
+  /// lateral / longitudinal 분해
+  /// 마찰력 계산
+  /// ApplyForceAtPoint
+  /// </summary>
+  /// <param name="dt"></param>
+  private void SolveTireForces(float dt)
+  {
+      for (int i = 0; i < wheels.Length; i++)
+      {
+          Wheel wheel = wheels[i];//구조체라 따로 뺌
 
-    }
+          //땅에 접지 안됨
+          if (!wheel.isGrounded)
+              continue;
+
+          //타이어 3축 좌표계
+          Vec3 up = wheel.contactNormal;
+          Vec3 forward = transform3D.Forward;//차량 전방
+          forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
+          Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
+
+          //접촉점 속도 분해
+          Vec3 v = GetVelocityAtPoint(wheel.contactPoint);
+          float vLong = Vec3.Dot(v, forward);
+          float vLat = Vec3.Dot(v, right);
+
+          //타이어 힘 모델 - 선형 감쇠형 마찰
+          float grip = wheel.tireGrip;
+
+          Vec3 forceLat = (-1)*right * vLat * grip;
+          Vec3 forceLong = (-1)*forward * vLong * grip;//차가 앞으로 굴러가면 감소하는 힘
+          Vec3 tireForce = forceLat + forceLong;//타이어 힘
+
+          //힘 제한
+          //서스펜션 힘보다 타이어 힘이 커지면 안 된다.
+          float maxFriction = wheel.suspension.stiffness * wheel.compression * 0.8f;
+
+          if (tireForce.Magnitude > maxFriction)
+              tireForce = tireForce.Normalized * maxFriction;
+
+          //차체 힘 적용
+          ApplyForceAtPoint(tireForce, wheel.contactPoint);
+
+          wheels[i] = wheel;//값 갱신
+      }
+  }
 }
