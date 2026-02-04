@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class VehicleRigidBody : CustomRigidBody
 {
     Wheel[] wheels;
@@ -93,15 +95,32 @@ public class VehicleRigidBody : CustomRigidBody
                 continue;
             }
 
-            // 1. 스프링 힘
-            float springForce = wheel.suspension.stiffness * wheel.compression;
+            //타이어 기준 좌표계
+            Vec3 up = wheel.contactNormal;             // 접촉면 법선
+            Vec3 forward = transform3D.Forward;
+            Vec3 right = Vec3.Cross(up, forward).Normalized;
+            forward = Vec3.Cross(right, up).Normalized;
 
-            // 2. 감쇠력
+            //접촉점 속도 분해
             Vec3 pointVel = GetVelocityAtPoint(wheel.contactPoint);
+            float vLong = Vec3.Dot(pointVel, forward);
+            float vLat = Vec3.Dot(pointVel, right);
 
+            // 스프링 힘
+            float springForce = wheel.suspension.stiffness * wheel.compression;
+            
+            // 감쇠력
             float compressionVel = Vec3.Dot(pointVel, wheel.contactNormal);
 
             float dampingForce = wheel.suspension.damping * compressionVel;
+
+            //최종 힘
+            Vec3 suspensionDir = wheel.contactNormal;
+            float totalForce = springForce - dampingForce; // 부호는 이후 튜닝 가능
+            Vec3 force = suspensionDir * totalForce;
+
+            //바퀴에 힘 적용
+            ApplyForceAtPoint(force, wheel.contactPoint);
 
             wheels[i] = wheel;
         }
