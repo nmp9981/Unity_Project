@@ -1,11 +1,21 @@
+using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VehicleRigidBody : CustomRigidBody
 {
+    VehicleController controller;
+
+    //바퀴들
     Wheel[] wheels;
 
     //접지 판정 임계값
     const float kMinCompression = 0.001f;
+    //엔진 최대힘
+    [SerializeField]
+    float maxEngineForce;
+    [SerializeField]
+    float brakeStrength;
 
     public void SolveVehicle(float dt)
     {
@@ -35,7 +45,7 @@ public class VehicleRigidBody : CustomRigidBody
             float maxSweep = wheel.suspension.restLength + wheel.radius;
 
             // 3. Sweep
-            if (physicsWorld.SweepSphere(
+            if (PhysicsWorld.Instance.SweepSphere(
                 wheelWorldPos,
                 wheel.radius,
                 down,
@@ -125,52 +135,83 @@ public class VehicleRigidBody : CustomRigidBody
             wheels[i] = wheel;
         }
     }
-     /// <summary>
-  /// 접촉점 속도 계산
-  /// lateral / longitudinal 분해
-  /// 마찰력 계산
-  /// ApplyForceAtPoint
-  /// </summary>
-  /// <param name="dt"></param>
-  private void SolveTireForces(float dt)
-  {
-      for (int i = 0; i < wheels.Length; i++)
-      {
-          Wheel wheel = wheels[i];//구조체라 따로 뺌
+    /// <summary>
+    /// 접촉점 속도 계산
+    /// lateral / longitudinal 분해
+    /// 마찰력 계산
+    /// ApplyForceAtPoint
+    /// </summary>
+    /// <param name="dt"></param>
+    private void SolveTireForces(float dt)
+    {
+        for (int i = 0; i < wheels.Length; i++)
+        {
+            Wheel wheel = wheels[i];//구조체라 따로 뺌
 
-          //땅에 접지 안됨
-          if (!wheel.isGrounded)
-              continue;
+            //땅에 접지 안됨
+            if (!wheel.isGrounded)
+                continue;
 
-          //타이어 3축 좌표계
-          Vec3 up = wheel.contactNormal;
-          Vec3 forward = transform3D.Forward;//차량 전방
-          forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
-          Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
+            //타이어 3축 좌표계
+            Vec3 up = wheel.contactNormal;
+            Vec3 baseForward = transform3D.Forward;
+            Mat3 steerRot = MatrixUtility.Rotate(wheel.steerAngle);//조향 회전
 
-          //접촉점 속도 분해
-          Vec3 v = GetVelocityAtPoint(wheel.contactPoint);
-          float vLong = Vec3.Dot(v, forward);
-          float vLat = Vec3.Dot(v, right);
+            Vec3 forward = steerRot*baseForward;//차량 전방
+            forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
+            Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
 
-          //타이어 힘 모델 - 선형 감쇠형 마찰
-          float grip = wheel.tireGrip;
+            //접촉점 속도 분해
+            Vec3 v = GetVelocityAtPoint(wheel.contactPoint);
+            float vLong = Vec3.Dot(v, forward);
+            float vLat = Vec3.Dot(v, right);
 
-          Vec3 forceLat = (-1)*right * vLat * grip;
-          Vec3 forceLong = (-1)*forward * vLong * grip;//차가 앞으로 굴러가면 감소하는 힘
-          Vec3 tireForce = forceLat + forceLong;//타이어 힘
+            //타이어 힘 모델 - 선형 감쇠형 마찰
+            float grip = wheel.tireGrip;
 
-          //힘 제한
-          //서스펜션 힘보다 타이어 힘이 커지면 안 된다.
-          float maxFriction = wheel.suspension.stiffness * wheel.compression * 0.8f;
+            Vec3 forceLat = (-1)*right * vLat * grip;
+            Vec3 forceLong = (-1)*forward * vLong * grip;//차가 앞으로 굴러가면 감소하는 힘
+            Vec3 tireForce = forceLat + forceLong;//타이어 힘
 
-          if (tireForce.Magnitude > maxFriction)
-              tireForce = tireForce.Normalized * maxFriction;
+            if (wheel.isDriven)
+            {
+                Vec3 driveForce = forward * (controller.throttle * maxEngineForce);
+                tireForce += driveForce;
+            }
 
-          //차체 힘 적용
-          ApplyForceAtPoint(tireForce, wheel.contactPoint);
+            //브레이크
+            float brake = controller.breakInput; // 0~1
+            Vec3 brakeForce = (-1) * forward * vLong * brake * brakeStrength;
+            if (brake > 0)
+            {
+                tireForce += (-1)*forward * vLong * brake * brakeStrength;
+            }
 
-          wheels[i] = wheel;//값 갱신
-      }
-  }
+            //힘 제한
+            //서스펜션 힘보다 타이어 힘이 커지면 안 된다.
+            float maxFriction = wheel.suspension.stiffness * wheel.compression * 0.8f;//F=kx*friction
+
+            if (tireForce.Magnitude > maxFriction)
+                tireForce = tireForce.Normalized * maxFriction;
+            
+            //차체 힘 적용
+            ApplyForceAtPoint(tireForce, wheel.contactPoint);
+
+            //시각화
+            VisualWheel(wheel, vLong,dt);
+
+            wheels[i] = wheel;//값 갱신
+        }
+    }
+    /// <summary>
+    /// 바퀴 시각화
+    /// </summary>
+    /// <param name="wheel"></param>
+    /// <param name="vLong"></param>
+    /// <param name="dt"></param>
+    void VisualWheel(Wheel wheel, float vLong,float dt)
+    {
+        wheel.angularValocity += vLong / wheel.radius;
+        //wheelVisual.Rotate(wheel.angularValocity * dt);
+    }
 }
