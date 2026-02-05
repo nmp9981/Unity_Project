@@ -18,6 +18,9 @@ public struct Suspension
 /// </summary>
 public struct Wheel
 {
+    //운전중 여부
+    public bool isDriven;
+
     // === 고정 파라미터 (설계값) ===
     public Vec3 localPos;        // CoM 기준 휠 위치
     public float radius;        // 바퀴 반지름
@@ -29,8 +32,14 @@ public struct Wheel
     public bool isGrounded;      // 접촉 중인가?
     public float compression; // 현재 서스펜션 길이
 
+    //접촉점 기준 좌표
     public Vec3 contactPoint;   // 접촉점
     public Vec3 contactNormal;  // 접촉 법선
+
+    //tire
+    public float tireGrip;
+    public float steerAngle;//조향
+    public float angularValocity;
 }
 
 public class Vehicle
@@ -46,7 +55,7 @@ public class Vehicle
             SolveWheel(wheel, dt);
         }
     }
-
+    //삭제
     void SolveWheel(Wheel wheel, float dt)
     {
         // 1. 월드 공간 바퀴 중심
@@ -86,7 +95,7 @@ public class Vehicle
             wheel.compression = 0;
         }
     }
-
+    //삭제
     void ApplySuspensionForce(Wheel wheel, float dt)
     {
         if (wheel.compression <= 0)
