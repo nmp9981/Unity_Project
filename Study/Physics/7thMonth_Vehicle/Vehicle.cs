@@ -41,7 +41,7 @@ public struct Wheel
 
     //tire
     public float tireGrip;
-    public float steerAngle;//조향
+    public float steerAngle;//조향,radian
 
     //회전
     public float angularVelocity;
@@ -124,10 +124,9 @@ public class Vehicle
             Vec3 v = body.GetVelocityAtPoint(w.contactPoint);
 
             // 2️⃣ 바퀴 로컬 축
-            // Day2: Longitudinal Slip 테스트 단계
-            // steerAngle은 Day3에서 반영
-            Vec3 wheelForward = forward; // Day1: 조향 미적용
-            Vec3 wheelRight = right;
+            // 조향 적용
+            Vec3 wheelForward = forward;
+            Vec3 wheelRight = Vec3.Cross(wheelForward,up);
 
             // 3️⃣ 속도 분해
             float vLong = Vec3.Dot(v, wheelForward);
@@ -138,6 +137,14 @@ public class Vehicle
 
             // 4️⃣ Lateral Slip Angle (오늘의 핵심 결과물)
             w.slipAngle = MathUtility.Atan2(vLat,MathUtility.Abs(vLong) + eps);
+            if (w.steerAngle != 0f)//이때 회전
+            {
+                wheelForward =
+                    CustomQuaternion.AngleAxis(
+                        w.steerAngle * Rad2Deg,
+                        up
+                    ) * forward;
+            }
 
             // 5️⃣ Longitudinal Slip은 Day2에서 계산
             float wheelSurfaceSpeed = w.angularVelocity * w.radius;
@@ -195,7 +202,7 @@ public class Vehicle
         w.angularVelocity += (angularAccel * dt);
 
         //정지 안전 장치
-        if (MathUtility.Abs(w.angularVelocity) < 0.5f && MathUtility.Abs(w.driveTorque) < 0.01f)
+        if (MathUtility.Abs(w.angularVelocity) < 0.5f && MathUtility.Abs(w.driveTorque) < 0.01f && w.brakeTorque > 0f)
         {
             w.angularVelocity = 0f;
         }
