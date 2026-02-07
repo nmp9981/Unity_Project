@@ -68,7 +68,17 @@ public static class MathUtility
     {
         return (a < 0) ? -a : a;
     }
-
+/// <summary>
+/// 실수의 부호 추출
+/// </summary>
+/// <param name="a">실수</param>
+/// <returns></returns>
+public static float Sign(float a)
+{
+    if(a == 0) return 0;
+    if (a < 0) return -1;
+    return 1;
+}
     /// <summary>
     /// 가장 가까운 값 찾기
     /// </summary>
