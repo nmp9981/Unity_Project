@@ -186,7 +186,7 @@ public class Vehicle
         if (w.isDriven) torque += w.driveTorque;
 
         //브레이크 토크(회전 반대 방향)
-        torque -= MathUtility.Sin(w.angularVelocity)* w.brakeTorque;
+        torque -= MathUtility.Sign(w.angularVelocity)* w.brakeTorque;
 
         //각 가속도
         float angularAccel = torque / w.wheelInertia;
