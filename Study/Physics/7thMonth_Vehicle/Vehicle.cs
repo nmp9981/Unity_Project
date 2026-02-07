@@ -1,3 +1,6 @@
+using Unity.VisualScripting;
+using UnityEngine;
+
 /// <summary>
 /// Suspension
 /// 바퀴가 땅을 향해 쏜 Sweep의 결과를 힘으로 바꾸는 장치
@@ -39,7 +42,24 @@ public struct Wheel
     //tire
     public float tireGrip;
     public float steerAngle;//조향
-    public float angularValocity;
+
+    //회전
+    public float angularVelocity;
+
+    //바퀴 관성
+    public float wheelInertia; 
+
+    //슬립 핵심
+    public float slipRatio;   // 종방향
+    public float slipAngle;   // 횡방향
+
+    //토크 값
+    public float driveTorque;   // 엔진 or 모터
+    public float brakeTorque;  // 브레이크
+
+    //디버깅용, 슬립 입력값
+    public float vLong;
+    public float vLat;
 }
 
 public class Vehicle
@@ -48,11 +68,136 @@ public class Vehicle
     public PhysicsWorld physicsWorld;
     public Wheel[] wheels;
 
+    //차량 기준 축
+    Vec3 forward;
+    Vec3 right;
+    Vec3 up;
+
     public void Update(float dt)
     {
-        foreach (var wheel in wheels)
+        UpdateBasis();
+
+        // 1️. 바퀴 회전부터
+        for (int i = 0; i < wheels.Length; i++)
         {
-            SolveWheel(wheel, dt);
+            UpdateWheelAngularVelocity(ref wheels[i], dt);
+        }
+        //2. 이후 슬립 계산
+        UpdateWheelSlip(dt);
+
+        //3. 디버그
+        OnDrawGizmos();
+
+        //4. 힘 적용
+    }
+
+    /// <summary>
+    /// 기준 축 업데이트
+    /// </summary>
+    void UpdateBasis()
+    {
+        forward = body.transform3D.Forward;
+        right = body.transform3D.Right;
+        up = body.transform3D.Up;
+    }
+
+    void UpdateWheelSlip(float dt)
+    {
+        const float eps = 0.1f;
+
+        for (int i = 0; i < wheels.Length; i++)
+        {
+            Wheel w = wheels[i];//구조체
+
+            //땅에 닿지 않음
+            if (!w.isGrounded)
+            {
+                w.vLong = 0f;
+                w.vLat = 0f;
+                w.slipAngle = 0f;
+                w.slipRatio = 0f;
+                wheels[i] = w;
+                continue;
+            }
+
+            // 1️⃣ 접촉점 속도
+            Vec3 v = body.GetVelocityAtPoint(w.contactPoint);
+
+            // 2️⃣ 바퀴 로컬 축
+            // Day2: Longitudinal Slip 테스트 단계
+            // steerAngle은 Day3에서 반영
+            Vec3 wheelForward = forward; // Day1: 조향 미적용
+            Vec3 wheelRight = right;
+
+            // 3️⃣ 속도 분해
+            float vLong = Vec3.Dot(v, wheelForward);
+            float vLat = Vec3.Dot(v, wheelRight);
+
+            w.vLong = vLong;
+            w.vLat = vLat;
+
+            // 4️⃣ Lateral Slip Angle (오늘의 핵심 결과물)
+            w.slipAngle = MathUtility.Atan2(vLat,MathUtility.Abs(vLong) + eps);
+
+            // 5️⃣ Longitudinal Slip은 Day2에서 계산
+            float wheelSurfaceSpeed = w.angularVelocity * w.radius;
+            w.slipRatio = (wheelSurfaceSpeed - vLong) / MathUtility.Max(MathUtility.Abs(vLong), eps);
+
+            wheels[i] = w;//구조체 값 갱신
+        }
+    }
+
+    /// <summary>
+    /// 디버그 용 기즈모
+    /// </summary>
+    void OnDrawGizmos()
+    {
+        foreach (var w in wheels)
+        {
+            if (!w.isGrounded) continue;
+
+            //좌표 변환
+            Vector3 contactPos = new Vector3(w.contactPoint.x, w.contactPoint.y, w.contactPoint.z);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(
+                contactPos,
+                contactPos + body.transform3D.Forward.ToUnity * w.vLong * 0.1f
+            );
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(
+                contactPos,
+                contactPos + body.transform3D.Right.ToUnity * w.vLat * 0.1f
+            );
+        }
+    }
+
+    /// <summary>
+    /// 바퀴 각속도 업데이트
+    /// </summary>
+    /// <param name="w"></param>
+    /// <param name="dt"></param>
+    void UpdateWheelAngularVelocity(ref Wheel w, float dt)
+    {
+        float torque = 0f;
+
+        //구동 토크
+        if (w.isDriven) torque += w.driveTorque;
+
+        //브레이크 토크(회전 반대 방향)
+        torque -= MathUtility.Sin(w.angularVelocity)* w.brakeTorque;
+
+        //각 가속도
+        float angularAccel = torque / w.wheelInertia;
+
+        //적분
+        w.angularVelocity += (angularAccel * dt);
+
+        //정지 안전 장치
+        if (MathUtility.Abs(w.angularVelocity) < 0.5f && MathUtility.Abs(w.driveTorque) < 0.01f)
+        {
+            w.angularVelocity = 0f;
         }
     }
     //삭제
@@ -60,10 +205,10 @@ public class Vehicle
     {
         // 1. 월드 공간 바퀴 중심
         Mat4 worldPos = body.transform3D.LocalToWorld;
-        Vec3 wheelWorldPos = MatrixUtility.MulPoint(wheel.localPos,worldPos);
+        Vec3 wheelWorldPos = MatrixUtility.MulPoint(wheel.localPos, worldPos);
 
         // 2. Sweep 방향 (아래)
-        Vec3 down = (-1)*body.transform3D.Up;   // 보통 -Y
+        Vec3 down = (-1) * body.transform3D.Up;   // 보통 -Y
 
         float maxSweep =
             wheel.suspension.restLength + wheel.radius;
@@ -82,7 +227,7 @@ public class Vehicle
             wheel.contactNormal = hit.normal;
             wheel.contactPoint = hit.point;
 
-            float distance =Vec3.Dot(hit.point - wheelWorldPos,(-1)*down);
+            float distance = Vec3.Dot(hit.point - wheelWorldPos, (-1) * down);
 
             wheel.compression =
                 wheel.suspension.restLength - distance;
