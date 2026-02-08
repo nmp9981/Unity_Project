@@ -62,6 +62,18 @@ public struct Wheel
     public float vLat;
 }
 
+/// <summary>
+/// 엑셀 클래스
+/// </summary>
+public class Axle
+{
+    public Wheel left;//왼쪽 바퀴
+    public Wheel right;//오른쪽 바퀴
+
+    public bool isFront;      // 전륜 / 후륜
+    public float trackWidth;  // 좌우 거리
+}
+
 public class Vehicle
 {
     public CustomRigidBody body;
