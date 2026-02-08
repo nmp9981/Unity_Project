@@ -115,4 +115,21 @@ public static class QuaternionUtility
         float sign = Vec3.Dot(vTwist, n) >= 0.0f ? 1.0f : -1.0f;
         return angle * sign;
     }
+     /// <summary>
+ /// 축 기준 theta만큼 회전한 쿼터니언
+ /// </summary>
+ /// <param name="angle"></param>
+ /// <param name="axis"></param>
+ /// <returns></returns>
+ public static CustomQuaternion AngleAxis(float angle, Vec3 axis)
+ {
+     axis = axis.Normalized;
+     float half = angle * 0.5f;
+
+     float sinHalf = MathUtility.Sin(half);
+     float cosHalf = MathUtility.Cos(half);
+
+     Vec3 axisRotVec = new Vec3(axis.x*sinHalf, axis.y*sinHalf, axis.z*sinHalf);
+     return new CustomQuaternion { scala = cosHalf, vec = axisRotVec };
+ }
 }
