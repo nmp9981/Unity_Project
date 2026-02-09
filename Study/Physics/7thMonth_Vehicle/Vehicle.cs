@@ -68,10 +68,34 @@ public struct Wheel
 public class Axle
 {
     public Wheel left;//왼쪽 바퀴
-    public Wheel right;//오른쪽 바퀴
+public Wheel right;//오른쪽 바퀴
 
-    public bool isFront;      // 전륜 / 후륜
-    public float trackWidth;  // 좌우 거리
+public bool isFront;      // 전륜 / 후륜
+public float trackWidth;  // 좌우 거리
+
+public float staticLoad;
+public float dynamicLoad;
+public float totalLoad;
+
+public float leftLoad;
+public float rightLoad;
+
+/// <summary>
+/// 힘 분배
+/// </summary>
+public void DistributeLongitudinal()
+{
+    leftLoad = (staticLoad + dynamicLoad) * 0.5f;
+    rightLoad = (staticLoad + dynamicLoad) * 0.5f;
+}
+/// <summary>
+/// 바퀴 normal 힘 계산
+/// </summary>
+public void PushToWheels()
+{
+    left.normalForce = Mathf.Max(leftLoad, 0f);
+    right.normalForce = Mathf.Max(rightLoad, 0f);
+}
 }
 
 public class Vehicle
