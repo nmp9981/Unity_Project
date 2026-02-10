@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -34,13 +33,20 @@ public struct Wheel
     // === 프레임별 상태값 === runtime
     public bool isGrounded;      // 접촉 중인가?
     public float compression; // 현재 서스펜션 길이
+    public float normalForce;             // Fz (서스펜션 결과)
+
+    //하중 관련
+    public float staticLoad;    // 정적 하중
+    public float dynamicLoad;   // 가속도 기반 추가 하중
 
     //접촉점 기준 좌표
     public Vec3 contactPoint;   // 접촉점
     public Vec3 contactNormal;  // 접촉 법선
 
     //tire
-    public float tireGrip;
+    public float corneringStiffness;      // C_alpha
+    public float longitudinalStiffness;   // C_sigma
+    public float tireGrip;//마찰 계수
     public float steerAngle;//조향,radian
 
     //회전
@@ -68,35 +74,56 @@ public struct Wheel
 public class Axle
 {
     public Wheel left;//왼쪽 바퀴
-public Wheel right;//오른쪽 바퀴
+    public Wheel right;//오른쪽 바퀴
 
-public bool isFront;      // 전륜 / 후륜
-public float trackWidth;  // 좌우 거리
+    public bool isFront;      // 전륜 / 후륜
+    public float trackWidth;  // 좌우 거리
 
-public float staticLoad;
-public float dynamicLoad;
-public float totalLoad;
+    public float lateralLoad;//누적 하중
+    public float staticLoad;
+    public float dynamicLoad;
+    public float totalLoad;
 
-public float leftLoad;
-public float rightLoad;
+    public float leftLoad;
+    public float rightLoad;
 
-/// <summary>
-/// 힘 분배
-/// </summary>
-public void DistributeLongitudinal()
-{
-    leftLoad = (staticLoad + dynamicLoad) * 0.5f;
-    rightLoad = (staticLoad + dynamicLoad) * 0.5f;
+    public Axle(Wheel left, Wheel right, bool isFront, float trackWidth)
+    {
+        this.left = left;
+        this.right = right;
+        this.isFront = isFront;
+        this.trackWidth = trackWidth;
+    }
+
+    /// <summary>
+    /// 힘 분배
+    /// </summary>
+    public void DistributeLongitudinal()
+    {
+        leftLoad = (staticLoad + dynamicLoad) * 0.5f;
+        rightLoad = (staticLoad + dynamicLoad) * 0.5f;
+    }
+    /// <summary>
+    /// 바퀴 normal 힘 계산
+    /// </summary>
+    public void PushToWheels()
+    {
+        left.normalForce = Mathf.Max(leftLoad, 0f);
+        right.normalForce = Mathf.Max(rightLoad, 0f);
+    }
+    /// <summary>
+    /// 좌우 하중 분배
+    /// </summary>
+    /// <param name="deltaFz"></param>
+    public void ApplyLateralLoad(float deltaFz)
+    {
+        float perWheel = deltaFz * 0.5f;
+
+        left.dynamicLoad += perWheel;
+        right.dynamicLoad -= perWheel;
+    }
 }
-/// <summary>
-/// 바퀴 normal 힘 계산
-/// </summary>
-public void PushToWheels()
-{
-    left.normalForce = Mathf.Max(leftLoad, 0f);
-    right.normalForce = Mathf.Max(rightLoad, 0f);
-}
-}
+
 
 public class Vehicle
 {
@@ -175,11 +202,7 @@ public class Vehicle
             w.slipAngle = MathUtility.Atan2(vLat,MathUtility.Abs(vLong) + eps);
             if (w.steerAngle != 0f)//이때 회전
             {
-                wheelForward =
-                    CustomQuaternion.AngleAxis(
-                        w.steerAngle * Rad2Deg,
-                        up
-                    ) * forward;
+                wheelForward = QuaternionUtility.AngleAxis(w.steerAngle * MathUtility.Rad2Deg,up) * forward;
             }
 
             // 5️⃣ Longitudinal Slip은 Day2에서 계산
@@ -243,6 +266,7 @@ public class Vehicle
             w.angularVelocity = 0f;
         }
     }
+
     //삭제
     void SolveWheel(Wheel wheel, float dt)
     {
