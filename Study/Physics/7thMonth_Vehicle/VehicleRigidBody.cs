@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VehicleRigidBody : CustomRigidBody
@@ -7,7 +8,7 @@ public class VehicleRigidBody : CustomRigidBody
 
     //바퀴들
     Wheel[] wheels;
-
+    
     //접지 판정 임계값
     const float kMinCompression = 0.001f;
     //엔진 최대힘
@@ -16,11 +17,46 @@ public class VehicleRigidBody : CustomRigidBody
     [SerializeField]
     float brakeStrength;
 
+    [SerializeField] float frontTrack;
+    [SerializeField] float rearTrack;
+
+    Vec3 cachedLocalAccel;
+
+
     public void SolveVehicle(float dt)
     {
         SolveWheelContacts();//상태 생성
+
+        Vec3 localAccel = GetLocalAcceleration(dt);
+        cachedLocalAccel = localAccel;
+        //하중 계산
+        ApplyLongitudinalLoad(localAccel);
+        ApplyLateralLoad(localAccel);
+       
+        DistributeAxleLoads();       // 좌우 50:50 힘 분배
+        PushLoadsToWheels();         // Wheel.normalForce 갱신
+        UpdateNormalForces();//노멀 힘 업데이트
+
         SolveSuspension(dt);//force
         SolveTireForces(dt);//force
+    }
+
+    /// <summary>
+    /// 엑셀 초기화
+    /// </summary>
+    void InitAxles()
+    {
+        frontAxle = new Axle(
+            wheels[0], wheels[1],   // FL, FR
+            isFront: true,
+            trackWidth: frontTrack
+        );
+
+        rearAxle = new Axle(
+            wheels[2], wheels[3],   // RL, RR
+            isFront: false,
+            trackWidth: rearTrack
+        );
     }
 
     /// <summary>
@@ -196,16 +232,50 @@ public class VehicleRigidBody : CustomRigidBody
             wheels[i] = wheel;//값 갱신
         }
     }
+    /// <summary>
+    /// 노말 방향 힘 업데이트
+    /// </summary>
+    public void UpdateNormalForces()
+    {
+        for(int i = 0; i < wheels.Length; i++)
+        {
+            Wheel w = wheels[i];
+            //노말 방향 힘 : 정적 방향 + 동적 방향
+            w.normalForce = MathUtility.Max(w.staticLoad + w.dynamicLoad,0f);
+            wheels[i] = w;
+        }
+    }
 
     /// <summary>
-    /// 바퀴 시각화
+    /// 힘 분배
     /// </summary>
-    /// <param name="wheel"></param>
-    /// <param name="vLong"></param>
-    /// <param name="dt"></param>
-    void VisualWheel(Wheel wheel, float vLong,float dt)
+    public void DistributeAxleLoads()
     {
-        wheel.angularVelocity += vLong / wheel.radius;
-        //wheelVisual.Rotate(wheel.angularVelocity * dt);
+        frontAxle.DistributeLongitudinal();
+        rearAxle.DistributeLongitudinal();
     }
+    /// <summary>
+    /// 바퀴에 힘 싣기
+    /// </summary>
+    void PushLoadsToWheels()
+    {
+        frontAxle.PushToWheels();
+        rearAxle.PushToWheels();
+    }
+
+    /// <summary>
+    /// 횡하중 계산
+    /// </summary>
+    /// <param name="localAccel"></param>
+    void ApplyLateralLoad(Vec3 localAccel)
+    {
+        float ay = localAccel.x; // 로컬 X = 좌우 가속
+
+        float deltaFzFront = (mass.value * ay * cgHeight) / frontTrack;
+        float deltaFzRear = (mass.value * ay * cgHeight) / rearTrack;
+
+        frontAxle.ApplyLateralLoad(deltaFzFront);
+        rearAxle.ApplyLateralLoad(deltaFzRear);
+    }
+    
 }
