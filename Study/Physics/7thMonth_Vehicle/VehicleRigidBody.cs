@@ -20,6 +20,18 @@ public class VehicleRigidBody : CustomRigidBody
     [SerializeField] float frontTrack;
     [SerializeField] float rearTrack;
 
+    //관성 모먼트
+    float yawRate;
+    float yawAccel;
+    float yawTorque;
+
+    [SerializeField] 
+    float inertiaYaw; // Iz, 수직축 관성모멘트
+    [SerializeField]
+    private float stabilityGain = 1.5f;   // yawError → correctiveTorque 변환 비율, 튜닝용
+    [SerializeField]
+    private float maxBrakeTorque = 5000f; // 바퀴에 걸 수 있는 최대 브레이크 토크
+
     Vec3 cachedLocalAccel;
 
 
@@ -39,6 +51,8 @@ public class VehicleRigidBody : CustomRigidBody
 
         SolveSuspension(dt);//force
         SolveTireForces(dt);//force
+
+        ApplyStabilityControl(dt);//ESP
     }
 
     /// <summary>
@@ -187,83 +201,67 @@ public class VehicleRigidBody : CustomRigidBody
             Wheel wheel = wheels[i];//구조체라 따로 뺌
 
             //땅에 접지 안됨
-        /// <summary>
-/// 접촉점 속도 계산
-/// lateral / longitudinal 분해
-/// 마찰력 계산
-/// ApplyForceAtPoint
-/// </summary>
-/// <param name="dt"></param>
-private void SolveTireForces(float dt)
-{
-    for (int i = 0; i < wheels.Length; i++)
-    {
-        Wheel wheel = wheels[i];//구조체라 따로 뺌
+            if (!wheel.isGrounded)
+                continue;
 
-        //땅에 접지 안됨
-        if (!wheel.isGrounded)
-            continue;
+            // 노멀포스
+            float Fz = wheel.normalForce;
+            if (Fz <= 0f) 
+                continue;
 
-        // 노멀포스
-        float Fz = wheel.normalForce;
-        if (Fz <= 0f) 
-            continue;
+            //타이어 3축 좌표계
+            Vec3 up = wheel.contactNormal;
+            Vec3 baseForward = transform3D.Forward;
+            Mat3 steerRot = MatrixUtility.Rotate(wheel.steerAngle);//조향 회전
 
-        //타이어 3축 좌표계
-        Vec3 up = wheel.contactNormal;
-        Vec3 baseForward = transform3D.Forward;
-        Mat3 steerRot = MatrixUtility.Rotate(wheel.steerAngle);//조향 회전
+            Vec3 forward = steerRot * baseForward;//차량 전방
+            forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
+            Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
 
-        Vec3 forward = steerRot * baseForward;//차량 전방
-        forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
-        Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
+            // Raw tire forces (Linear Model)
+            float F_lat = -wheel.corneringStiffness * wheel.slipAngle;
+            float F_long = wheel.longitudinalStiffness * wheel.slipRatio;
 
-        // Raw tire forces (Linear Model)
-        float F_lat = -wheel.corneringStiffness * wheel.slipAngle;
-        float F_long = wheel.longitudinalStiffness * wheel.slipRatio;
+            // Friction Circle
+            float maxForce = wheel.tireGrip * Fz;
+            float forceMag = MathUtility.Root(F_lat * F_lat + F_long * F_long);
 
-        // Friction Circle
-        float maxForce = wheel.tireGrip * Fz;
-        float forceMag = MathUtility.Root(F_lat * F_lat + F_long * F_long);
+            // 힘 제한
+            if (forceMag > maxForce)
+            {
+                float scale = maxForce / forceMag;
+                F_lat *= scale;
+                F_long *= scale;
+            }
 
-        // 힘 제한
-        if (forceMag > maxForce)
-        {
-            float scale = maxForce / forceMag;
-            F_lat *= scale;
-            F_long *= scale;
+            // 바퀴 기준 힘 → 월드 힘
+            Vec3 wheelForward = forward;
+            Vec3 wheelRight = right;
+
+            Vec3 tireForce = wheelForward * F_long + wheelRight * F_lat;
+
+            //Yaw
+            Vec3 r = wheel.contactPoint - WorldCenterOfMass;
+            Vec3 torque = Vec3.Cross(r, tireForce);
+
+            yawTorque += torque.y; // 월드 Y 기준
+
+            //차체 힘 적용
+            ApplyForceAtPoint(tireForce, wheel.contactPoint);
+
+            wheels[i] = wheel;//값 갱신
         }
 
-        // 바퀴 기준 힘 → 월드 힘
-        Vec3 wheelForward = forward;
-        Vec3 wheelRight = right;
+        // 모든 바퀴 계산 끝난 뒤
+        yawAccel = yawTorque / inertiaYaw;
+        yawRate += yawAccel * dt;
 
-        Vec3 tireForce = wheelForward * F_long + wheelRight * F_lat;
+        // rigidbody 각속도에 반영
+        angularVelocity.y = yawRate;
 
-        //Yaw
-        Vec3 r = wheel.contactPoint - WorldCenterOfMass;
-        Vec3 torque = Vec3.Cross(r, tireForce);
-
-        yawTorque += torque.y; // 월드 Y 기준
-
-        //차체 힘 적용
-        ApplyForceAtPoint(tireForce, wheel.contactPoint);
-
-        wheels[i] = wheel;//값 갱신
+        // 프레임 끝
+        yawTorque = 0f;
     }
-
-    // 모든 바퀴 계산 끝난 뒤
-    yawAccel = yawTorque / inertiaYaw;
-    yawRate += yawAccel * dt;
-
-    // rigidbody 각속도에 반영
-    angularVelocity.y = yawRate;
-
-    //언더 오버 판정
-    float steerYawGain = yawRate / steerInput;
-    // 프레임 끝
-    yawTorque = 0f;
-}
     /// <summary>
     /// 노말 방향 힘 업데이트
     /// </summary>
@@ -309,5 +307,34 @@ private void SolveTireForces(float dt)
         frontAxle.ApplyLateralLoad(deltaFzFront);
         rearAxle.ApplyLateralLoad(deltaFzRear);
     }
-    
+    /// <summary>
+    /// Stability Control / ESP
+    /// yawRate vs 실제 yawRate 비교 후 바퀴별 brakeTorque 적용
+    /// 차량 안정화 - 차량이 원하는 만큼만 회전
+    /// </summary>
+    /// <param name="dt"></param>
+    void ApplyStabilityControl(float dt)
+    {
+        float desiredYawRate = controller.SteerInput * velocity.Magnitude / GetTurnRadius();
+        float yawError = desiredYawRate - yawRate;
+
+        //양수면 차가 덜 돌고 있음 → 바깥쪽 바퀴 브레이크 증가
+        //음수면 차가 너무 돌고 있음 → 안쪽 바퀴 브레이크 증가
+        float correctiveTorque = yawError * stabilityGain;
+        correctiveTorque = MathUtility.ClampValue(correctiveTorque, -maxBrakeTorque, maxBrakeTorque);//-1~1 범위
+
+        // 바퀴별 Brake Torque 분배 (예: 좌우)
+        frontAxle.ApplyBrakeSplit(correctiveTorque * 0.5f);
+        rearAxle.ApplyBrakeSplit(correctiveTorque * 0.5f);
+    }
+    /// <summary>
+    /// 바퀴의 회전 각도 구하는 함수
+    /// </summary>
+    /// <returns></returns>
+    private float GetTurnRadius()
+    {
+        float steerAngleRad = MathUtility.Deg2Rad * frontAxle.GetAverageSteerAngle();//rad각도로 변환
+        if (MathUtility.Abs(steerAngleRad) < 0.001f) return float.MaxValue; // 직진
+        return wheelBase / Mathf.Tan(steerAngleRad);
+    }
 }
