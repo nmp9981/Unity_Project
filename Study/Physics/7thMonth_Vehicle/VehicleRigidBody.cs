@@ -187,51 +187,83 @@ public class VehicleRigidBody : CustomRigidBody
             Wheel wheel = wheels[i];//구조체라 따로 뺌
 
             //땅에 접지 안됨
-            if (!wheel.isGrounded)
-                continue;
+        /// <summary>
+/// 접촉점 속도 계산
+/// lateral / longitudinal 분해
+/// 마찰력 계산
+/// ApplyForceAtPoint
+/// </summary>
+/// <param name="dt"></param>
+private void SolveTireForces(float dt)
+{
+    for (int i = 0; i < wheels.Length; i++)
+    {
+        Wheel wheel = wheels[i];//구조체라 따로 뺌
 
-            // 노멀포스
-            float Fz = wheel.normalForce;
-            if (Fz <= 0f) 
-                continue;
+        //땅에 접지 안됨
+        if (!wheel.isGrounded)
+            continue;
 
-            //타이어 3축 좌표계
-            Vec3 up = wheel.contactNormal;
-            Vec3 baseForward = transform3D.Forward;
-            Mat3 steerRot = MatrixUtility.Rotate(wheel.steerAngle);//조향 회전
+        // 노멀포스
+        float Fz = wheel.normalForce;
+        if (Fz <= 0f) 
+            continue;
 
-            Vec3 forward = steerRot * baseForward;//차량 전방
-            forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
-            Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
+        //타이어 3축 좌표계
+        Vec3 up = wheel.contactNormal;
+        Vec3 baseForward = transform3D.Forward;
+        Mat3 steerRot = MatrixUtility.Rotate(wheel.steerAngle);//조향 회전
 
-            // Raw tire forces (Linear Model)
-            float F_lat = -wheel.corneringStiffness * wheel.slipAngle;
-            float F_long = wheel.longitudinalStiffness * wheel.slipRatio;
+        Vec3 forward = steerRot * baseForward;//차량 전방
+        forward = (forward - up * Vec3.Dot(forward, up)).Normalized;//접촉면에 투영(UP Dir Remove)
+        Vec3 right = Vec3.Cross(up, forward).Normalized;//옆방향
 
-            // Friction Circle
-            float maxForce = wheel.tireGrip * Fz;
-            float forceMag = MathUtility.Root(F_lat * F_lat + F_long * F_long);
+        // Raw tire forces (Linear Model)
+        float F_lat = -wheel.corneringStiffness * wheel.slipAngle;
+        float F_long = wheel.longitudinalStiffness * wheel.slipRatio;
 
-            // 힘 제한
-            if (forceMag > maxForce)
-            {
-                float scale = maxForce / forceMag;
-                F_lat *= scale;
-                F_long *= scale;
-            }
+        // Friction Circle
+        float maxForce = wheel.tireGrip * Fz;
+        float forceMag = MathUtility.Root(F_lat * F_lat + F_long * F_long);
 
-            // 바퀴 기준 힘 → 월드 힘
-            Vec3 wheelForward = forward;
-            Vec3 wheelRight = right;
-
-            Vec3 tireForce = wheelForward * F_long + wheelRight * F_lat;
-
-            //차체 힘 적용
-            ApplyForceAtPoint(tireForce, wheel.contactPoint);
-
-            wheels[i] = wheel;//값 갱신
+        // 힘 제한
+        if (forceMag > maxForce)
+        {
+            float scale = maxForce / forceMag;
+            F_lat *= scale;
+            F_long *= scale;
         }
+
+        // 바퀴 기준 힘 → 월드 힘
+        Vec3 wheelForward = forward;
+        Vec3 wheelRight = right;
+
+        Vec3 tireForce = wheelForward * F_long + wheelRight * F_lat;
+
+        //Yaw
+        Vec3 r = wheel.contactPoint - WorldCenterOfMass;
+        Vec3 torque = Vec3.Cross(r, tireForce);
+
+        yawTorque += torque.y; // 월드 Y 기준
+
+        //차체 힘 적용
+        ApplyForceAtPoint(tireForce, wheel.contactPoint);
+
+        wheels[i] = wheel;//값 갱신
     }
+
+    // 모든 바퀴 계산 끝난 뒤
+    yawAccel = yawTorque / inertiaYaw;
+    yawRate += yawAccel * dt;
+
+    // rigidbody 각속도에 반영
+    angularVelocity.y = yawRate;
+
+    //언더 오버 판정
+    float steerYawGain = yawRate / steerInput;
+    // 프레임 끝
+    yawTorque = 0f;
+}
     /// <summary>
     /// 노말 방향 힘 업데이트
     /// </summary>
