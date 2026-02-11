@@ -68,6 +68,7 @@ public struct Wheel
     public float vLat;
 }
 
+
 /// <summary>
 /// 엑셀 클래스
 /// </summary>
@@ -121,6 +122,34 @@ public class Axle
 
         left.dynamicLoad += perWheel;
         right.dynamicLoad -= perWheel;
+    }
+    /// <summary>
+    /// 브레이크 토크 분배
+    /// </summary>
+    /// <param name="brakeTorque"></param>
+    public void ApplyBrakeSplit(float brakeTorque)
+    {
+        // 양 바퀴에 동일하게 적용
+        left.brakeTorque = MathUtility.Max(left.brakeTorque, brakeTorque);
+        right.brakeTorque = MathUtility.Max(right.brakeTorque, brakeTorque);
+    }
+    /// <summary>
+    /// 바퀴 회전각 세팅
+    /// </summary>
+    /// <param name="angle"></param>
+    public void SetSteerAngle(float angle)
+    {
+        if (!isFront) return; // 뒷바퀴는 스티어 없음
+        left.steerAngle = angle;
+        right.steerAngle = angle;
+    }
+    /// <summary>
+    /// 평균 회전각 가져오기
+    /// </summary>
+    /// <returns></returns>
+    public float GetAverageSteerAngle()
+    {
+        return (left.steerAngle + right.steerAngle) * 0.5f;
     }
 }
 
