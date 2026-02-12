@@ -34,6 +34,10 @@ public class VehicleRigidBody : CustomRigidBody
 
     Vec3 cachedLocalAccel;
 
+ //UI연결용
+ public float StabilityGain { get { return stabilityGain; } set { stabilityGain = value; } }
+ public float TireGrip { get; set; }
+ public float CgHeight { get { return CgHeight; } set { CgHeight = value; } }
 
     public void SolveVehicle(float dt)
     {
