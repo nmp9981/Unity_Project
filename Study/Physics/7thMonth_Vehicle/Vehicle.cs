@@ -68,7 +68,6 @@ public struct Wheel
     public float vLat;
 }
 
-
 /// <summary>
 /// 엑셀 클래스
 /// </summary>
@@ -152,13 +151,13 @@ public class Axle
         return (left.steerAngle + right.steerAngle) * 0.5f;
     }
     /// <summary>
-/// 평균 Slip 가져오기
-/// </summary>
-/// <returns></returns>
-public float GetAverageSlip()
-{
-    return (left.slipAngle + right.slipAngle) * 0.5f*MathUtility.Rad2Deg;
-}
+    /// 평균 Slip 가져오기
+    /// </summary>
+    /// <returns></returns>
+    public float GetAverageSlip()
+    {
+        return (left.slipAngle + right.slipAngle) * 0.5f*MathUtility.Rad2Deg;
+    }
 }
 
 
