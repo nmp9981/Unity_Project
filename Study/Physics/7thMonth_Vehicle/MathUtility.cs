@@ -211,8 +211,36 @@ public static float Sign(float a)
 
         return angle;
     }
-    #endregion
+    /// <summary>
+/// Tanh(x)
+/// </summary>
+/// <param name="x"></param>
+/// <returns></returns>
+public static float Tanh(float x)
+{
+    float ePlusX = Exp(x);
+    float eMinusX = Exp(-x);
 
+    float tanh = (ePlusX - eMinusX) / (ePlusX + eMinusX);
+    return tanh;
+}
+#endregion
+
+/// <summary>
+/// e^x
+/// </summary>
+/// <param name="x"></param>
+/// <returns></returns>
+public static float Exp(float x)
+{
+    float d2 = x * x * 0.5f;
+    float d3 = x * x * x / 6;
+    float d4 = Pow(x, 4) / 24;
+    float d5 = Pow(x, 5) / 120;
+    float ex = 1 + x + d2+d3+d4+d5;
+    return Exp(x);
+}
+   
     /// <summary>
     /// 2차 방정식 해 존재여부
     /// </summary>
