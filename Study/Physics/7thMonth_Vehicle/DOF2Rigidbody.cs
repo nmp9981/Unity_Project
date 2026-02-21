@@ -12,6 +12,12 @@ public class DOF2Rigidbody : MonoBehaviour
     float vy_dot, r_dot,Iz;
     Vector3 local;
 
+    float escThreshold = 0.2f;  // rad/s
+    float steerThreshold = 0.02f;   // rad
+    float minSpeed = 5f;        // m/s
+    float escGain = 2500f;
+    float maxEscYaw = 4000f;
+
     CustomRigidBody rb;
 
     private void Start()
@@ -81,6 +87,16 @@ public class DOF2Rigidbody : MonoBehaviour
         float Vy = localVel.y;
         float r = rb.angularVelocity.y;
 
+        //구동력
+        float FxDriveFront = 0f;
+        float FxDriveRear = throttle * maxDriveForce;
+
+        //Brake 6:4분배
+        float brakeForce = brake * maxBrakeForce;
+
+        float FxBrakeFront = -0.6f * brakeForce;
+        float FxBrakeRear = -0.4f * brakeForce;
+
         // 2. 슬립각 계산
         float U = Mathf.Max(Mathf.Abs(Ux), 0.1f);
         float alphaF = delta - (Vy + a * r) / U;
@@ -88,18 +104,20 @@ public class DOF2Rigidbody : MonoBehaviour
 
         // 3. 하중 계산
         float ax = Fx / rb.mass.value; // 또는 힘 기반 계산
-        float transfer = (h * rb.mass.value / L) * ax;
+        float transfer = (h / L) * Fx;
 
         float FzF = staticFront + transfer;
         float FzR = staticRear - transfer;
+        FzF = MathUtility.Max(0f, FzF);
+        FzR = MathUtility.Max(0f, FzR);
 
         // 4. 횡력
         float FyF = mu * FzF * MathUtility.Tanh(Cf * alphaF / (mu * FzF));
         float FyR = mu * FzR * MathUtility.Tanh(Cr * alphaR / (mu * FzR));
 
         //후륜 구동 분배
-        float FxFront = 0f;              // 전륜구동 아니면 0
-        float FxRear = Fx;              // 후륜구동 가정
+        float FxFront = FxDriveFront + FxBrakeFront;
+        float FxRear = FxDriveRear + FxBrakeRear;
 
         //u-circle 전륜
         float FmaxF = mu * FzF;//원의 반지름
@@ -132,7 +150,15 @@ public class DOF2Rigidbody : MonoBehaviour
         rb.AddForce(forceWorld);
 
         // 7. 요 모멘트
-        float yawMoment = a * FyF - b * FyR;
-        rb.AddTorque(new Vec3(0, yawMoment, 0));
+        float r_ref = (Ux / L) * delta;//이론 값 
+        float r_error = r - r_ref;//실제 값과의 오차
+
+        bool oversteer = (r - r_ref) > escThreshold && MathUtility.Abs(delta) > steerThreshold && Ux > minSpeed;
+        if (oversteer)//오버스티어인 경우
+        {
+            float escYaw = -escGain * r_error;
+            escYaw = MathUtility.ClampValue(escYaw, -maxEscYaw, maxEscYaw);
+            rb.AddTorque(new Vec3(0, escYaw, 0));
+        }
     }
 }
