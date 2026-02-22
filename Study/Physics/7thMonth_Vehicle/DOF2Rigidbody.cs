@@ -1,24 +1,60 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DOF2Rigidbody : MonoBehaviour
 {
-    float delta;
-    float vy,Ux;
+    float delta=0.05f;//고정 조향각
     float currentUx,prevUx;
-    float a, b,r;
-    float h, L, m;
+    float a = 1.54f;//55%
+    float b = 1.26f;//45%
+    float h = 0.55f;//세단 높이
+    float L = 2.8f;
+    float m = 1500;
     float FzFront, FzRear, staticFront, staticRear;
-    float mu, Cf, Cr;
+    float mu=1.0f;//마른 아스팔트 기준
+    float Cf = 80000;
+    float Cr = 70000;
     float vy_dot, r_dot,Iz;
     Vector3 local;
 
     float escThreshold = 0.2f;  // rad/s
     float steerThreshold = 0.02f;   // rad
     float minSpeed = 5f;        // m/s
-    float escGain = 2500f;
-    float maxEscYaw = 4000f;
 
     CustomRigidBody rb;
+
+    // ===== 상태 =====
+    float Ux;
+    float Vy;
+    float r;
+
+    // ===== 종력 =====
+    float Fx;
+    float FxDriveFront;
+    float FxDriveRear;
+    float FxBrakeFront;
+    float FxBrakeRear;
+    float FxFront;
+    float FxRear;
+
+    // ===== 슬립각 =====
+    float alphaF;
+    float alphaR;
+
+    // ===== 하중 =====
+    float FzF;
+    float FzR;
+
+    // ===== 횡력 =====
+    float FyF;
+    float FyR;
+
+    // ===== ECS =====
+    public bool escEnabled = false;
+    public float escGain = 2500f;
+    public float maxEscYaw = 4000f;
+    public float escMaxYaw;
+
 
     private void Start()
     {
@@ -78,47 +114,75 @@ public class DOF2Rigidbody : MonoBehaviour
     /// <param name="dt"></param>
     void VehicleStep(float dt)
     {
+        ReadState();
+        ComputeLongitudinalForces();
+        ComputeSlipAngles();
+        ComputeLoadTransfer();
+        ComputeLateralForces();
+        ApplyFrictionCircle();
+        ApplyForcesToRigidBody();
+        ApplyESC();
+    }
+
+    void ReadState()
+    {
         //종력 계산
-        float Fx = throttle * maxDriveForce - brake * maxBrakeForce;
+        Fx = throttle * maxDriveForce - brake * maxBrakeForce;
 
-        // 1. 현재 속도 읽기
         Vec3 localVel = transform.InverseTransformDirection(rb.velocity);
-        float Ux = localVel.z;
-        float Vy = localVel.y;
-        float r = rb.angularVelocity.y;
+        Ux = localVel.z;
+        Vy = localVel.y;
+        r = rb.angularVelocity.y;
+    }
 
+    void ComputeLongitudinalForces()
+    {
         //구동력
-        float FxDriveFront = 0f;
-        float FxDriveRear = throttle * maxDriveForce;
+        FxDriveFront = 0f;
+        FxDriveRear = throttle * maxDriveForce;
 
         //Brake 6:4분배
         float brakeForce = brake * maxBrakeForce;
 
-        float FxBrakeFront = -0.6f * brakeForce;
-        float FxBrakeRear = -0.4f * brakeForce;
+        FxBrakeFront = -0.6f * brakeForce;
+        FxBrakeRear = -0.4f * brakeForce;
 
+        FxFront = FxDriveFront + FxBrakeFront;
+        FxRear = FxDriveRear + FxBrakeRear;
+    }
+
+    /// <summary>
+    /// 슬립각 계산
+    /// </summary>
+    void ComputeSlipAngles()
+    {
         // 2. 슬립각 계산
-        float U = Mathf.Max(Mathf.Abs(Ux), 0.1f);
-        float alphaF = delta - (Vy + a * r) / U;
-        float alphaR = (b * r - Vy) / U;
-
+        float U = MathUtility.Max(MathUtility.Abs(Ux), 0.1f);
+        alphaF = delta - (Vy + a * r) / U;
+        alphaR = (b * r - Vy) / U;
+    }
+    /// <summary>
+    /// 하중 계산
+    /// </summary>
+    void ComputeLoadTransfer()
+    {
         // 3. 하중 계산
-        float ax = Fx / rb.mass.value; // 또는 힘 기반 계산
-        float transfer = (h / L) * Fx;
+        float FxTotal = FxFront + FxRear;
+        float transfer = (h / L) * FxTotal;
 
-        float FzF = staticFront + transfer;
-        float FzR = staticRear - transfer;
-        FzF = MathUtility.Max(0f, FzF);
-        FzR = MathUtility.Max(0f, FzR);
+        FzF = MathUtility.Max(0,staticFront + transfer);
+        FzR = MathUtility.Max(0, staticRear - transfer);
+    }
 
+    void ComputeLateralForces()
+    {
         // 4. 횡력
-        float FyF = mu * FzF * MathUtility.Tanh(Cf * alphaF / (mu * FzF));
-        float FyR = mu * FzR * MathUtility.Tanh(Cr * alphaR / (mu * FzR));
+        FyF = mu * FzF * MathUtility.Tanh(Cf * alphaF / (mu * FzF));
+        FyR = mu * FzR * MathUtility.Tanh(Cr * alphaR / (mu * FzR));
+    }
 
-        //후륜 구동 분배
-        float FxFront = FxDriveFront + FxBrakeFront;
-        float FxRear = FxDriveRear + FxBrakeRear;
-
+    void ApplyFrictionCircle()
+    {
         //u-circle 전륜
         float FmaxF = mu * FzF;//원의 반지름
         float magF = MathUtility.Root(FxFront * FxFront + FyF * FyF);
@@ -137,24 +201,38 @@ public class DOF2Rigidbody : MonoBehaviour
             FxRear *= scale;
             FyR *= scale;
         }
+    }
 
+    /// <summary>
+    /// RigidBody에 힘 적용
+    /// </summary>
+    void ApplyForcesToRigidBody()
+    {
         //힘 조립
         float FxTotal = FxFront + FxRear;
         float FyTotal = FyF + FyR;
 
         // 6. Force 변환
-        Vec3 forceLocal = new Vec3(0,FyTotal,FxTotal);
+        Vec3 forceLocal = new Vec3(0, FyTotal, FxTotal);
 
         Vec3 forceWorld = transform.TransformDirection(forceLocal);
 
         rb.AddForce(forceWorld);
+    }
+
+    /// <summary>
+    /// ESC 적용
+    /// </summary>
+    void ApplyESC()
+    {
+        if (!escEnabled) return;
 
         // 7. 요 모멘트
         float r_ref = (Ux / L) * delta;//이론 값 
         float r_error = r - r_ref;//실제 값과의 오차
 
-        bool oversteer = (r - r_ref) > escThreshold && MathUtility.Abs(delta) > steerThreshold && Ux > minSpeed;
-        if (oversteer)//오버스티어인 경우
+        bool oversteer = r_error > escThreshold && MathUtility.Abs(delta) > steerThreshold && Ux > minSpeed;
+        if (oversteer)//오버스티어인 경우에마 ECS작동
         {
             float escYaw = -escGain * r_error;
             escYaw = MathUtility.ClampValue(escYaw, -maxEscYaw, maxEscYaw);
