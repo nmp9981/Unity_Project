@@ -7,14 +7,15 @@ public class DOF2Rigidbody : MonoBehaviour
     float currentUx,prevUx;
     float a = 1.54f;//55%
     float b = 1.26f;//45%
-    float h = 0.55f;//세단 높이
+    float h = 0.55f;//세단 높이, CG Height
     float L = 2.8f;
     float m = 1500;
     float FzFront, FzRear, staticFront, staticRear;
     float mu=1.0f;//마른 아스팔트 기준
     float Cf = 80000;
     float Cr = 70000;
-    float vy_dot, r_dot,Iz;
+    float vy_dot, r_dot;
+    float Iz = 1;
     Vector3 local;
 
     float escThreshold = 0.2f;  // rad/s
@@ -27,6 +28,7 @@ public class DOF2Rigidbody : MonoBehaviour
     float Ux;
     float Vy;
     float r;
+    float ay;
 
     // ===== 종력 =====
     float Fx;
@@ -55,6 +57,11 @@ public class DOF2Rigidbody : MonoBehaviour
     public float maxEscYaw = 4000f;
     public float escMaxYaw;
 
+    // Roll 준비
+    float trackWidth = 1.6f;   // m
+    float Ixx = 300f;          // roll inertia
+    float Kphi = 30000f;       // roll stiffness
+    float Cphi = 3000f;        // roll damping
 
     private void Start()
     {
@@ -65,7 +72,7 @@ public class DOF2Rigidbody : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        DOF2Flow(Time.fixedDeltaTime);
+        VehicleStep(Time.fixedDeltaTime);
     }
     /// <summary>
     /// 28주차 기록용
@@ -115,15 +122,18 @@ public class DOF2Rigidbody : MonoBehaviour
     void VehicleStep(float dt)
     {
         ReadState();
+        ComputeDerivedStates();
         ComputeLongitudinalForces();
         ComputeSlipAngles();
-        ComputeLoadTransfer();
+        ApplyLongitudinalLoadTransfer();
         ComputeLateralForces();
         ApplyFrictionCircle();
         ApplyForcesToRigidBody();
         ApplyESC();
     }
-
+    /// <summary>
+    /// 속도 값 읽어오기
+    /// </summary>
     void ReadState()
     {
         //종력 계산
@@ -134,7 +144,16 @@ public class DOF2Rigidbody : MonoBehaviour
         Vy = localVel.y;
         r = rb.angularVelocity.y;
     }
-
+    /// <summary>
+    /// 횡가속도 계산
+    /// </summary>
+    void ComputeDerivedStates()
+    {
+        if (MathUtility.Abs(Ux) < 1f)
+            ay = 0f;
+        else
+            ay = Ux * r;
+    }
     void ComputeLongitudinalForces()
     {
         //구동력
@@ -164,7 +183,7 @@ public class DOF2Rigidbody : MonoBehaviour
     /// <summary>
     /// 하중 계산
     /// </summary>
-    void ComputeLoadTransfer()
+    void ApplyLongitudinalLoadTransfer()
     {
         // 3. 하중 계산
         float FxTotal = FxFront + FxRear;
