@@ -29,6 +29,14 @@ public class DOF2Rigidbody : MonoBehaviour
     float Vy;
     float r;
     float ay;
+    float phi;       // roll angle (rad)
+    float phiDot;    // roll rate (rad/s)
+
+    // ===== 좌우 하중 =====
+    float FzFL;
+    float FzFR;
+    float FzRL;
+    float FzRR;
 
     // ===== 종력 =====
     float Fx;
@@ -123,9 +131,13 @@ public class DOF2Rigidbody : MonoBehaviour
     {
         ReadState();
         ComputeDerivedStates();
+        UpdateRollDynamics(dt);
+
         ComputeLongitudinalForces();
         ComputeSlipAngles();
         ApplyLongitudinalLoadTransfer();
+        ApplyLateralLoadTransfer();
+
         ComputeLateralForces();
         ApplyFrictionCircle();
         ApplyForcesToRigidBody();
@@ -153,6 +165,33 @@ public class DOF2Rigidbody : MonoBehaviour
             ay = 0f;
         else
             ay = Ux * r;
+    }
+    /// <summary>
+    /// 롤 운동 방정식
+    /// </summary>
+    /// <param name="dt"></param>
+    void UpdateRollDynamics(float dt)
+    {
+        // 롤 모멘트 계산 (비선형)
+        float rollMoment =
+            -m * h * ay * Mathf.Cos(phi)
+            - Kphi * Mathf.Sin(phi)
+            - Cphi * phiDot;
+
+        // 각가속도
+        float phiDDot = rollMoment / Ixx;
+
+        // 적분
+        phiDot += phiDDot * dt;
+        phi += phiDot * dt;
+        phi = MathUtility.ClampValue(phi, -15f *MathUtility.Deg2Rad, 15f * MathUtility.Deg2Rad);//RollClamp
+
+        //저속 안정화
+        if (MathUtility.Abs(Ux) < 1f)
+        {
+            phi *= 0.98f;
+            phiDot *= 0.9f;
+        }
     }
     void ComputeLongitudinalForces()
     {
@@ -192,7 +231,30 @@ public class DOF2Rigidbody : MonoBehaviour
         FzF = MathUtility.Max(0,staticFront + transfer);
         FzR = MathUtility.Max(0, staticRear - transfer);
     }
+    /// <summary>
+    /// 좌우 하중 적용
+    /// </summary>
+    void ApplyLateralLoadTransfer()
+    {
+        float totalDelta = (Kphi * phi) / trackWidth;
 
+        float deltaFront = 0.5f * totalDelta;
+        float deltaRear = 0.5f * totalDelta;
+
+        // Front axle
+        FzFL = FzF * 0.5f - deltaFront;
+        FzFR = FzF * 0.5f + deltaFront;
+
+        // Rear axle
+        FzRL = FzR * 0.5f - deltaRear;
+        FzRR = FzR * 0.5f + deltaRear;
+
+        // 음수 방지
+        FzFL = MathUtility.Max(FzFL, 0);
+        FzFR = MathUtility.Max(FzFR, 0);
+        FzRL = MathUtility.Max(FzRL, 0);
+        FzRR = MathUtility.Max(FzRR, 0);
+    }
     void ComputeLateralForces()
     {
         // 4. 횡력
