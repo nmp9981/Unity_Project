@@ -73,34 +73,43 @@ public static class QuaternionUtility
         return q.Conjugate / q.Square;
     }
 
-    /// <summary>
-    /// 오일러 각 -> 쿼티니언
-    /// </summary>
-    /// <param name="eulerAngle"></param>
-    /// <returns></returns>
-    public static CustomQuaternion Euler(float x, float y, float z)
-    {
-        float radX = x * MathUtility.Deg2Rad;
-        float radY = y * MathUtility.Deg2Rad;
-        float radZ = z * MathUtility.Deg2Rad;
+  /// <summary>
+/// 오일러 각 -> 쿼티니언
+/// </summary>
+/// <param name="eulerAngle"></param>
+/// <returns></returns>
+public static CustomQuaternion Euler(float x, float y, float z)
+{
+    float radX = x * MathUtility.Deg2Rad;
+    float radY = y * MathUtility.Deg2Rad;
+    float radZ = z * MathUtility.Deg2Rad;
 
-        float cx = MathUtility.Cos(radX * 0.5f);
-        float sx = MathUtility.Sin(radX * 0.5f);
+    CustomQuaternion qx = AxisAngle(new Vec3(1, 0, 0), radX);
+    CustomQuaternion qy = AxisAngle(new Vec3(0, 1, 0), radY);
+    CustomQuaternion qz = AxisAngle(new Vec3(0, 0, 1), radZ);
 
-        float cy = MathUtility.Cos(radY * 0.5f);
-        float sy = MathUtility.Sin(radY * 0.5f);
+    // Unity style rotation order
+    CustomQuaternion q = qy*(qz*qz);
 
-        float cz = MathUtility.Cos(radZ * 0.5f);
-        float sz = MathUtility.Sin(radZ * 0.5f);
+    return q.Normalized;
+}
 
-        CustomQuaternion q;
-        q.scala = cx * cy * cz + sx * sy * sz;
-        q.vec.x = sx * cy * cz - cx * sy * sz;
-        q.vec.y = cx * sy * cz + sx * cy * sz;
-        q.vec.z = cx * cy * sz - sx * sy * cz;
-        return q;
-    }
+public static CustomQuaternion AxisAngle(Vec3 axis, float angle)
+{
+    float half = angle * 0.5f;
 
+    float s = MathUtility.Sin(half);
+    float c = MathUtility.Cos(half);
+
+    CustomQuaternion q;
+
+    q.vec.x = axis.x * s;
+    q.vec.y = axis.y * s;
+    q.vec.z = axis.z * s;
+    q.scala = c;
+
+    return q;
+}
     /// <summary>
     /// 회전 적분
     /// </summary>
