@@ -5,15 +5,15 @@ public class DOF2Rigidbody : MonoBehaviour
 {
     float delta=0.05f;//고정 조향각
     float currentUx,prevUx;
-    float a = 1.54f;//55%
-    float b = 1.26f;//45%
+    float a = 1.2f;//55%
+    float b = 1.6f;//45%
     float h = 0.55f;//세단 높이, CG Height
     float L = 2.8f;
     float m = 1500;
     float FzFront, FzRear, staticFront, staticRear;
     float mu=1.0f;//마른 아스팔트 기준
-    float Cf = 80000;
-    float Cr = 70000;
+    float Cf = 40000;
+    float Cr = 30000;
     float vy_dot, r_dot;
     float Iz = 1;
     Vector3 local;
@@ -27,16 +27,33 @@ public class DOF2Rigidbody : MonoBehaviour
     // ===== 상태 =====
     float Ux;
     float Vy;
-    float r;
     float ay;
+
+    // ==== roll ====
     float phi;       // roll angle (rad)
     float phiDot;    // roll rate (rad/s)
+
+    // ==== 회전 ====
+    float r;
+    float yaw;
+
+    //==== 위치 ====
+    Vec3 position;
 
     // ===== 좌우 하중 =====
     float FzFL;
     float FzFR;
     float FzRL;
     float FzRR;
+
+    // ==== 엔진 모델 ====
+    float throttle; // 0~1, 엔진 힘
+    float FxEngine => throttle * 4000f;
+    float brakeInput; // 0~1, 브레이크
+    float brakeForce;
+    float FxBrake => brakeInput * brakeForce*MathUtility.Sin(Ux);
+    float dragCoeff = 0.5f;// 공기저항
+    float FxDrag;
 
     // ===== 종력 =====
     float Fx;
@@ -67,8 +84,10 @@ public class DOF2Rigidbody : MonoBehaviour
 
     // Roll 준비
     float trackWidth = 1.6f;   // m
-    float Ixx = 300f;          // roll inertia
-    float Kphi = 30000f;       // roll stiffness
+    float Ixx = 600f;          // roll inertia
+    float KphiFront = 18000f;
+    float KphiRear = 12000f;// roll stiffness
+    float KphiTotal => KphiFront+KphiRear;
     float Cphi = 3000f;        // roll damping
 
     private void Start()
@@ -96,8 +115,8 @@ public class DOF2Rigidbody : MonoBehaviour
         currentUx = Ux;
         //2.슬립각 계산
         float U = Mathf.Max(Mathf.Abs(Ux), 0.1f);
-        float alphaF = delta - (vy + a * r) / U;
-        float alphaR = (b * r - vy) / U;
+        float alphaF = delta - (Vy + a * r) / U;
+        float alphaR = (b * r - Vy) / U;
         //3.하중 이동 계산
         float ax = (currentUx - prevUx) / dt;
         float transfer = (h / L) * m * ax;
@@ -115,10 +134,10 @@ public class DOF2Rigidbody : MonoBehaviour
         r_dot = (a * FyF - b * FyR) / Iz;
         //6.상태 미분 계산
         //7.적분(Euler 또는 RK2)
-        vy += vy_dot * dt;
+        Vy += vy_dot * dt;
         r += r_dot * dt;
         //8.Rigidbody에 반영
-        Vec3 localVel = new Vec3(0, vy, Ux);
+        Vec3 localVel = new Vec3(0, Vy, Ux);
         Vector3 vel = transform.TransformDirection(new Vector3(localVel.x, localVel.y, localVel.z));
         rb.velocity = new Vec3(vel.x, vel.y,vel.z);
         rb.angularVelocity = new Vec3(0, r, 0);
@@ -130,6 +149,7 @@ public class DOF2Rigidbody : MonoBehaviour
     void VehicleStep(float dt)
     {
         ReadState();
+        UpdateLongitudinalDynamics(dt);
         ComputeDerivedStates();
         UpdateRollDynamics(dt);
 
@@ -141,6 +161,7 @@ public class DOF2Rigidbody : MonoBehaviour
         ComputeLateralForces();
         ApplyFrictionCircle();
         ApplyForcesToRigidBody();
+        ApplyTransform(dt);
         ApplyESC();
     }
     /// <summary>
@@ -155,6 +176,28 @@ public class DOF2Rigidbody : MonoBehaviour
         Ux = localVel.z;
         Vy = localVel.y;
         r = rb.angularVelocity.y;
+    }
+    /// <summary>
+    /// 종방향 차량 업데이트
+    /// </summary>
+    /// <param name="dt"></param>
+    void UpdateLongitudinalDynamics(float dt)
+    {
+        float FxDrag = dragCoeff * Ux * MathUtility.Abs(Ux);
+        float Fx = FxEngine - FxBrake - FxDrag;
+        float UxDot = Fx / m + Vy * r;
+
+        Ux += UxDot * dt;
+
+        // 속도 제한
+        float maxSpeed = 60f;
+        Ux = MathUtility.ClampValue(Ux, -maxSpeed, maxSpeed);
+
+        // 저속 안정화
+        if (MathUtility.Abs(Ux) < 0.1f)
+        {
+            Ux = 0f;
+        }
     }
     /// <summary>
     /// 횡가속도 계산
@@ -175,7 +218,7 @@ public class DOF2Rigidbody : MonoBehaviour
         // 롤 모멘트 계산 (비선형)
         float rollMoment =
             -m * h * ay * Mathf.Cos(phi)
-            - Kphi * Mathf.Sin(phi)
+            - KphiTotal * Mathf.Sin(phi)
             - Cphi * phiDot;
 
         // 각가속도
@@ -215,9 +258,17 @@ public class DOF2Rigidbody : MonoBehaviour
     void ComputeSlipAngles()
     {
         // 2. 슬립각 계산
-        float U = MathUtility.Max(MathUtility.Abs(Ux), 0.1f);
-        alphaF = delta - (Vy + a * r) / U;
-        alphaR = (b * r - Vy) / U;
+        float U = MathUtility.Abs(Ux);
+        if (U < 0.5f)//저속에서는 타이어 모델을 끈다
+        {
+            alphaF = 0;
+            alphaR = 0;
+        }
+        else
+        {
+            alphaF = delta - (Vy + a * r) / U;
+            alphaR = (b * r - Vy) / U;
+        }
     }
     /// <summary>
     /// 하중 계산
@@ -236,10 +287,13 @@ public class DOF2Rigidbody : MonoBehaviour
     /// </summary>
     void ApplyLateralLoadTransfer()
     {
-        float totalDelta = (Kphi * phi) / trackWidth;
+        float totalDelta = (KphiTotal * phi) / trackWidth;
 
-        float deltaFront = 0.5f * totalDelta;
-        float deltaRear = 0.5f * totalDelta;
+        float frontRatio = KphiFront / KphiTotal;
+        float rearRatio = KphiRear / KphiTotal;
+
+        float deltaFront = frontRatio * totalDelta;
+        float deltaRear = rearRatio * totalDelta;
 
         // Front axle
         FzFL = FzF * 0.5f - deltaFront;
@@ -255,9 +309,11 @@ public class DOF2Rigidbody : MonoBehaviour
         FzRL = MathUtility.Max(FzRL, 0);
         FzRR = MathUtility.Max(FzRR, 0);
     }
+    /// <summary>
+    /// 횡력 계산
+    /// </summary>
     void ComputeLateralForces()
     {
-        // 4. 횡력
         FyF = mu * FzF * MathUtility.Tanh(Cf * alphaF / (mu * FzF));
         FyR = mu * FzR * MathUtility.Tanh(Cr * alphaR / (mu * FzR));
     }
@@ -295,12 +351,32 @@ public class DOF2Rigidbody : MonoBehaviour
 
         // 6. Force 변환
         Vec3 forceLocal = new Vec3(0, FyTotal, FxTotal);
-
+        //TODO : Transform Directio함수 직접 구현
         Vec3 forceWorld = transform.TransformDirection(forceLocal);
 
         rb.AddForce(forceWorld);
     }
+    /// <summary>
+    /// 위치 적용
+    /// </summary>
+    void ApplyTransform(float dt)
+    {
+        //차량 좌표 -> 월드 좌표
+        float cosYaw = MathUtility.Cos(yaw);
+        float sinYaw = MathUtility.Sin(yaw);
 
+        float worldVx = Ux * cosYaw - Vy * sinYaw;
+        float worldVz = Ux * sinYaw + Vy * cosYaw;
+
+        //위치 업데이트
+        position.x += worldVx * dt;
+        position.z += worldVz * dt;
+      
+        transform.position = new Vector3(position.x,transform.position.y,position.z);
+
+        CustomQuaternion rot = QuaternionUtility.Euler(0f, yaw * MathUtility.Rad2Deg, -phi * MathUtility.Rad2Deg);
+        transform.rotation = rot;
+    }
     /// <summary>
     /// ESC 적용
     /// </summary>
