@@ -74,6 +74,34 @@ public static class QuaternionUtility
     }
 
     /// <summary>
+    /// 오일러 각 -> 쿼티니언
+    /// </summary>
+    /// <param name="eulerAngle"></param>
+    /// <returns></returns>
+    public static CustomQuaternion Euler(float x, float y, float z)
+    {
+        float radX = x * MathUtility.Deg2Rad;
+        float radY = y * MathUtility.Deg2Rad;
+        float radZ = z * MathUtility.Deg2Rad;
+
+        float cx = MathUtility.Cos(radX * 0.5f);
+        float sx = MathUtility.Sin(radX * 0.5f);
+
+        float cy = MathUtility.Cos(radY * 0.5f);
+        float sy = MathUtility.Sin(radY * 0.5f);
+
+        float cz = MathUtility.Cos(radZ * 0.5f);
+        float sz = MathUtility.Sin(radZ * 0.5f);
+
+        CustomQuaternion q;
+        q.scala = cx * cy * cz + sx * sy * sz;
+        q.vec.x = sx * cy * cz - cx * sy * sz;
+        q.vec.y = cx * sy * cz + sx * cy * sz;
+        q.vec.z = cx * cy * sz - sx * sy * cz;
+        return q;
+    }
+
+    /// <summary>
     /// 회전 적분
     /// </summary>
     /// <param name="rot"></param>
