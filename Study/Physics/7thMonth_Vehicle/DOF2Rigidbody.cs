@@ -15,7 +15,9 @@ public class DOF2Rigidbody : MonoBehaviour
     float Cf = 40000;
     float Cr = 30000;
     float vy_dot, r_dot;
+    float track => a + b;
     float Iz = 1;
+    float g = 9.81f;
     Vector3 local;
 
     float escThreshold = 0.2f;  // rad/s
@@ -28,6 +30,7 @@ public class DOF2Rigidbody : MonoBehaviour
     float Ux;
     float Vy;
     float ay;
+    float prevVy;
 
     // ==== roll ====
     float phi;       // roll angle (rad)
@@ -54,6 +57,9 @@ public class DOF2Rigidbody : MonoBehaviour
     float FxBrake => brakeInput * brakeForce*MathUtility.Sin(Ux);
     float dragCoeff = 0.5f;// 공기저항
     float FxDrag;
+    float brake;
+    float maxBrakeForce;
+    float maxDriveForce;
 
     // ===== 종력 =====
     float Fx;
@@ -94,11 +100,21 @@ public class DOF2Rigidbody : MonoBehaviour
     {
         Vector3 velocity = new Vector3(rb.velocity.x, rb.velocity.y, rb.velocity.z);
         local = transform.InverseTransformDirection(velocity);
-        vy = local.y;
+        Vy = local.y;
         r = rb.angularVelocity.y;
+
+        staticFront = m * g * b / L;
+        staticRear = m * g * a / L;
     }
     private void FixedUpdate()
     {
+        prevUx = currentUx;
+
+        currentUx = rb.velocity.z;
+
+        ComputeLongitudinalWeightTransfer();
+        ComputeLateralWeightTransfer();
+
         VehicleStep(Time.fixedDeltaTime);
     }
     /// <summary>
@@ -310,6 +326,37 @@ public class DOF2Rigidbody : MonoBehaviour
         FzRR = MathUtility.Max(FzRR, 0);
     }
     /// <summary>
+    /// Fz값 계산
+    /// </summary>
+    void ComputeLongitudinalWeightTransfer()
+    {
+        float ax = (currentUx - prevUx) / Time.fixedDeltaTime;
+
+        float dF = m * h * ax / L;
+
+        FzFront = staticFront - dF;
+        FzRear = staticRear + dF;
+    }
+    /// <summary>
+    /// 좌우 Fz 계산
+    /// </summary>
+    void ComputeLateralWeightTransfer()
+    {
+        float ay = (Vy - prevVy) / Time.fixedDeltaTime;
+
+        float dF = m * h * ay / track;
+        float dF_each = dF * 0.5f;
+
+        // Front
+        FzFL = FzFront * 0.5f - dF_each;
+        FzFR = FzFront * 0.5f + dF_each;
+
+        // Rear
+        FzRL = FzRear * 0.5f - dF_each;
+        FzRR = FzRear * 0.5f + dF_each;
+    }
+
+    /// <summary>
     /// 횡력 계산
     /// </summary>
     void ComputeLateralForces()
@@ -375,7 +422,7 @@ public class DOF2Rigidbody : MonoBehaviour
         transform.position = new Vector3(position.x,transform.position.y,position.z);
 
         CustomQuaternion rot = QuaternionUtility.Euler(0f, yaw * MathUtility.Rad2Deg, -phi * MathUtility.Rad2Deg);
-        transform.rotation = rot;
+        transform.rotation = new Quaternion (rot.vec.x,rot.vec.y,rot.vec.z,rot.scala);
     }
     /// <summary>
     /// ESC 적용
