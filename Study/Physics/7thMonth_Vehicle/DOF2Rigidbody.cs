@@ -35,6 +35,9 @@ public class DOF2Rigidbody : MonoBehaviour
     // ==== roll ====
     float phi;       // roll angle (rad)
     float phiDot;    // roll rate (rad/s)
+    float roll;//차체 기울기
+    float rollRate;
+    float rollAcc;
 
     // ==== 회전 ====
     float r;
@@ -94,7 +97,9 @@ public class DOF2Rigidbody : MonoBehaviour
     float KphiFront = 18000f;
     float KphiRear = 12000f;// roll stiffness
     float KphiTotal => KphiFront+KphiRear;
-    float Cphi = 3000f;        // roll damping
+    float Cphi = 5000f;        // roll damping
+    float Kphi = 35000f;
+    float Iphi = 450f;
 
     private void Start()
     {
@@ -114,6 +119,8 @@ public class DOF2Rigidbody : MonoBehaviour
 
         ComputeLongitudinalWeightTransfer();
         ComputeLateralWeightTransfer();
+
+        UpdateRollDynamics2(ay, Time.fixedDeltaTime);
 
         VehicleStep(Time.fixedDeltaTime);
     }
@@ -442,5 +449,18 @@ public class DOF2Rigidbody : MonoBehaviour
             escYaw = MathUtility.ClampValue(escYaw, -maxEscYaw, maxEscYaw);
             rb.AddTorque(new Vec3(0, escYaw, 0));
         }
+    }
+    /// <summary>
+    /// Roll 계산
+    /// </summary>
+    void UpdateRollDynamics2(float ay,float dt)
+    {
+        float M_roll = m * h * ay;
+
+        rollAcc = (M_roll - Kphi * roll - Cphi * rollRate) / Iphi;
+
+        //적분
+        rollRate += rollAcc * dt;
+        roll += rollRate * dt;
     }
 }
