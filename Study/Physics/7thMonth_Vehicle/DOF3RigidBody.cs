@@ -14,6 +14,7 @@ public class DOF3RigidBody : MonoBehaviour
     float Cf = 40000;
     float Cr = 30000;
     float vy_dot, r_dot;
+    float wheelbase;  // 축간 거리
 
     float Iz = 2500;
     float g = 9.81f;
@@ -29,12 +30,15 @@ public class DOF3RigidBody : MonoBehaviour
     float Ux;
     float Vy;
     float ay;
+    float ax;
     float prevVy;
 
     // ==== roll ====
     float roll;//차체 기울기, roll angle (rad)
     float rollRate;// roll rate (rad/s)
     float rollAcc;
+    float rollTransferFront;
+    float rollTransferRear;
 
     // ==== 회전 ====
     float r;
@@ -55,21 +59,23 @@ public class DOF3RigidBody : MonoBehaviour
     float FxEngine => throttle * 4000f;
     float brakeInput; // 0~1, 브레이크
     float brakeForce;
-    float FxBrake => brakeInput * brakeForce * MathUtility.Sin(Ux);
-    float dragCoeff = 0.5f;// 공기저항
+    float dragCoeff = 0.4f;// 공기저항
+    float rollingCoeff = 30f;
+    float maxSpeed = 55f; // m/s (약 200km/h)
     float FxDrag;
     float brake;
-    float maxBrakeForce;
-    float maxDriveForce;
+    float maxBrakeForce = 12000f;
+    float maxDriveForce = 8000f;
 
     // ===== 종력 =====
-    float Fx;
-    float FxDriveFront;
+    float FxTotal;
+    float FxDrive;
     float FxDriveRear;
-    float FxBrakeFront;
+    float FxBrake;
     float FxBrakeRear;
     float FxFront;
     float FxRear;
+    float FxRoll;
 
     // ===== 슬립각 =====
     float alphaF;
@@ -98,6 +104,9 @@ public class DOF3RigidBody : MonoBehaviour
     float Kphi => KphiFront+KphiRear;
     float Iphi = 450f;
 
+    //입력
+    float inputThrottle;
+    float inputBrake;
 
     private void Start()
     {
@@ -106,20 +115,27 @@ public class DOF3RigidBody : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // 1. Slip angle
-        ComputeSlipAngle();
+        GetInput();
 
-        // 2. Tire force (현재 Fz 기반)
-        ComputeTireForce();
+        // 1. Longitudinal force (새로 추가된 것)
+        ComputeLongitudinal();   // ax 계산됨
+
+        // 2. Slip angle
+        ComputeSlipAngle();
 
         // 3. ay 계산
         ay = (Fy_f + Fy_r) / m;
 
-        // 4. Roll dynamics
-        UpdateRollDynamics(ay, Time.fixedDeltaTime);
+        // 4. Roll + Pitch dynamics
+        UpdateRollDynamics(ay, Time.fixedDeltaTime);//roll 계산
+        ComputeRollTransfer();        // 좌우 차이
+        UpdatePitchWeightTransfer( Time.fixedDeltaTime);
 
-        // 5. Weight transfer → Fz 업데이트
-        UpdateWeightTransfer();
+        // 5. Weight transfer → Fz 먼저 계산
+        UpdateWheelLoads();
+
+        // 6. Tire force (이제는 새로운 Fz 기반)
+        ComputeTireForce();
     }
 
     /// <summary>
@@ -140,6 +156,60 @@ public class DOF3RigidBody : MonoBehaviour
         FzFR = staticFront * 0.5f;
         FzRL = staticRear * 0.5f;
         FzRR = staticRear * 0.5f;
+
+        //정적 하중 계산
+        staticFront = m * g * (b / wheelbase);
+        staticRear = m * g * (a / wheelbase);
+    }
+
+    /// <summary>
+    /// 입력값 받기
+    /// </summary>
+    void GetInput()
+    {
+
+    }
+
+    /// <summary>
+    /// 종방향 힘 계산 + 속도 업데이트, ux,ax 계산
+    /// </summary>
+    void ComputeLongitudinal()
+    {
+        // 1. 입력
+        float throttle = inputThrottle; // 0 ~ 1
+        float brake = inputBrake;       // 0 ~ 1
+
+        // 2. Drive Force (엔진)
+        FxDrive = throttle * maxDriveForce * (1f - Ux / maxSpeed);
+        FxDrive = MathUtility.Max(FxDrive, 0f);
+
+        // 3. Brake Force
+        brakeForce= brake * maxBrakeForce;
+
+        // 속도 방향 반대로 작용
+        if (MathUtility.Abs(Ux) > 0.1f)
+            FxBrake *= MathUtility.Sign(Ux);
+        else
+            FxBrake = 0f;
+
+        // 4. Drag (공기저항)
+        FxDrag = dragCoeff * Ux * MathUtility.Abs(Ux);
+
+        // 5. Rolling Resistance
+        FxRoll = rollingCoeff * Ux;
+
+        // 6. 총 힘
+        FxTotal = FxDrive - FxBrake - FxDrag - FxRoll;
+
+        // 7. 가속도
+        ax = FxTotal / m;
+
+        // 8. 속도 업데이트
+        Ux += ax * Time.deltaTime;
+
+        // 9. 정지 안정화 (중요)
+        if (MathUtility.Abs(Ux) < 0.05f && throttle < 0.01f)
+            Ux = 0f;
     }
 
     /// <summary>
@@ -194,30 +264,47 @@ public class DOF3RigidBody : MonoBehaviour
         rollRate += rollAcc * dt;
         roll += rollRate * dt;
     }
+
     /// <summary>
-    /// 하중 계산
+    /// Roll 업데이트
     /// </summary>
-    void UpdateWeightTransfer()
+    void UpdatePitchWeightTransfer(float dt)
     {
-        float dF_front = (KphiFront * roll) / trackWidth;
-        float dF_rear = (KphiRear * roll) / trackWidth;
+        float dF = (m * h * ax) / wheelbase;
 
-        // 앞축
-        float leftFront = staticFront / 2 + dF_front / 2;
-        float rightFront = staticFront / 2 - dF_front / 2;
+        // 가속 시: 앞 감소, 뒤 증가
+        FzFront = staticFront - dF;
+        FzRear = staticRear + dF;
 
-        // 뒤축
-        float leftRear = staticRear / 2 + dF_rear / 2;
-        float rightRear = staticRear / 2 - dF_rear / 2;
+        // 안전 처리 (타이어 뜨는거 방지)
+        FzFront = MathUtility.Max(FzFront, 0f);
+        FzRear = MathUtility.Max(FzRear, 0f);
+    }
 
-        // 적용
-        FzFL = MathUtility.Max(leftFront, 0f);
-        FzFR = MathUtility.Max(rightFront, 0f);
-        FzRL = MathUtility.Max(leftRear, 0f);
-        FzRR = MathUtility.Max(rightRear, 0f);
+    void ComputeRollTransfer()
+    {
+        float dF = (m * h * ax) / wheelbase;
 
-        //축 단위 합
-        FzFront = FzFL + FzFR;
-        FzRear = FzRL + FzRR;
+        FzFront = staticFront - dF;
+        FzRear = staticRear + dF;
+    }
+    void UpdateWheelLoads()
+    {
+        // Pitch 적용된 축 하중
+        float FzF = FzFront;
+        float FzR = FzRear;
+
+        // Roll 적용 (좌우 분배)
+        FzFL = FzF * 0.5f - rollTransferFront;
+        FzFR = FzF * 0.5f + rollTransferFront;
+
+        FzRL = FzR * 0.5f - rollTransferRear;
+        FzRR = FzR * 0.5f + rollTransferRear;
+
+        // 안전 처리
+        FzFL = MathUtility.Max(FzFL, 0f);
+        FzFR = MathUtility.Max(FzFR, 0f);
+        FzRL = MathUtility.Max(FzRL, 0f);
+        FzRR = MathUtility.Max(FzRR, 0f);
     }
 }
