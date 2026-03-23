@@ -54,6 +54,16 @@ public class DOF3RigidBody : MonoBehaviour
     float FzRL;
     float FzRR;
 
+    // ==== 전 방향 하중 ====
+    float FxFL;
+    float FxFR;
+    float FxRL;
+    float FxRR;
+    float FyFL;
+    float FyFR;
+    float FyRL;
+    float FyRR;
+
     // ==== 엔진 모델 ====
     float throttle; // 0~1, 엔진 힘
     float FxEngine => throttle * 4000f;
@@ -136,6 +146,9 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 6. Tire force (이제는 새로운 Fz 기반)
         ComputeTireForce();
+
+        ApplyCombinedSlipAll();//Fx, Fy조절
+        ApplyTireCoupling();
     }
 
     /// <summary>
@@ -306,5 +319,60 @@ public class DOF3RigidBody : MonoBehaviour
         FzFR = MathUtility.Max(FzFR, 0f);
         FzRL = MathUtility.Max(FzRL, 0f);
         FzRR = MathUtility.Max(FzRR, 0f);
+    }
+
+    /// <summary>
+    /// 타이어 힘 Fx + Fy 적용
+    /// 4개 바퀴 모두 적용
+    /// </summary>
+    void ApplyTireCoupling()
+    {
+        ApplyCoupling(ref FxFL, ref FyFL, FzFL);
+        ApplyCoupling(ref FxFR, ref FyFR, FzFR);
+        ApplyCoupling(ref FxRL, ref FyRL, FzRL);
+        ApplyCoupling(ref FxRR, ref FyRR, FzRR);
+    }
+    /// <summary>
+    /// 각 방향에 해당되는 타이어 힘 계산
+    /// </summary>
+    /// <param name="Fx"></param>
+    /// <param name="Fy"></param>
+    /// <param name="Fz"></param>
+    void ApplyCoupling(ref float Fx,ref float Fy, float Fz)
+    {
+        float grip = mu * Fz;
+
+        float forceMag = Mathf.Sqrt(Fx * Fx + Fy * Fy);
+
+        if (forceMag > grip && forceMag > 0f)
+        {
+            float scale = grip / forceMag;
+
+            Fx *= scale;
+            Fy *= scale;
+        }
+    }
+    /// <summary>
+    /// Fx, Fy 조절
+    /// </summary>
+    void ApplyCombinedSlipAll()
+    {
+        ApplyCombinedSlip(ref FxFL, ref FyFL, FzFL);
+        ApplyCombinedSlip(ref FxFR, ref FyFR, FzFR);
+        ApplyCombinedSlip(ref FxRL, ref FyRL, FzRL);
+        ApplyCombinedSlip(ref FxRR, ref FyRR, FzRR);
+    }
+    void ApplyCombinedSlip(ref float Fx, ref float Fy, float Fz)
+    {
+        if (Fz <= 0f) return;
+
+        float grip = mu * Fz;
+
+        float FxNorm = Fx / grip;
+        FxNorm = Mathf.Clamp(FxNorm, -1f, 1f);
+
+        float reduction = Mathf.Sqrt(1f - FxNorm * FxNorm);
+
+        Fy *= reduction;
     }
 }
