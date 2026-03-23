@@ -6,7 +6,7 @@ public class DOF3RigidBody : MonoBehaviour
     float currentUx, prevUx;
     float a = 1.2f;//55%
     float b = 1.6f;//45%
-    float h = 0.55f;//세단 높이, CG Height
+    float h = 0.5f;//세단 높이, CG Height
     float L = 2.8f;
     float m = 1500;
     float FzFront, FzRear, staticFront, staticRear;
@@ -16,7 +16,7 @@ public class DOF3RigidBody : MonoBehaviour
     float vy_dot, r_dot;
     float wheelbase;  // 축간 거리
 
-    float Iz = 2500;
+    float Iz = 2500;//yaw 관성
     float g = 9.81f;
     Vector3 local;
 
@@ -27,7 +27,8 @@ public class DOF3RigidBody : MonoBehaviour
     CustomRigidBody rb;
 
     // ===== 상태 =====
-    float Ux;
+    float Ux;//종방향 속도
+    float Uy;//횡방향 속도
     float Vy;
     float ay;
     float ax;
@@ -41,7 +42,7 @@ public class DOF3RigidBody : MonoBehaviour
     float rollTransferRear;
 
     // ==== 회전 ====
-    float r;
+    float r;//yaw rate
     float yaw;
 
     //==== 위치 ====
@@ -125,30 +126,37 @@ public class DOF3RigidBody : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // 0. 입력
         GetInput();
 
-        // 1. Longitudinal force (새로 추가된 것)
+        // 1. Longitudinal force (새로 추가된 것), 종방향
         ComputeLongitudinal();   // ax 계산됨
 
-        // 2. Slip angle
+        // 2. Slip angle, 횡방향 준비
         ComputeSlipAngle();
 
         // 3. ay 계산
         ay = (Fy_f + Fy_r) / m;
 
-        // 4. Roll + Pitch dynamics
+        // 4. Roll + Pitch dynamics, 차체 거동
         UpdateRollDynamics(ay, Time.fixedDeltaTime);//roll 계산
         ComputeRollTransfer();        // 좌우 차이
-        UpdatePitchWeightTransfer( Time.fixedDeltaTime);
+        UpdatePitchWeightTransfer( Time.fixedDeltaTime);// ax기반
 
-        // 5. Weight transfer → Fz 먼저 계산
+        // 5. Weight transfer → Fz 완성, 하중 통합
         UpdateWheelLoads();
 
-        // 6. Tire force (이제는 새로운 Fz 기반)
+        // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
 
+        // 7. 슬립 결합
         ApplyCombinedSlipAll();//Fx, Fy조절
+        
+        // 8. 마찰 제한
         ApplyTireCoupling();
+
+        // 9. 차량 운동 적용
+        IntegrateVehicle();
     }
 
     /// <summary>
@@ -369,10 +377,52 @@ public class DOF3RigidBody : MonoBehaviour
         float grip = mu * Fz;
 
         float FxNorm = Fx / grip;
-        FxNorm = Mathf.Clamp(FxNorm, -1f, 1f);
+        FxNorm = MathUtility.ClampValue(FxNorm, -1f, 1f);
 
-        float reduction = Mathf.Sqrt(1f - FxNorm * FxNorm);
+        float reduction = MathUtility.Root(1f - FxNorm * FxNorm);
 
-        Fy *= reduction;
+        Fy *= reduction;//횡력에 적용
+    }
+    /// <summary>
+    /// 차량 운동 적용
+    /// </summary>
+    void IntegrateVehicle()
+    {
+        float dt = Time.fixedDeltaTime;
+
+        // 1. 전체 힘 합 (차량 기준 좌표)
+        float Fx = FxFL + FxFR + FxRL + FxRR;
+        float Fy = FyFL + FyFR + FyRL + FyRR;
+
+        // 2. 가속도 계산 (차량 좌표계)
+        float ax_body = Fx / m + r * Uy;
+        float ay_body = Fy / m - r * Ux;
+
+        // 3. 속도 업데이트 (body frame)
+        Ux += ax_body * dt;
+        Uy += ay_body * dt;
+
+        // 4. Yaw moment 계산
+        float Mz =
+            a * (FyFL + FyFR)   // front lateral
+          - b * (FyRL + FyRR);  // rear lateral
+
+        // 5. yaw rate 업데이트
+        float r_dot = Mz / Iz;
+        r += r_dot * dt;
+
+        // 6. 월드 좌표로 변환
+        float cosYaw = Mathf.Cos(yaw);
+        float sinYaw = Mathf.Sin(yaw);
+
+        float Vx_world = cosYaw * Ux - sinYaw * Uy;
+        float Vy_world = sinYaw * Ux + cosYaw * Uy;
+
+        // 7. 위치 업데이트
+        transform.position += new Vector3(Vx_world, 0f, Vy_world) * dt;
+
+        // 8. 회전 업데이트
+        yaw += r * dt;
+        transform.rotation = Quaternion.Euler(0f, yaw * Mathf.Rad2Deg, 0f);
     }
 }
