@@ -135,9 +135,6 @@ public class DOF3RigidBody : MonoBehaviour
         // 2. Slip angle, 횡방향 준비
         ComputeSlipAngle();
 
-        // 3. ay 계산
-        ay = (Fy_f + Fy_r) / m;
-
         // 4. Roll + Pitch dynamics, 차체 거동
         UpdateRollDynamics(ay, Time.fixedDeltaTime);//roll 계산
         ComputeRollTransfer();        // 좌우 차이
@@ -148,6 +145,9 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
+        ComputeLongitudinalTireForce();//Fx 계산
+        // 3. ay 계산
+        ay = (Fy_f + Fy_r) / m;
 
         // 7. 슬립 결합
         ApplyCombinedSlipAll();//Fx, Fy조절
@@ -257,19 +257,54 @@ public class DOF3RigidBody : MonoBehaviour
     /// </summary>
     void ComputeTireForce()
     {
+        // 1. 하중 안정화
         FzFL = MathUtility.Max(FzFL, 0f);
         FzFR = MathUtility.Max(FzFR, 0f);
         FzRL = MathUtility.Max(FzRL, 0f);
         FzRR = MathUtility.Max(FzRR, 0f);
 
-        float Fy_FL = mu * FzFL * MathUtility.Tanh(Cf * alphaF / (mu * staticFront));
-        float Fy_FR = mu * FzFR * MathUtility.Tanh(Cf * alphaF / (mu * staticFront));
+        // 2. 슬립각 제한 (중요)
+        float alphaF_clamped = MathUtility.ClampValue(alphaF, -1.0f, 1.0f);
+        float alphaR_clamped = MathUtility.ClampValue(alphaR, -1.0f, 1.0f);
 
-        float Fy_RL = mu * FzRL * MathUtility.Tanh(Cr * alphaR / (mu * staticRear));
-        float Fy_RR = mu * FzRR * MathUtility.Tanh(Cr * alphaR / (mu * staticRear));
+        // 3. Pacejka 적용
+        FyFL = PacejkaFy(alphaF_clamped, FzFL);
+        FyFR = PacejkaFy(alphaF_clamped, FzFR);
 
-        Fy_f = Fy_FL + Fy_FR;
-        Fy_r = Fy_RL + Fy_RR;
+        FyRL = PacejkaFy(alphaR_clamped, FzRL);
+        FyRR = PacejkaFy(alphaR_clamped, FzRR);
+
+        // 4. 축 합산 (기존 유지)
+        Fy_f = FyFL + FyFR;
+        Fy_r = FyRL + FyRR;
+    }
+    float PacejkaFx(float slipRatio, float Fz)
+    {
+        float B = 12.0f;
+        float C = 1.3f;
+        float E = 0.97f;
+        float D = mu * Fz;
+
+        float Bx = B * slipRatio;
+        float term = Bx - E * (Bx - MathUtility.Atan(Bx));
+
+        float Fx = D * MathUtility.Sin(C * MathUtility.Atan(term));
+
+        return Fx;
+    }
+    float PacejkaFy(float alpha, float Fz)
+    {
+        float B = 10.0f;
+        float C = 1.3f;
+        float E = 0.97f;
+        float D = mu * Fz;
+
+        float Bx = B * alpha;
+        float term = Bx - E * (Bx - MathUtility.Atan(Bx));
+
+        float Fy = D * MathUtility.Sin(C * MathUtility.Atan(term));
+
+        return Fy;
     }
 
     /// <summary>
@@ -315,6 +350,10 @@ public class DOF3RigidBody : MonoBehaviour
         float FzF = FzFront;
         float FzR = FzRear;
 
+        // Roll 분배
+        rollTransferFront = (KphiFront / Kphi) * roll * trackWidth * 0.5f;
+        rollTransferRear = (KphiRear / Kphi) * roll * trackWidth * 0.5f;
+
         // Roll 적용 (좌우 분배)
         FzFL = FzF * 0.5f - rollTransferFront;
         FzFR = FzF * 0.5f + rollTransferFront;
@@ -340,6 +379,28 @@ public class DOF3RigidBody : MonoBehaviour
         ApplyCoupling(ref FxRL, ref FyRL, FzRL);
         ApplyCoupling(ref FxRR, ref FyRR, FzRR);
     }
+
+    void ComputeLongitudinalTireForce()
+    {
+        // 브레이크 슬립
+        float slipFL = -brakeForce / (mu * FzFL);
+        float slipFR = -brakeForce / (mu * FzFR);
+        float slipRL = -brakeForce / (mu * FzRL);
+        float slipRR = -brakeForce / (mu * FzRR);
+
+        // clamp 필수
+        slipFL = MathUtility.ClampValue(slipFL, -1f, 1f);
+        slipFR = MathUtility.ClampValue(slipFR, -1f, 1f);
+        slipRL = MathUtility.ClampValue(slipRL, -1f, 1f);
+        slipRR = MathUtility.ClampValue(slipRR, -1f, 1f);
+
+        // Pacejka 적용
+        FxFL = PacejkaFx(slipFL, FzFL);
+        FxFR = PacejkaFx(slipFR, FzFR);
+        FxRL = PacejkaFx(slipRL, FzRL);
+        FxRR = PacejkaFx(slipRR, FzRR);
+    }
+
     /// <summary>
     /// 각 방향에 해당되는 타이어 힘 계산
     /// </summary>
@@ -350,7 +411,7 @@ public class DOF3RigidBody : MonoBehaviour
     {
         float grip = mu * Fz;
 
-        float forceMag = Mathf.Sqrt(Fx * Fx + Fy * Fy);
+        float forceMag = MathUtility.Root(Fx * Fx + Fy * Fy);
 
         if (forceMag > grip && forceMag > 0f)
         {
@@ -412,8 +473,8 @@ public class DOF3RigidBody : MonoBehaviour
         r += r_dot * dt;
 
         // 6. 월드 좌표로 변환
-        float cosYaw = Mathf.Cos(yaw);
-        float sinYaw = Mathf.Sin(yaw);
+        float cosYaw = MathUtility.Cos(yaw);
+        float sinYaw = MathUtility.Sin(yaw);
 
         float Vx_world = cosYaw * Ux - sinYaw * Uy;
         float Vy_world = sinYaw * Ux + cosYaw * Uy;
@@ -423,6 +484,6 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 8. 회전 업데이트
         yaw += r * dt;
-        transform.rotation = Quaternion.Euler(0f, yaw * Mathf.Rad2Deg, 0f);
+        transform.rotation = Quaternion.Euler(0f, yaw * MathUtility.Rad2Deg, 0f);
     }
 }
