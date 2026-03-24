@@ -177,6 +177,22 @@ public static float Sign(float a)
         return Sin(x)/Cos(x);
     }
     /// <summary>
+/// Atan값(1변수)
+/// </summary>
+/// <param name="x">cos 값</param>
+/// <param name="y">sin 값</param>
+/// <returns></returns>
+public static float Atan(float x)
+{
+    float x3 = (x * x * x)/3;
+    float x5 = (x3 * x * x)/5;
+    float x7 = (x5 * x * x)/7;
+    float x9 = (x7 * x * x)/9;
+
+    float atanValue = x - x3 + x5 - x7 + x9;
+    return atanValue;
+}
+    /// <summary>
     /// Atan값(2변수)
     /// </summary>
     /// <param name="x">cos 값</param>
