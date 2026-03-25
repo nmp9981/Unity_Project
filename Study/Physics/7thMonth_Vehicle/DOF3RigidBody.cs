@@ -34,6 +34,11 @@ public class DOF3RigidBody : MonoBehaviour
     float ax;
     float prevVy;
 
+    // ==== 타이어 제어용 변수 ====
+    float slipFL, slipFR, slipRL, slipRR;
+    float wFL, wFR, wRL, wRR; // wheel angular velocity
+    float R = 0.3f; // 타이어 반지름
+
     // ==== roll ====
     float roll;//차체 기울기, roll angle (rad)
     float rollRate;// roll rate (rad/s)
@@ -106,6 +111,10 @@ public class DOF3RigidBody : MonoBehaviour
     public float maxEscYaw = 4000f;
     public float escMaxYaw;
 
+    // ==== 제어용 변수 ====
+    float slipTargetBrake = -0.1f;
+    float slipTargetAccel = 0.1f;
+
     // Roll 준비
     float trackWidth = 1.6f;   // m
     float Ixx = 600f;          // roll inertia
@@ -142,6 +151,12 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 5. Weight transfer → Fz 완성, 하중 통합
         UpdateWheelLoads();
+        UpdateSlip();
+
+        //제어 시스템
+        ApplyABS();
+        ApplyTCS();
+        ApplyESC();
 
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
@@ -367,6 +382,63 @@ public class DOF3RigidBody : MonoBehaviour
         FzRL = MathUtility.Max(FzRL, 0f);
         FzRR = MathUtility.Max(FzRR, 0f);
     }
+    void UpdateSlip()
+    {
+        slipFL = ComputeSlipRatio(wFL, R, Ux);
+        slipFR = ComputeSlipRatio(wFR, R, Ux);
+        slipRL = ComputeSlipRatio(wRL, R, Ux);
+        slipRR = ComputeSlipRatio(wRR, R, Ux);
+    }
+    /// <summary>
+    /// 슬립 비율 계산
+    /// </summary>
+    /// <param name="wheelAngularVel"></param>
+    /// <param name="radius"></param>
+    /// <param name="Ux"></param>
+    /// <returns></returns>
+    float ComputeSlipRatio(float wheelAngularVel, float radius, float Ux)
+    {
+        float Vwheel = wheelAngularVel * radius;
+
+        float denom = Mathf.Max(Mathf.Abs(Ux), 0.1f); // 0 나눗셈 방지
+
+        return (Vwheel - Ux) / denom;
+    }
+    /// <summary>
+    /// 슬립각 계산
+    /// </summary>
+    /// <param name="Vy"></param>
+    /// <param name="Ux"></param>
+    /// <param name="steerAngle"></param>
+    /// <returns></returns>
+    float ComputeSlipAngle(float Vy, float Ux, float steerAngle)
+    {
+        float denom = Mathf.Max(Mathf.Abs(Ux), 0.1f);
+
+        float alpha = Mathf.Atan2(Vy, denom) - steerAngle;
+
+        return alpha;
+    }
+
+    /// <summary>
+    /// ABS 적용
+    /// 브레이크를 줄이는 게 아니라, 잠기려는 순간만 풀어준다
+    /// </summary>
+    void ApplyABS()
+    {
+        if (brakeInput < 0.01f) return;//브레이크 상태가 아님
+        if (MathUtility.Abs(Ux) < 2f) return;//저속
+
+        float threshold = -0.2f;
+        float slipFront = MathUtility.Min(slipFR, slipFL);
+        float slipRear = MathUtility.Min(slipRR, slipRL);
+        float worstSlip = MathUtility.Min(slipFront, slipRear);
+
+        if (worstSlip < threshold)
+        {
+            brakeForce *= 0.7f;
+        }
+    }
 
     /// <summary>
     /// 타이어 힘 Fx + Fy 적용
@@ -382,18 +454,6 @@ public class DOF3RigidBody : MonoBehaviour
 
     void ComputeLongitudinalTireForce()
     {
-        // 브레이크 슬립
-        float slipFL = -brakeForce / (mu * FzFL);
-        float slipFR = -brakeForce / (mu * FzFR);
-        float slipRL = -brakeForce / (mu * FzRL);
-        float slipRR = -brakeForce / (mu * FzRR);
-
-        // clamp 필수
-        slipFL = MathUtility.ClampValue(slipFL, -1f, 1f);
-        slipFR = MathUtility.ClampValue(slipFR, -1f, 1f);
-        slipRL = MathUtility.ClampValue(slipRL, -1f, 1f);
-        slipRR = MathUtility.ClampValue(slipRR, -1f, 1f);
-
         // Pacejka 적용
         FxFL = PacejkaFx(slipFL, FzFL);
         FxFR = PacejkaFx(slipFR, FzFR);
@@ -431,26 +491,26 @@ public class DOF3RigidBody : MonoBehaviour
         ApplyCombinedSlip(ref FxRL, ref FyRL, FzRL);
         ApplyCombinedSlip(ref FxRR, ref FyRR, FzRR);
     }
-   void ApplyCombinedSlip(ref float Fx, ref float Fy, float Fz)
- {
-     if (Fz <= 0f) return;
+    void ApplyCombinedSlip(ref float Fx, ref float Fy, float Fz)
+    {
+        if (Fz <= 0f) return;
 
-     float grip = mu * Fz;
+        float grip = mu * Fz;
 
-     float FxNorm = Fx / grip;
-     float FyNorm = Fy / grip;
-     FxNorm = MathUtility.ClampValue(FxNorm, -1f, 1f);
-     FyNorm = MathUtility.ClampValue(FyNorm, -1f, 1f);
+        float FxNorm = Fx / grip;
+        float FyNorm = Fy / grip;
+        FxNorm = MathUtility.ClampValue(FxNorm, -1f, 1f);
+        FyNorm = MathUtility.ClampValue(FyNorm, -1f, 1f);
 
-     float reduction = MathUtility.Root(1f - FxNorm * FxNorm);
-     // friction ellipse 기반
-     float Gx = MathUtility.Root(1f - FyNorm * FyNorm);
-     float Gy = MathUtility.Root(1f - FxNorm * FxNorm);
+        float reduction = MathUtility.Root(1f - FxNorm * FxNorm);
+        // friction ellipse 기반
+        float Gx = MathUtility.Root(1f - FyNorm * FyNorm);
+        float Gy = MathUtility.Root(1f - FxNorm * FxNorm);
 
-     //종, 횡력에 모두 적용
-     Fx *= Gx;
-     Fy *= Gy;
- }
+        //종, 횡력에 모두 적용
+        Fx *= Gx;
+        Fy *= Gy;
+    }
     /// <summary>
     /// 차량 운동 적용
     /// </summary>
