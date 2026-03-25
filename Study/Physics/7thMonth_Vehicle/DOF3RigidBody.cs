@@ -431,19 +431,26 @@ public class DOF3RigidBody : MonoBehaviour
         ApplyCombinedSlip(ref FxRL, ref FyRL, FzRL);
         ApplyCombinedSlip(ref FxRR, ref FyRR, FzRR);
     }
-    void ApplyCombinedSlip(ref float Fx, ref float Fy, float Fz)
-    {
-        if (Fz <= 0f) return;
+   void ApplyCombinedSlip(ref float Fx, ref float Fy, float Fz)
+ {
+     if (Fz <= 0f) return;
 
-        float grip = mu * Fz;
+     float grip = mu * Fz;
 
-        float FxNorm = Fx / grip;
-        FxNorm = MathUtility.ClampValue(FxNorm, -1f, 1f);
+     float FxNorm = Fx / grip;
+     float FyNorm = Fy / grip;
+     FxNorm = MathUtility.ClampValue(FxNorm, -1f, 1f);
+     FyNorm = MathUtility.ClampValue(FyNorm, -1f, 1f);
 
-        float reduction = MathUtility.Root(1f - FxNorm * FxNorm);
+     float reduction = MathUtility.Root(1f - FxNorm * FxNorm);
+     // friction ellipse 기반
+     float Gx = MathUtility.Root(1f - FyNorm * FyNorm);
+     float Gy = MathUtility.Root(1f - FxNorm * FxNorm);
 
-        Fy *= reduction;//횡력에 적용
-    }
+     //종, 횡력에 모두 적용
+     Fx *= Gx;
+     Fy *= Gy;
+ }
     /// <summary>
     /// 차량 운동 적용
     /// </summary>
