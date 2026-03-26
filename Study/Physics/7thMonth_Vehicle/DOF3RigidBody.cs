@@ -138,6 +138,8 @@ public class DOF3RigidBody : MonoBehaviour
         // 0. 입력
         GetInput();
 
+        UpdateSlip();
+        ApplyTCS();
         // 1. Longitudinal force (새로 추가된 것), 종방향
         ComputeLongitudinal();   // ax 계산됨
 
@@ -151,19 +153,16 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 5. Weight transfer → Fz 완성, 하중 통합
         UpdateWheelLoads();
-        UpdateSlip();
 
         //제어 시스템
         ApplyABS();
-        ApplyTCS();
-        ApplyESC();
-
+        
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
         ComputeLongitudinalTireForce();//Fx 계산
         // 3. ay 계산
         ay = (Fy_f + Fy_r) / m;
-
+        ApplyESC();
         // 7. 슬립 결합
         ApplyCombinedSlipAll();//Fx, Fy조절
         
@@ -427,6 +426,7 @@ public class DOF3RigidBody : MonoBehaviour
     void ApplyABS()
     {
         if (brakeInput < 0.01f) return;//브레이크 상태가 아님
+        if (inputThrottle > 0.2f) return; // 가속 중엔 꺼라
         if (MathUtility.Abs(Ux) < 2f) return;//저속
 
         float threshold = -0.2f;
@@ -439,7 +439,26 @@ public class DOF3RigidBody : MonoBehaviour
             brakeForce *= 0.7f;
         }
     }
+    /// <summary>
+    /// TCS 적용
+    /// 가속이 아닌 미끄러짐을 막음, 엔진 토크 제한
+    /// </summary>
+    void ApplyTCS()
+    {
+        if (inputBrake > 0.1f) return; // 브레이크 중엔 꺼라
+        if (inputThrottle < 0.01f) return;//가속 상태가 아님
+        if (MathUtility.Abs(Ux) < 2f) return;//저속
 
+        float threshold = 0.15f;
+        float slipFront = MathUtility.Max(slipFR, slipFL);
+        float slipRear = MathUtility.Max(slipRR, slipRL);
+        float worstSlip = MathUtility.Max(slipFront, slipRear);
+        
+        if (worstSlip > threshold)
+        {
+            inputThrottle *= 0.7f;
+        }
+    }
     /// <summary>
     /// 타이어 힘 Fx + Fy 적용
     /// 4개 바퀴 모두 적용
@@ -480,6 +499,24 @@ public class DOF3RigidBody : MonoBehaviour
             Fx *= scale;
             Fy *= scale;
         }
+    }
+    /// <summary>
+    /// ESC 적용
+    /// </summary>
+    void ApplyESC()
+    {
+        if (!escEnabled) return;
+        if (MathUtility.Abs(Ux) < minSpeed) return;
+        if (MathUtility.Abs(delta) < steerThreshold) return;
+
+        float r_desired = (Ux / L) * delta;
+        float error = r - r_desired;
+
+        float Mz = -escGain * error;
+        Mz = MathUtility.ClampValue(Mz, -maxEscYaw, maxEscYaw);
+
+        // yaw rate에 직접 반영
+        r += (Mz / Iz) * Time.fixedDeltaTime;
     }
     /// <summary>
     /// Fx, Fy 조절
