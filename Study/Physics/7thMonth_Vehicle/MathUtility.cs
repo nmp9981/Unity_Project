@@ -68,6 +68,17 @@ public static class MathUtility
     {
         return (a < 0) ? -a : a;
     }
+     /// <summary>
+ /// 선형 보간 값구하기
+ /// </summary>
+ /// <param name="a"></param>
+ /// <param name="b"></param>
+ /// <param name="t"></param>
+ /// <returns></returns>
+ public static float Lerp(float a, float b, float t)
+ {
+     return a + (b - a) * ClampValue(t,0,1);
+ }
 /// <summary>
 /// 실수의 부호 추출
 /// </summary>
