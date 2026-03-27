@@ -15,6 +15,9 @@ public class DOF3RigidBody : MonoBehaviour
     float Cr = 30000;
     float vy_dot, r_dot;
     float wheelbase;  // 축간 거리
+    float absStrength;
+    float baseAbsStrength;
+    float driverBrake;
 
     float Iz = 2500;//yaw 관성
     float g = 9.81f;
@@ -110,10 +113,16 @@ public class DOF3RigidBody : MonoBehaviour
     public float escGain = 2500f;
     public float maxEscYaw = 4000f;
     public float escMaxYaw;
-
+    public float maxEscBrake = 1000f;
+    public float currentEscBrake;
+    
     // ==== 제어용 변수 ====
     float slipTargetBrake = -0.1f;
     float slipTargetAccel = 0.1f;
+    float slipThreshold = 0.02f;
+    float softThreshold = 0.02f;
+    float hardThreshold = 0.06f;
+    float smoothingSpeed = 5f;
 
     // Roll 준비
     float trackWidth = 1.6f;   // m
@@ -428,7 +437,7 @@ public class DOF3RigidBody : MonoBehaviour
         if (brakeInput < 0.01f) return;//브레이크 상태가 아님
         if (inputThrottle > 0.2f) return; // 가속 중엔 꺼라
         if (MathUtility.Abs(Ux) < 2f) return;//저속
-
+       
         float threshold = -0.2f;
         float slipFront = MathUtility.Min(slipFR, slipFL);
         float slipRear = MathUtility.Min(slipRR, slipRL);
@@ -509,14 +518,50 @@ public class DOF3RigidBody : MonoBehaviour
         if (MathUtility.Abs(Ux) < minSpeed) return;
         if (MathUtility.Abs(delta) < steerThreshold) return;
 
-        float r_desired = (Ux / L) * delta;
-        float error = r - r_desired;
+        float safeUx = MathUtility.Max(Ux, 0.1f);
 
-        float Mz = -escGain * error;
-        Mz = MathUtility.ClampValue(Mz, -maxEscYaw, maxEscYaw);
+        float alphaF = MathUtility.Atan2(Vy + a * r, safeUx) - delta;
+        float alphaR = MathUtility.Atan2(Vy - b * r, safeUx);
 
-        // yaw rate에 직접 반영
-        r += (Mz / Iz) * Time.fixedDeltaTime;
+        float slipDiff = alphaR - alphaF;
+        float absSlip = MathUtility.Abs(slipDiff);
+
+        float escFactor = Mathf.InverseLerp(softThreshold, hardThreshold, absSlip);
+        if (escFactor <= 0f) return;
+
+        // 🔥 브레이크 계산
+        float escBrake = escGain * MathUtility.Abs(escFactor);
+        escBrake = MathUtility.ClampValue(escBrake, 0f, maxEscBrake);
+        // 🔥 속도 기반
+        float speedFactor = MathUtility.ClampValue(Ux / 10f, 0f, 1f);
+        escBrake *= speedFactor;
+
+        // 🔥 스무딩
+        currentEscBrake = MathUtility.Lerp(currentEscBrake, escBrake, 5f * Time.fixedDeltaTime);
+
+        float finalBrake = MathUtility.Max(driverBrake, currentEscBrake);
+
+        // 🔥 ABS 조정 (누적 방지)
+        bool isESCBraking = currentEscBrake > 0.01f;
+        absStrength = isESCBraking ? baseAbsStrength * 0.5f : baseAbsStrength;
+
+        // 🔥 바퀴 적용
+        if (slipDiff > 0f)
+        {
+            // 오버스티어 → 바깥 앞
+            if (delta > 0f)
+                FxFL -= finalBrake; // 좌측 (바깥)
+            else
+                FxFR -= finalBrake;
+        }
+        else if (slipDiff < 0f)
+        {
+            // 언더스티어 → 안쪽 뒤
+            if (delta > 0f)
+                FxRR -= finalBrake; // 우측 (안쪽)
+            else
+                FxRL -= finalBrake;
+        }
     }
     /// <summary>
     /// Fx, Fy 조절
