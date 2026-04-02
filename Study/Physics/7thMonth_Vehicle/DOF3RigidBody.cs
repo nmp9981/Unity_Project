@@ -85,6 +85,7 @@ public class DOF3RigidBody : MonoBehaviour
     float brake;
     float maxBrakeForce = 12000f;
     float maxDriveForce = 8000f;
+    float engineRPM;
 
     // ===== 종력 =====
     float FxTotal;
@@ -227,13 +228,19 @@ public class DOF3RigidBody : MonoBehaviour
         float brake = inputBrake;       // 0 ~ 1
 
         // 2. Drive Force (엔진)
+        // 🔥 TCS 적용
         float finalThrottle = throttle * (1f - tcsFactor);
 
-        FxDrive = finalThrottle * maxDriveForce * (1f - Ux / maxSpeed);
-        FxDrive = MathUtility.Max(FxDrive, 0f);
+        // 🔥 엔진 토크 계산
+        float torque = GetEngineTorque(engineRPM);
+
+        // 🔥 토크 → 힘 변환
+        float driveForce = (torque * finalThrottle) / R;
+
+        FxDrive = MathUtility.Max(driveForce, 0f);
 
         // 3. Brake Force
-        brakeForce= brake * maxBrakeForce;
+        brakeForce = brake * maxBrakeForce;
 
         // 속도 방향 반대로 작용
         if (MathUtility.Abs(Ux) > 0.1f)
@@ -278,6 +285,22 @@ public class DOF3RigidBody : MonoBehaviour
             alphaF = delta - (Vy + a * r) / U;
             alphaR = (b * r - Vy) / U;
         }
+    }
+    /// <summary>
+    /// 엔진 토크 계산
+    /// </summary>
+    /// <param name="rpm"></param>
+    /// <returns></returns>
+    float GetEngineTorque(float rpm)
+    {
+        float peakRPM = 4000f;
+        float maxTorque = 300f;
+
+        float x = rpm / peakRPM;
+
+        float torque = maxTorque * MathUtility.Sin(MathUtility.ClampValue(x, 0f, 1f) * MathUtility.PI);
+
+        return torque;
     }
     /// <summary>
     /// 타이어 힘 계산
