@@ -116,6 +116,9 @@ public class DOF3RigidBody : MonoBehaviour
     public float maxEscBrake = 1000f;
     public float currentEscBrake;
     
+    // === TCS ====
+    public float tcsFactor;
+
     // ==== 제어용 변수 ====
     float slipTargetBrake = -0.1f;
     float slipTargetAccel = 0.1f;
@@ -224,7 +227,9 @@ public class DOF3RigidBody : MonoBehaviour
         float brake = inputBrake;       // 0 ~ 1
 
         // 2. Drive Force (엔진)
-        FxDrive = throttle * maxDriveForce * (1f - Ux / maxSpeed);
+        float finalThrottle = throttle * (1f - tcsFactor);
+
+        FxDrive = finalThrottle * maxDriveForce * (1f - Ux / maxSpeed);
         FxDrive = MathUtility.Max(FxDrive, 0f);
 
         // 3. Brake Force
@@ -408,7 +413,7 @@ public class DOF3RigidBody : MonoBehaviour
     {
         float Vwheel = wheelAngularVel * radius;
 
-        float denom = Mathf.Max(Mathf.Abs(Ux), 0.1f); // 0 나눗셈 방지
+        float denom = MathUtility.Max(MathUtility.Abs(Ux), 0.1f); // 0 나눗셈 방지
 
         return (Vwheel - Ux) / denom;
     }
@@ -458,15 +463,22 @@ public class DOF3RigidBody : MonoBehaviour
         if (inputThrottle < 0.01f) return;//가속 상태가 아님
         if (MathUtility.Abs(Ux) < 2f) return;//저속
 
-        float threshold = 0.15f;
-        float slipFront = MathUtility.Max(slipFR, slipFL);
-        float slipRear = MathUtility.Max(slipRR, slipRL);
-        float worstSlip = MathUtility.Max(slipFront, slipRear);
-        
-        if (worstSlip > threshold)
+        bool isCornering = MathUtility.Abs(delta) > steerThreshold;
+
+        // 🔥 ESC 우선 → 코너링 중이면 TCS 제한
+        if (isCornering)
         {
-            inputThrottle *= 0.7f;
+            tcsFactor *= 0.3f; // 약하게만 개입
+            return;
         }
+
+        // 🔥 구동축 기준 (RWD 기준) - 뒷바퀴만 구동
+        float driveSlip = MathUtility.Max(slipRL, slipRR);
+
+        float optimalSlip = 0.1f;
+        float maxSlip = 0.25f;
+
+        tcsFactor = MathUtility.InverseLerp(optimalSlip, maxSlip, driveSlip);
     }
     /// <summary>
     /// 타이어 힘 Fx + Fy 적용
