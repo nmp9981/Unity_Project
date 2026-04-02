@@ -79,6 +79,24 @@ public static class MathUtility
  {
      return a + (b - a) * ClampValue(t,0,1);
  }
+     /// <summary>
+ /// 값이 a,b사이에서 어디쯤 있는지
+ /// </summary>
+ /// <param name="a"></param>
+ /// <param name="b"></param>
+ /// <param name="value"></param>
+ /// <returns></returns>
+ public static float InverseLerp(float a, float b, float value)
+ {
+     // a와 b가 같을 경우 나누기 0 오류 방지
+     if (a == b) return 0f;
+
+     // (현재값 - 시작값) / (끝값 - 시작값)
+     float result = (value - a) / (b - a);
+
+     // 결과를 0과 1 사이로 제한 (Clamping)
+     return ClampValue(result,0,1);
+ }
 /// <summary>
 /// 실수의 부호 추출
 /// </summary>
