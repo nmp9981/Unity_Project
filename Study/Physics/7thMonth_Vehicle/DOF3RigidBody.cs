@@ -137,6 +137,19 @@ public class DOF3RigidBody : MonoBehaviour
     float Kphi => KphiFront+KphiRear;
     float Iphi = 450f;
 
+    //기어
+    int currentGear = 1;
+    float upshiftRPM = 6000f;
+    float downshiftRPM = 2000f;
+
+    float shiftDelay = 0.5f;//쿨타임
+    float lastShiftTime = 0f;
+
+    int maxGear = 5;
+    int minGear = 1;
+    float[] gearRatios = { 0f, 3.5f, 2.1f, 1.4f, 1.0f, 0.8f };
+    float finalDrive = 3.2f;
+
     //입력
     float inputThrottle;
     float inputBrake;
@@ -153,6 +166,7 @@ public class DOF3RigidBody : MonoBehaviour
 
         UpdateSlip();
         ApplyTCS();
+        UpdateGear();
         // 1. Longitudinal force (새로 추가된 것), 종방향
         ComputeLongitudinal();   // ax 계산됨
 
@@ -217,7 +231,25 @@ public class DOF3RigidBody : MonoBehaviour
     {
 
     }
+    /// <summary>
+    /// 자동 변속 로직
+    /// </summary>
+    void UpdateGear()
+    {
+        if (Time.time - lastShiftTime < shiftDelay)
+            return;
 
+        if (engineRPM > upshiftRPM && currentGear < maxGear)//기어 증가, RPm 상승
+        {
+            currentGear++;
+            lastShiftTime = Time.time;
+        }
+        else if (engineRPM < downshiftRPM && currentGear > minGear)//기어 감소, RPm 하락
+        {
+            currentGear--;
+            lastShiftTime = Time.time;
+        }
+    }
     /// <summary>
     /// 종방향 힘 계산 + 속도 업데이트, ux,ax 계산
     /// </summary>
@@ -233,9 +265,16 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 🔥 엔진 토크 계산
         float torque = GetEngineTorque(engineRPM);
+        float gearRatio = gearRatios[currentGear];
+        float wheelRPM = (Ux / (2f * MathUtility.PI * R)) * 60f;
+        engineRPM = wheelRPM * gearRatio * finalDrive;
+        engineRPM = MathUtility.ClampValue(engineRPM, 800f, 7000f);
+
+        // 🔥 토크 증폭
+        float wheelTorque = torque * gearRatio * finalDrive;
 
         // 🔥 토크 → 힘 변환
-        float driveForce = (torque * finalThrottle) / R;
+        float driveForce = (wheelTorque * finalThrottle) / R;
 
         FxDrive = MathUtility.Max(driveForce, 0f);
 
