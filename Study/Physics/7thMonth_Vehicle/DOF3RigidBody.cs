@@ -87,6 +87,17 @@ public class DOF3RigidBody : MonoBehaviour
     float maxDriveForce = 8000f;
     float engineRPM;
 
+    // ==== Suspension ====
+    float springK = 30000f;     // 스프링 강성
+    float restLength = 0.3f;    // 기본 길이
+
+    float susFL, susFR, susRL, susRR; // 현재 서스펜션 길이
+
+    // ==== Damper ====
+    float damperC = 4500f;
+
+    float prevSusFL, prevSusFR, prevSusRL, prevSusRR;
+
     // ===== 종력 =====
     float FxTotal;
     float FxDrive;
@@ -170,14 +181,11 @@ public class DOF3RigidBody : MonoBehaviour
         // 1. Longitudinal force (새로 추가된 것), 종방향
         ComputeLongitudinal();   // ax 계산됨
 
+        // 차체 거동
         // 2. Slip angle, 횡방향 준비
         ComputeSlipAngle();
-
         // 4. Roll + Pitch dynamics, 차체 거동
         UpdateRollDynamics(ay, Time.fixedDeltaTime);//roll 계산
-        ComputeRollTransfer();        // 좌우 차이
-        UpdatePitchWeightTransfer( Time.fixedDeltaTime);// ax기반
-
         // 5. Weight transfer → Fz 완성, 하중 통합
         UpdateWheelLoads();
 
@@ -263,20 +271,26 @@ public class DOF3RigidBody : MonoBehaviour
         // 🔥 TCS 적용
         float finalThrottle = throttle * (1f - tcsFactor);
 
-        // 🔥 엔진 토크 계산
+        // 1. 엔진 토크
         float torque = GetEngineTorque(engineRPM);
-        float gearRatio = gearRatios[currentGear];
-        float wheelRPM = (Ux / (2f * MathUtility.PI * R)) * 60f;
-        engineRPM = wheelRPM * gearRatio * finalDrive;
-        engineRPM = MathUtility.ClampValue(engineRPM, 800f, 7000f);
 
-        // 🔥 토크 증폭
+        // 2. 기어 적용
+        float gearRatio = gearRatios[currentGear];
         float wheelTorque = torque * gearRatio * finalDrive;
 
-        // 🔥 토크 → 힘 변환
-        float driveForce = (wheelTorque * finalThrottle) / R;
+        // 3. TCS
+        float finalTorque = wheelTorque * (1f - tcsFactor);
 
-        FxDrive = MathUtility.Max(driveForce, 0f);
+        // 4. 디퍼렌셜
+        float slipDiff = slipRR - slipRL;
+        float bias = MathUtility.ClampValue(slipDiff * 0.5f, -0.5f, 0.5f);
+
+        float torqueRL = finalTorque * (0.5f - bias);
+        float torqueRR = finalTorque * (0.5f + bias);
+
+        // 5. 힘 변환
+        FxRL = torqueRL / R;
+        FxRR = torqueRR / R;
 
         // 3. Brake Force
         brakeForce = brake * maxBrakeForce;
@@ -324,6 +338,33 @@ public class DOF3RigidBody : MonoBehaviour
             alphaF = delta - (Vy + a * r) / U;
             alphaR = (b * r - Vy) / U;
         }
+    }
+    /// <summary>
+    /// 스프링 힘 계산
+    /// </summary>
+    /// <param name="currentLength"></param>
+    /// <returns></returns>
+    float ComputeSpringForce(float currentLength)
+    {
+        float compression = restLength - currentLength;
+        compression = MathUtility.Max(compression, 0f);
+
+        float force = springK * compression;
+        return MathUtility.Max(force, 0f);
+    }
+    /// <summary>
+    /// 댐퍼 계산
+    /// </summary>
+    /// <param name="currentLength"></param>
+    /// <param name="prevLength"></param>
+    /// <returns></returns>
+    float ComputeDamperForce(float currentLength, float prevLength)
+    {
+        float velocity = (currentLength - prevLength) / Time.fixedDeltaTime;
+
+        float force = damperC * velocity;
+
+        return force;
     }
     /// <summary>
     /// 엔진 토크 계산
@@ -411,51 +452,59 @@ public class DOF3RigidBody : MonoBehaviour
         roll += rollRate * dt;
     }
 
-    /// <summary>
-    /// Roll 업데이트
-    /// </summary>
-    void UpdatePitchWeightTransfer(float dt)
-    {
-        float dF = (m * h * ax) / wheelbase;
-
-        // 가속 시: 앞 감소, 뒤 증가
-        FzFront = staticFront - dF;
-        FzRear = staticRear + dF;
-
-        // 안전 처리 (타이어 뜨는거 방지)
-        FzFront = MathUtility.Max(FzFront, 0f);
-        FzRear = MathUtility.Max(FzRear, 0f);
-    }
-
-    void ComputeRollTransfer()
-    {
-        float dF = (m * h * ax) / wheelbase;
-
-        FzFront = staticFront - dF;
-        FzRear = staticRear + dF;
-    }
     void UpdateWheelLoads()
     {
-        // Pitch 적용된 축 하중
-        float FzF = FzFront;
-        float FzR = FzRear;
+        // 1. 서스펜션 길이 계산 (임시: 차 높이 기반)
+        float baseHeight = transform.position.y;
 
-        // Roll 분배
-        rollTransferFront = (KphiFront / Kphi) * roll * trackWidth * 0.5f;
-        rollTransferRear = (KphiRear / Kphi) * roll * trackWidth * 0.5f;
+        // 🔥 Pitch 영향 (앞/뒤)
+        float pitchEffect = ax * 0.02f; // 튜닝값
 
-        // Roll 적용 (좌우 분배)
-        FzFL = FzF * 0.5f - rollTransferFront;
-        FzFR = FzF * 0.5f + rollTransferFront;
+        // 🔥 Roll 영향 (좌/우)
+        float rollEffect = roll * trackWidth * 0.5f;
 
-        FzRL = FzR * 0.5f - rollTransferRear;
-        FzRR = FzR * 0.5f + rollTransferRear;
+        // ✅ 각 바퀴 길이 변화
+        susFL = baseHeight - pitchEffect - rollEffect;
+        susFR = baseHeight - pitchEffect + rollEffect;
 
-        // 안전 처리
+        susRL = baseHeight + pitchEffect - rollEffect;
+        susRR = baseHeight + pitchEffect + rollEffect;
+
+        // 2. 스프링 힘 = Fz
+        float springFL = ComputeSpringForce(susFL);
+        float springFR = ComputeSpringForce(susFR);
+        float springRL = ComputeSpringForce(susRL);
+        float springRR = ComputeSpringForce(susRR);
+
+        // 3. 댐퍼
+        float damperFL = ComputeDamperForce(susFL, prevSusFL);
+        float damperFR = ComputeDamperForce(susFR, prevSusFR);
+        float damperRL = ComputeDamperForce(susRL, prevSusRL);
+        float damperRR = ComputeDamperForce(susRR, prevSusRR);
+
+        // 🔥 핵심: 스프링 - 댐퍼
+        FzFL = springFL - damperFL;
+        FzFR = springFR - damperFR;
+        FzRL = springRL - damperRL;
+        FzRR = springRR - damperRR;
+
+        float gravityPerWheel = (m * g) * 0.25f;
+
+        FzFL -= gravityPerWheel;
+        FzFR -= gravityPerWheel;
+        FzRL -= gravityPerWheel;
+        FzRR -= gravityPerWheel;
+
         FzFL = MathUtility.Max(FzFL, 0f);
         FzFR = MathUtility.Max(FzFR, 0f);
         FzRL = MathUtility.Max(FzRL, 0f);
         FzRR = MathUtility.Max(FzRR, 0f);
+
+        // 6. 이전값 저장 (🔥 매우 중요)
+        prevSusFL = susFL;
+        prevSusFR = susFR;
+        prevSusRL = susRL;
+        prevSusRR = susRR;
     }
     void UpdateSlip()
     {
