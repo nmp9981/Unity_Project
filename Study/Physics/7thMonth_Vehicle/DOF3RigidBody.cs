@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class DOF3RigidBody : MonoBehaviour
 {
@@ -97,6 +98,7 @@ public class DOF3RigidBody : MonoBehaviour
     float damperC = 4500f;
 
     float prevSusFL, prevSusFR, prevSusRL, prevSusRR;
+    float prevFzFL, prevFzFR, prevFzRL, prevFzRR;
 
     // ===== 종력 =====
     float FxTotal;
@@ -160,6 +162,9 @@ public class DOF3RigidBody : MonoBehaviour
     int minGear = 1;
     float[] gearRatios = { 0f, 3.5f, 2.1f, 1.4f, 1.0f, 0.8f };
     float finalDrive = 3.2f;
+
+    //Transform
+    Transform3D transform3D = new Transform3D();
 
     //입력
     float inputThrottle;
@@ -454,21 +459,17 @@ public class DOF3RigidBody : MonoBehaviour
 
     void UpdateWheelLoads()
     {
-        // 1. 서스펜션 길이 계산 (임시: 차 높이 기반)
-        float baseHeight = transform.position.y;
+        /// 1. 월드 위치 : 로컬 좌표계 -> 월드 좌표계
+        Vec3 posFL = transform3D.TransformPoint(new Vec3(-trackWidth * 0.5f, 0f, a),yaw);
+        Vec3 posFR = transform3D.TransformPoint(new Vec3(trackWidth * 0.5f, 0f, a), yaw);
+        Vec3 posRL = transform3D.TransformPoint(new Vec3(-trackWidth * 0.5f, 0f, -b), yaw);
+        Vec3 posRR = transform3D.TransformPoint(new Vec3(trackWidth * 0.5f, 0f, -b), yaw);
 
-        // 🔥 Pitch 영향 (앞/뒤)
-        float pitchEffect = ax * 0.02f; // 튜닝값
-
-        // 🔥 Roll 영향 (좌/우)
-        float rollEffect = roll * trackWidth * 0.5f;
-
-        // ✅ 각 바퀴 길이 변화
-        susFL = baseHeight - pitchEffect - rollEffect;
-        susFR = baseHeight - pitchEffect + rollEffect;
-
-        susRL = baseHeight + pitchEffect - rollEffect;
-        susRR = baseHeight + pitchEffect + rollEffect;
+        // 2. 서스펜션 길이 (🔥 핵심)
+        susFL = GetSuspensionLength(posFL);
+        susFR = GetSuspensionLength(posFR);
+        susRL = GetSuspensionLength(posRL);
+        susRR = GetSuspensionLength(posRR);
 
         // 2. 스프링 힘 = Fz
         float springFL = ComputeSpringForce(susFL);
@@ -482,23 +483,32 @@ public class DOF3RigidBody : MonoBehaviour
         float damperRL = ComputeDamperForce(susRL, prevSusRL);
         float damperRR = ComputeDamperForce(susRR, prevSusRR);
 
+        // 압축일 때만 강하게
+        if (damperFL < 0f) damperFL *= 1.2f;
+        if (damperFR < 0f) damperFR *= 1.2f;
+        if (damperRL < 0f) damperRL *= 1.2f;
+        if (damperRR < 0f) damperRR *= 1.2f;
+
         // 🔥 핵심: 스프링 - 댐퍼
         FzFL = springFL - damperFL;
         FzFR = springFR - damperFR;
         FzRL = springRL - damperRL;
         FzRR = springRR - damperRR;
 
-        float gravityPerWheel = (m * g) * 0.25f;
-
-        FzFL -= gravityPerWheel;
-        FzFR -= gravityPerWheel;
-        FzRL -= gravityPerWheel;
-        FzRR -= gravityPerWheel;
+        FzFL = SmoothFz(prevFzFL, FzFL);
+        FzFR = SmoothFz(prevFzFR, FzFR);
+        FzRL = SmoothFz(prevFzRL, FzRL);
+        FzRR = SmoothFz(prevFzRR, FzRR);
 
         FzFL = MathUtility.Max(FzFL, 0f);
         FzFR = MathUtility.Max(FzFR, 0f);
         FzRL = MathUtility.Max(FzRL, 0f);
         FzRR = MathUtility.Max(FzRR, 0f);
+
+        prevFzFL = FzFL;
+        prevFzFR = FzFR;
+        prevFzRL = FzRL;
+        prevFzRR = FzRR;
 
         // 6. 이전값 저장 (🔥 매우 중요)
         prevSusFL = susFL;
@@ -527,6 +537,28 @@ public class DOF3RigidBody : MonoBehaviour
         float denom = MathUtility.Max(MathUtility.Abs(Ux), 0.1f); // 0 나눗셈 방지
 
         return (Vwheel - Ux) / denom;
+    }
+    /// <summary>
+    /// ray로 서스펜션 길이 계산
+    /// </summary>
+    /// <param name="wheelPos"></param>
+    /// <returns></returns>
+    float GetSuspensionLength(Vec3 wheelPos)
+    {
+        Ray3D ray; 
+        ray.origin = wheelPos;
+        ray.dir = VectorMathUtils.DownVector3D();
+        RaycastHit3D hit;
+
+        float maxLength = restLength + 0.2f;
+
+        if (CustomCollider3D.RayCast(ray, maxLength, out hit))
+        {
+            float distance = (hit.position - ray.origin).Magnitude;
+            return distance;
+        }
+
+        return maxLength; // 공중
     }
     /// <summary>
     /// 슬립각 계산
@@ -588,7 +620,9 @@ public class DOF3RigidBody : MonoBehaviour
 
         float optimalSlip = 0.1f;
         float maxSlip = 0.25f;
-
+        //접지된 만큼만 개입
+        float loadFactor = FzRL / (m * g * 0.25f);
+        tcsFactor *= loadFactor;
         tcsFactor = MathUtility.InverseLerp(optimalSlip, maxSlip, driveSlip);
     }
     /// <summary>
@@ -640,6 +674,7 @@ public class DOF3RigidBody : MonoBehaviour
         if (!escEnabled) return;
         if (MathUtility.Abs(Ux) < minSpeed) return;
         if (MathUtility.Abs(delta) < steerThreshold) return;
+        if (FzFL < 100f) return; // 떠있는 바퀴는 무시
 
         float safeUx = MathUtility.Max(Ux, 0.1f);
 
@@ -715,6 +750,16 @@ public class DOF3RigidBody : MonoBehaviour
         //종, 횡력에 모두 적용
         Fx *= Gx;
         Fy *= Gy;
+    }
+    /// <summary>
+    /// Fz 스무딩
+    /// </summary>
+    /// <param name="prev"></param>
+    /// <param name="current"></param>
+    /// <returns></returns>
+    float SmoothFz(float prev, float current)
+    {
+        return MathUtility.Lerp(prev, current, 10f * Time.fixedDeltaTime);
     }
     /// <summary>
     /// 차량 운동 적용
