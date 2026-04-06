@@ -81,6 +81,40 @@ public class Transform3D
 
     return new Vec3(worldX, worldY, worldZ);
 }
+     /// <summary>
+ /// 방향 벡터 전환 : 로컬 좌표 -> 월드 좌표
+ /// </summary>
+ /// <param name="localDir"></param>
+ /// <param name="yaw"></param>
+ /// <returns></returns>
+ public Vec3 TransformDirection(Vec3 localDir, float yaw)
+ {
+     float cos = MathUtility.Cos(yaw);
+     float sin = MathUtility.Sin(yaw);
+
+     return new Vec3(
+         localDir.x * cos - localDir.z * sin,
+         localDir.y,
+         localDir.x * sin + localDir.z * cos
+     );
+ }
+ /// <summary>
+ /// 방향 벡터 전환 : 월드 좌표 -> 로컬 좌표
+ /// </summary>
+ /// <param name="worldDir"></param>
+ /// <param name="yaw"></param>
+ /// <returns></returns>
+ public Vec3 InverseTransformDirection(Vec3 worldDir, float yaw)
+ {
+     float cos = MathUtility.Cos(yaw);
+     float sin = MathUtility.Sin(yaw);
+
+     return new Vec3(
+         worldDir.x * cos + worldDir.z * sin,
+         worldDir.y,
+         -worldDir.x * sin + worldDir.z * cos
+     );
+ }
 }
 public class Transform2D
 {
