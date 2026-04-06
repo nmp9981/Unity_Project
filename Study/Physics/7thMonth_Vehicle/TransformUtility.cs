@@ -65,6 +65,22 @@ public class Transform3D
     {
         get { return rotation * VectorMathUtils.RightVector3D(); }
     }
+    public Vec3 TransformPoint(Vec3 local, float yaw)
+{
+    float cos = MathUtility.Cos(yaw);
+    float sin = MathUtility.Sin(yaw);
+
+    // 회전 (Yaw 기준)
+    float x = local.x * cos - local.z * sin;
+    float z = local.x * sin + local.z * cos;
+
+    // 위치 이동
+    float worldX = position.x + x;
+    float worldY = position.y + local.y; // 높이는 그대로
+    float worldZ = position.z + z;
+
+    return new Vec3(worldX, worldY, worldZ);
+}
 }
 public class Transform2D
 {
