@@ -1,9 +1,13 @@
 using System;
+using UnityEngine;
 
 public static class MathUtility
 {
-    const float PI = 3.141592653589793f;
+    public const float PI = 3.141592653589793f;
     public const float EPSILON = 1e-6f;
+    public const float Rad2Deg = 57.29578f;
+    public const float Deg2Rad = 0.0174533f;
+
     /// <summary>
     /// 두 수중 작은 값 반환
     /// </summary>
@@ -41,6 +45,20 @@ public static class MathUtility
         //n이 홀수
         return Pow(a,n/2)*Pow(a,n/2)*a;
     }
+    /// <summary>
+    /// 거듭 제곱 구하기
+    /// a^n
+    /// </summary>
+    /// <param name="a">실수</param>
+    /// <param name="b">실수</param>
+    /// <returns></returns>
+    public static float Pow(float a, float b)
+    {
+        float lnA = Ln(a);
+        float BlnA = b * lnA;
+
+        return Exp(BlnA);
+    }
 
     /// <summary>
     /// 제곱근 구하기
@@ -68,46 +86,48 @@ public static class MathUtility
     {
         return (a < 0) ? -a : a;
     }
-     /// <summary>
- /// 선형 보간 값구하기
- /// </summary>
- /// <param name="a"></param>
- /// <param name="b"></param>
- /// <param name="t"></param>
- /// <returns></returns>
- public static float Lerp(float a, float b, float t)
- {
-     return a + (b - a) * ClampValue(t,0,1);
- }
-     /// <summary>
- /// 값이 a,b사이에서 어디쯤 있는지
- /// </summary>
- /// <param name="a"></param>
- /// <param name="b"></param>
- /// <param name="value"></param>
- /// <returns></returns>
- public static float InverseLerp(float a, float b, float value)
- {
-     // a와 b가 같을 경우 나누기 0 오류 방지
-     if (a == b) return 0f;
+    /// <summary>
+    /// 선형 보간 값구하기
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="t"></param>
+    /// <returns></returns>
+    public static float Lerp(float a, float b, float t)
+    {
+        return a + (b - a) * ClampValue(t,0,1);
+    }
+    /// <summary>
+    /// 값이 a,b사이에서 어디쯤 있는지
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static float InverseLerp(float a, float b, float value)
+    {
+        // a와 b가 같을 경우 나누기 0 오류 방지
+        if (a == b) return 0f;
 
-     // (현재값 - 시작값) / (끝값 - 시작값)
-     float result = (value - a) / (b - a);
+        // (현재값 - 시작값) / (끝값 - 시작값)
+        float result = (value - a) / (b - a);
 
-     // 결과를 0과 1 사이로 제한 (Clamping)
-     return ClampValue(result,0,1);
- }
-/// <summary>
-/// 실수의 부호 추출
-/// </summary>
-/// <param name="a">실수</param>
-/// <returns></returns>
-public static float Sign(float a)
-{
-    if(a == 0) return 0;
-    if (a < 0) return -1;
-    return 1;
-}
+        // 결과를 0과 1 사이로 제한 (Clamping)
+        return ClampValue(result,0,1);
+    }
+
+    /// <summary>
+    /// 실수의 부호 추출
+    /// </summary>
+    /// <param name="a">실수</param>
+    /// <returns></returns>
+    public static float Sign(float a)
+    {
+        if(a == 0) return 0;
+        if (a < 0) return -1;
+        return 1;
+    }
+
     /// <summary>
     /// 가장 가까운 값 찾기
     /// </summary>
@@ -206,21 +226,21 @@ public static float Sign(float a)
         return Sin(x)/Cos(x);
     }
     /// <summary>
-/// Atan값(1변수)
-/// </summary>
-/// <param name="x">cos 값</param>
-/// <param name="y">sin 값</param>
-/// <returns></returns>
-public static float Atan(float x)
-{
-    float x3 = (x * x * x)/3;
-    float x5 = (x3 * x * x)/5;
-    float x7 = (x5 * x * x)/7;
-    float x9 = (x7 * x * x)/9;
+    /// Atan값(1변수)
+    /// </summary>
+    /// <param name="x">cos 값</param>
+    /// <param name="y">sin 값</param>
+    /// <returns></returns>
+    public static float Atan(float x)
+    {
+        float x3 = (x * x * x)/3;
+        float x5 = (x3 * x * x)/5;
+        float x7 = (x5 * x * x)/7;
+        float x9 = (x7 * x * x)/9;
 
-    float atanValue = x - x3 + x5 - x7 + x9;
-    return atanValue;
-}
+        float atanValue = x - x3 + x5 - x7 + x9;
+        return atanValue;
+    }
     /// <summary>
     /// Atan값(2변수)
     /// </summary>
@@ -257,35 +277,68 @@ public static float Atan(float x)
         return angle;
     }
     /// <summary>
-/// Tanh(x)
-/// </summary>
-/// <param name="x"></param>
-/// <returns></returns>
-public static float Tanh(float x)
-{
-    float ePlusX = Exp(x);
-    float eMinusX = Exp(-x);
+    /// Tanh(x)
+    /// </summary>
+    /// <param name="x"></param>
+    /// <returns></returns>
+    public static float Tanh(float x)
+    {
+        float ePlusX = Exp(x);
+        float eMinusX = Exp(-x);
 
-    float tanh = (ePlusX - eMinusX) / (ePlusX + eMinusX);
-    return tanh;
-}
-#endregion
+        float tanh = (ePlusX - eMinusX) / (ePlusX + eMinusX);
+        return tanh;
+    }
+    #endregion
 
-/// <summary>
-/// e^x
-/// </summary>
-/// <param name="x"></param>
-/// <returns></returns>
-public static float Exp(float x)
-{
-    float d2 = x * x * 0.5f;
-    float d3 = x * x * x / 6;
-    float d4 = Pow(x, 4) / 24;
-    float d5 = Pow(x, 5) / 120;
-    float ex = 1 + x + d2+d3+d4+d5;
-    return Exp(x);
-}
-   
+    /// <summary>
+    /// e^x
+    /// </summary>
+    /// <param name="x"></param>
+    /// <returns></returns>
+    public static float Exp(float x)
+    {
+        float d2 = x * x * 0.5f;
+        float d3 = x * x * x / 6;
+        float d4 = Pow(x, 4) / 24;
+        float d5 = Pow(x, 5) / 120;
+        float ex = 1 + x + d2+d3+d4+d5;
+        return Exp(x);
+    }
+
+    public static float Ln(float x)
+    {
+        if (x <= 0f) return float.NaN;
+
+        int k = 0;
+
+        // x를 1 근처로 맞춘다
+        while (x > 2f)
+        {
+            x *= 0.5f;
+            k++;
+        }
+        while (x < 0.5f)
+        {
+            x *= 2f;
+            k--;
+        }
+
+        float y = (x - 1f) / (x + 1f);
+        float y2 = y * y;
+
+        float sum = 0f;
+        float term = y;
+
+        for (int i = 1; i < 20; i += 2)
+        {
+            sum += term / i;
+            term *= y2;
+        }
+
+        return 2f * sum + k * 0.69314718f; // ln(2)
+    }
+
     /// <summary>
     /// 2차 방정식 해 존재여부
     /// </summary>
