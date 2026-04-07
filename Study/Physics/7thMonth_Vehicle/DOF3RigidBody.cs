@@ -74,6 +74,34 @@ public class DOF3RigidBody : MonoBehaviour
     float FyRL;
     float FyRR;
 
+    // ===== Setup =====
+    // Spring
+    public float springFront = 30000f;
+    public float springRear = 28000f;
+
+    // Progressive
+    public float spring2Front = 90000f;
+    public float spring2Rear = 70000f;
+
+    // Damper
+    public float damperCompFront = 3000f;
+    public float damperRebFront = 7000f;
+
+    public float damperCompRear = 2500f;
+    public float damperRebRear = 6000f;
+
+    // Anti Roll Bar
+    public float arbFront = 15000f;
+    public float arbRear = 10000f;
+
+    // Tire
+    public float baseMuSetup = 1.2f;
+    public float loadSensitivitySetup = 0.00002f;
+
+    // ==== Load Sensivity ====
+    float baseMu = 1.2f;
+    float loadSensitivity = 0.00002f;
+
     // ==== 엔진 모델 ====
     float throttle; // 0~1, 엔진 힘
     float FxEngine => throttle * 4000f;
@@ -90,12 +118,14 @@ public class DOF3RigidBody : MonoBehaviour
 
     // ==== Suspension ====
     float springK = 30000f;     // 스프링 강성
+    float springK2 = 80000f; // 비선형 계수 (핵심)
     float restLength = 0.3f;    // 기본 길이
 
     float susFL, susFR, susRL, susRR; // 현재 서스펜션 길이
 
     // ==== Damper ====
-    float damperC = 4500f;
+    float damperCompression = 3000f; // 눌릴 때
+    float damperRebound = 7000f;     // 올라올 때 (더 강함 ⭐)
 
     float prevSusFL, prevSusFR, prevSusRL, prevSusRR;
     float prevFzFL, prevFzFR, prevFzRL, prevFzRR;
@@ -133,6 +163,10 @@ public class DOF3RigidBody : MonoBehaviour
     // === TCS ====
     public float tcsFactor;
 
+    // ==== Anti Roll Bar ====
+    float arbStiffnessFront = 15000f;
+    float arbStiffnessRear = 10000f;
+
     // ==== 제어용 변수 ====
     float slipTargetBrake = -0.1f;
     float slipTargetAccel = 0.1f;
@@ -165,6 +199,7 @@ public class DOF3RigidBody : MonoBehaviour
 
     //Transform
     Transform3D transform3D = new Transform3D();
+    CustomCollider3D collider3D;
 
     //입력
     float inputThrottle;
@@ -173,6 +208,15 @@ public class DOF3RigidBody : MonoBehaviour
     private void Start()
     {
         InitForce();
+    }
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Q)) arbFront += 100f;
+        if (Input.GetKey(KeyCode.A)) arbFront -= 100f;
+
+        if (Input.GetKey(KeyCode.W)) arbRear += 100f;
+        if (Input.GetKey(KeyCode.S)) arbRear -= 100f;
     }
 
     private void FixedUpdate()
@@ -351,10 +395,14 @@ public class DOF3RigidBody : MonoBehaviour
     /// <returns></returns>
     float ComputeSpringForce(float currentLength)
     {
-        float compression = restLength - currentLength;
-        compression = MathUtility.Max(compression, 0f);
+        float x = restLength - currentLength;
+        x = MathUtility.Max(x, 0f);
 
-        float force = springK * compression;
+        float linear = springK * x;
+        float progressive = springK2 * x * x;
+
+        float force = linear + progressive;
+
         return MathUtility.Max(force, 0f);
     }
     /// <summary>
@@ -367,8 +415,19 @@ public class DOF3RigidBody : MonoBehaviour
     {
         float velocity = (currentLength - prevLength) / Time.fixedDeltaTime;
 
-        float force = damperC * velocity;
+        float force;
 
+        if (velocity < 0f)//중력 방향
+        {
+            // Compression (눌림)
+            force = damperCompression * velocity;
+        }
+        else//중력 반대 방향
+        {
+            // Rebound (복원)
+            force = damperRebound * velocity;
+        }
+        force *= (1f + MathUtility.Abs(velocity) * 0.1f);
         return force;
     }
     /// <summary>
@@ -414,12 +473,23 @@ public class DOF3RigidBody : MonoBehaviour
         Fy_f = FyFL + FyFR;
         Fy_r = FyRL + FyRR;
     }
+    /// <summary>
+    /// mu 계산 함수
+    /// </summary>
+    /// <param name="Fz"></param>
+    /// <returns></returns>
+    float GetMu(float Fz)
+    {
+        float mu = baseMu * MathUtility.Pow(Fz, -0.1f); ;
+        return MathUtility.Max(mu, 0.5f); // 최소 grip 보장
+    }
     float PacejkaFx(float slipRatio, float Fz)
     {
         float B = 12.0f;
         float C = 1.3f;
         float E = 0.97f;
-        float D = mu * Fz;
+        float localMu = GetMu(Fz);
+        float D = localMu * Fz;
 
         float Bx = B * slipRatio;
         float term = Bx - E * (Bx - MathUtility.Atan(Bx));
@@ -433,7 +503,8 @@ public class DOF3RigidBody : MonoBehaviour
         float B = 10.0f;
         float C = 1.3f;
         float E = 0.97f;
-        float D = mu * Fz;
+        float localMu = GetMu(Fz);
+        float D = localMu * Fz;
 
         float Bx = B * alpha;
         float term = Bx - E * (Bx - MathUtility.Atan(Bx));
@@ -483,17 +554,20 @@ public class DOF3RigidBody : MonoBehaviour
         float damperRL = ComputeDamperForce(susRL, prevSusRL);
         float damperRR = ComputeDamperForce(susRR, prevSusRR);
 
-        // 압축일 때만 강하게
-        if (damperFL < 0f) damperFL *= 1.2f;
-        if (damperFR < 0f) damperFR *= 1.2f;
-        if (damperRL < 0f) damperRL *= 1.2f;
-        if (damperRR < 0f) damperRR *= 1.2f;
-
         // 🔥 핵심: 스프링 - 댐퍼
         FzFL = springFL - damperFL;
         FzFR = springFR - damperFR;
         FzRL = springRL - damperRL;
         FzRR = springRR - damperRR;
+
+        // ===== Anti-Roll Bar =====
+        float arbForceFront = arbStiffnessFront * (susFL - susFR);
+        float arbForceRear = arbStiffnessRear * (susRL - susRR);
+
+        FzFL -= arbForceFront;
+        FzFR += arbForceFront;
+        FzRL -= arbForceRear;
+        FzRR += arbForceRear;
 
         FzFL = SmoothFz(prevFzFL, FzFL);
         FzFR = SmoothFz(prevFzFR, FzFR);
@@ -552,7 +626,7 @@ public class DOF3RigidBody : MonoBehaviour
 
         float maxLength = restLength + 0.2f;
 
-        if (CustomCollider3D.RayCast(ray, maxLength, out hit))
+        if (collider3D.RayCast(ray, maxLength, out hit))
         {
             float distance = (hit.position - ray.origin).Magnitude;
             return distance;
@@ -560,22 +634,7 @@ public class DOF3RigidBody : MonoBehaviour
 
         return maxLength; // 공중
     }
-    /// <summary>
-    /// 슬립각 계산
-    /// </summary>
-    /// <param name="Vy"></param>
-    /// <param name="Ux"></param>
-    /// <param name="steerAngle"></param>
-    /// <returns></returns>
-    float ComputeSlipAngle(float Vy, float Ux, float steerAngle)
-    {
-        float denom = Mathf.Max(Mathf.Abs(Ux), 0.1f);
-
-        float alpha = Mathf.Atan2(Vy, denom) - steerAngle;
-
-        return alpha;
-    }
-
+   
     /// <summary>
     /// ABS 적용
     /// 브레이크를 줄이는 게 아니라, 잠기려는 순간만 풀어준다
