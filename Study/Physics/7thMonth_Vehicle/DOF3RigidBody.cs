@@ -1,5 +1,11 @@
 using UnityEngine;
-using UnityEngine.Profiling;
+
+public enum DriveType
+{
+    FWD,
+    RWD,
+    AWD
+}
 
 public class DOF3RigidBody : MonoBehaviour
 {
@@ -27,6 +33,8 @@ public class DOF3RigidBody : MonoBehaviour
     float escThreshold = 0.2f;  // rad/s
     float steerThreshold = 0.02f;   // rad
     float minSpeed = 5f;        // m/s
+
+    DriveType driveType = DriveType.RWD;
 
     CustomRigidBody rb;
 
@@ -56,6 +64,13 @@ public class DOF3RigidBody : MonoBehaviour
 
     //==== 위치 ====
     Vec3 position;
+
+    // ==== Ackermann factor ====
+    float ackermannFactor = 1.0f; // 0 ~ 1
+
+    // ==== camber ====
+    float camberFront = -2f * MathUtility.Deg2Rad; // -2도
+    float camberRear = -1.5f * MathUtility.Deg2Rad;
 
     // ===== 좌우 하중 =====
     float staticFz;
@@ -102,6 +117,10 @@ public class DOF3RigidBody : MonoBehaviour
     float baseMu = 1.2f;
     float loadSensitivity = 0.00002f;
 
+    // ===== Differential =====
+    public float lsdStrength = 0.8f;   // 0 ~ 1
+    public float lsdPower = 2.0f;      // 민감도
+
     // ==== 엔진 모델 ====
     float throttle; // 0~1, 엔진 힘
     float FxEngine => throttle * 4000f;
@@ -143,6 +162,8 @@ public class DOF3RigidBody : MonoBehaviour
     // ===== 슬립각 =====
     float alphaF;
     float alphaR;
+    float alphaFL;
+    float alphaFR;
 
     // ===== 하중 =====
     float FzF;
@@ -334,10 +355,68 @@ public class DOF3RigidBody : MonoBehaviour
         float slipDiff = slipRR - slipRL;
         float bias = MathUtility.ClampValue(slipDiff * 0.5f, -0.5f, 0.5f);
 
-        float torqueRL = finalTorque * (0.5f - bias);
-        float torqueRR = finalTorque * (0.5f + bias);
+        // ===== Drive Distribution =====
 
-        // 5. 힘 변환
+        float torqueFL = 0f;
+        float torqueFR = 0f;
+        float torqueRL = 0f;
+        float torqueRR = 0f;
+
+        switch (driveType)
+        {
+            case DriveType.FWD:
+                {
+                    slipDiff = slipFR - slipFL;
+                    bias = MathUtility.ClampValue(slipDiff * 0.5f, -0.5f, 0.5f);
+
+                    torqueFL = finalTorque * (0.5f - bias);
+                    torqueFR = finalTorque * (0.5f + bias);
+                    break;
+                }
+
+            case DriveType.RWD:
+                {
+                    slipDiff = slipRR - slipRL;
+                    bias = MathUtility.ClampValue(slipDiff * 0.5f, -0.5f, 0.5f);
+
+                    torqueRL = finalTorque * (0.5f - bias);
+                    torqueRR = finalTorque * (0.5f + bias);
+                    break;
+                }
+
+            case DriveType.AWD:
+                {
+                    float frontSplit = 0.5f; // 50:50 (튜닝 가능 ⭐)
+
+                    float torqueFront = finalTorque * frontSplit;
+                    float torqueRear = finalTorque * (1f - frontSplit);
+
+                    // Front diff
+                    float slipDiffF = slipFR - slipFL;
+                    float biasF = MathUtility.ClampValue(slipDiffF * 0.5f, -0.5f, 0.5f);
+
+                    torqueFL = torqueFront * (0.5f - biasF);
+                    torqueFR = torqueFront * (0.5f + biasF);
+
+                    // Rear diff
+                    float slipDiffR = slipRR - slipRL;
+                    float biasR = MathUtility.ClampValue(slipDiffR * 0.5f, -0.5f, 0.5f);
+
+                    torqueRL = torqueRear * (0.5f - biasR);
+                    torqueRR = torqueRear * (0.5f + biasR);
+                    break;
+                }
+            default:
+                break;
+        }
+        // Front
+        ApplyLSD(ref torqueFL, ref torqueFR, slipFL, slipFR);
+        // Rear
+        ApplyLSD(ref torqueRL, ref torqueRR, slipRL, slipRR);
+
+        // ===== Force 변환 =====
+        FxFL = torqueFL / R;
+        FxFR = torqueFR / R;
         FxRL = torqueRL / R;
         FxRR = torqueRR / R;
 
@@ -371,21 +450,78 @@ public class DOF3RigidBody : MonoBehaviour
     }
 
     /// <summary>
+    /// LSD 적용
+    /// </summary>
+    /// <param name="torqueL"></param>
+    /// <param name="torqueR"></param>
+    /// <param name="slipL"></param>
+    /// <param name="slipR"></param>
+    void ApplyLSD(ref float torqueL, ref float torqueR, float slipL, float slipR)
+    {
+        float slipDiff = slipR - slipL;
+
+        float norm = MathUtility.ClampValue(slipDiff, -1f, 1f);
+        float shaped = MathUtility.Sign(norm) * MathUtility.Pow(MathUtility.Abs(norm), lsdPower);
+
+        float bias = shaped * lsdStrength * 0.5f;
+
+        float total = torqueL + torqueR;
+
+        torqueL = total * (0.5f - bias);
+        torqueR = total * (0.5f + bias);
+    }
+    /// <summary>
     /// 슬립각 계산
     /// </summary>
     void ComputeSlipAngle()
     {
         // 2. 슬립각 계산
         float U = MathUtility.Abs(Ux);
-        if (U < 0.5f)//저속에서는 타이어 모델을 끈다
+        if (U < 0.5f)//저속에서는 타이어 모델을 끈다.
         {
-            alphaF = 0;
-            alphaR = 0;
+            alphaFL = alphaFR = 0f;
+            alphaR = 0f;
+            return;
+        }
+
+        // 🔥 1. Ackermann
+        float steerLeft, steerRight;
+        ComputeSteeringAngles(out steerLeft, out steerRight);
+
+        // 🔥 2. 앞바퀴 (좌/우 분리)
+        alphaFL = steerLeft - (Vy + a * r) / U;
+        alphaFR = steerRight - (Vy + a * r) / U;
+
+        // 🔥 3. 뒤는 그대로
+        alphaR = (b * r - Vy) / U;
+    }
+    /// <summary>
+    /// 조향각 생성, 조향 입력 변형
+    /// </summary>
+    /// <param name="steerLeft"></param>
+    /// <param name="steerRight"></param>
+    void ComputeSteeringAngles(out float steerLeft, out float steerRight)
+    {
+        steerLeft = delta;
+        steerRight = delta;
+
+        if (MathUtility.Abs(delta) < 0.001f)
+            return;
+
+        float turnRadius = L / MathUtility.Tan(MathUtility.Abs(delta));
+
+        float inner = MathUtility.Atan(L / (turnRadius - trackWidth * 0.5f));
+        float outer = MathUtility.Atan(L / (turnRadius + trackWidth * 0.5f));
+
+        if (delta > 0f) // 좌회전
+        {
+            steerLeft = inner;
+            steerRight = outer;
         }
         else
         {
-            alphaF = delta - (Vy + a * r) / U;
-            alphaR = (b * r - Vy) / U;
+            steerLeft = outer;
+            steerRight = inner;
         }
     }
     /// <summary>
@@ -463,11 +599,11 @@ public class DOF3RigidBody : MonoBehaviour
         float alphaR_clamped = MathUtility.ClampValue(alphaR, -1.0f, 1.0f);
 
         // 3. Pacejka 적용
-        FyFL = PacejkaFy(alphaF_clamped, FzFL);
-        FyFR = PacejkaFy(alphaF_clamped, FzFR);
+        FyFL = PacejkaFy(alphaFL, FzFL)*MathUtility.Cos(camberFront);
+        FyFR = PacejkaFy(alphaFR, FzFR) * MathUtility.Cos(camberFront);
 
-        FyRL = PacejkaFy(alphaR_clamped, FzRL);
-        FyRR = PacejkaFy(alphaR_clamped, FzRR);
+        FyRL = PacejkaFy(alphaR_clamped, FzRL) * MathUtility.Cos(camberRear);
+        FyRR = PacejkaFy(alphaR_clamped, FzRR) * MathUtility.Cos(camberRear);
 
         // 4. 축 합산 (기존 유지)
         Fy_f = FyFL + FyFR;
