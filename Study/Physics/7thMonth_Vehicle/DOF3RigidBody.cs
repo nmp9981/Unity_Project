@@ -25,6 +25,7 @@ public class DOF3RigidBody : MonoBehaviour
     float absStrength;
     float baseAbsStrength;
     float driverBrake;
+    float brakeBias = 0.7f; // 앞 70%
 
     float Iz = 2500;//yaw 관성
     float g = 9.81f;
@@ -134,6 +135,7 @@ public class DOF3RigidBody : MonoBehaviour
     float maxBrakeForce = 12000f;
     float maxDriveForce = 8000f;
     float engineRPM;
+    float downforceCoeff = 20f; // 튜닝값, 공기저항
 
     // ==== Suspension ====
     float springK = 30000f;     // 스프링 강성
@@ -188,6 +190,11 @@ public class DOF3RigidBody : MonoBehaviour
     float arbStiffnessFront = 15000f;
     float arbStiffnessRear = 10000f;
 
+    // ==== AnimationCurve ====
+    AnimationCurve torqueCurve;
+    float maxTorque = 300f;
+    float maxRPM = 7000f;
+
     // ==== 제어용 변수 ====
     float slipTargetBrake = -0.1f;
     float slipTargetAccel = 0.1f;
@@ -195,6 +202,16 @@ public class DOF3RigidBody : MonoBehaviour
     float softThreshold = 0.02f;
     float hardThreshold = 0.06f;
     float smoothingSpeed = 5f;
+
+    // ==== Tire Temperature ====
+    float tireTempFL = 70f;
+    float tireTempFR = 70f;
+    float tireTempRL = 70f;
+    float tireTempRR = 70f;
+
+    float heatGain = 0.0005f;
+    float coolingRate = 0.5f;
+    float ambientTemp = 25f;
 
     // Roll 준비
     float trackWidth = 1.6f;   // m
@@ -226,9 +243,13 @@ public class DOF3RigidBody : MonoBehaviour
     float inputThrottle;
     float inputBrake;
 
+    [Header("차량 데이터")]
+    public CarSetup currentSetup;
+
     private void Start()
     {
         InitForce();
+        ApplySetup(currentSetup);
     }
 
     void Update()
@@ -248,6 +269,7 @@ public class DOF3RigidBody : MonoBehaviour
         UpdateSlip();
         ApplyTCS();
         UpdateGear();
+        UpdateEngineRPM();
         // 1. Longitudinal force (새로 추가된 것), 종방향
         ComputeLongitudinal();   // ax 계산됨
 
@@ -265,6 +287,14 @@ public class DOF3RigidBody : MonoBehaviour
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
         ComputeLongitudinalTireForce();//Fx 계산
+
+        // 👉 🔥 여기 추가
+        UpdateTireTemperature();
+
+        // 👉 🔥 여기 추가
+        ApplyTemperatureGrip();
+
+
         // 3. ay 계산
         ay = (Fy_f + Fy_r) / m;
         ApplyESC();
@@ -276,6 +306,34 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 9. 차량 운동 적용
         IntegrateVehicle();
+    }
+    /// <summary>
+    /// 데이터 셋업
+    /// </summary>
+    /// <param name="setup"></param>
+    void ApplySetup(CarSetup setup)
+    {
+        // Spring
+        springFront = setup.springFront;
+        springRear = setup.springRear;
+
+        spring2Front = setup.spring2Front;
+        spring2Rear = setup.spring2Rear;
+
+        // Damper
+        damperCompFront = setup.damperCompFront;
+        damperRebFront = setup.damperRebFront;
+
+        damperCompRear = setup.damperCompRear;
+        damperRebRear = setup.damperRebRear;
+
+        // ARB
+        arbStiffnessFront = setup.arbFront;
+        arbStiffnessRear = setup.arbRear;
+
+        // Tire
+        baseMu = setup.baseMu;
+        loadSensitivity = setup.loadSensitivity;
     }
 
     /// <summary>
@@ -422,6 +480,16 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 3. Brake Force
         brakeForce = brake * maxBrakeForce;
+        float frontBrake = brakeForce * brakeBias;
+        float rearBrake = brakeForce * (1f - brakeBias);
+
+        // Front
+        FxFL -= frontBrake * 0.5f;
+        FxFR -= frontBrake * 0.5f;
+
+        // Rear
+        FxRL -= rearBrake * 0.5f;
+        FxRR -= rearBrake * 0.5f;
 
         // 속도 방향 반대로 작용
         if (MathUtility.Abs(Ux) > 0.1f)
@@ -434,15 +502,6 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 5. Rolling Resistance
         FxRoll = rollingCoeff * Ux;
-
-        // 6. 총 힘
-        FxTotal = FxDrive - FxBrake - FxDrag - FxRoll;
-
-        // 7. 가속도
-        ax = FxTotal / m;
-
-        // 8. 속도 업데이트
-        Ux += ax * Time.deltaTime;
 
         // 9. 정지 안정화 (중요)
         if (MathUtility.Abs(Ux) < 0.05f && throttle < 0.01f)
@@ -573,14 +632,24 @@ public class DOF3RigidBody : MonoBehaviour
     /// <returns></returns>
     float GetEngineTorque(float rpm)
     {
-        float peakRPM = 4000f;
-        float maxTorque = 300f;
+        float normalizedRPM = rpm / maxRPM;
 
-        float x = rpm / peakRPM;
+        float curveValue = torqueCurve.Evaluate(normalizedRPM);
 
-        float torque = maxTorque * MathUtility.Sin(MathUtility.ClampValue(x, 0f, 1f) * MathUtility.PI);
+        return curveValue * maxTorque;
+    }
+    /// <summary>
+    /// 엔진 RPM 계산
+    /// </summary>
+    void UpdateEngineRPM()
+    {
+        float wheelRPM = (Ux / (2f * MathUtility.PI * R)) * 60f;
 
-        return torque;
+        float gearRatio = gearRatios[currentGear] * finalDrive;
+
+        engineRPM = wheelRPM * gearRatio;
+
+        engineRPM = MathUtility.ClampValue(engineRPM, 800f, maxRPM);
     }
     /// <summary>
     /// 타이어 힘 계산
@@ -725,6 +794,20 @@ public class DOF3RigidBody : MonoBehaviour
         prevSusFR = susFR;
         prevSusRL = susRL;
         prevSusRR = susRR;
+
+        // 바퀴 다운포스
+        float downforce = ComputeDownforce();
+
+        float frontShare = b / (a + b);
+        float rearShare = a / (a + b);
+
+        float dfFront = downforce * frontShare;
+        float dfRear = downforce * rearShare;
+
+        FzFL += dfFront * 0.5f;
+        FzFR += dfFront * 0.5f;
+        FzRL += dfRear * 0.5f;
+        FzRR += dfRear * 0.5f;
     }
     void UpdateSlip()
     {
@@ -998,4 +1081,71 @@ public class DOF3RigidBody : MonoBehaviour
         yaw += r * dt;
         transform.rotation = Quaternion.Euler(0f, yaw * MathUtility.Rad2Deg, 0f);
     }
+
+    #region 온도
+    /// <summary>
+    /// 각 타이어별 온도 업데이트
+    /// </summary>
+    void UpdateTireTemperature()
+    {
+        UpdateSingleTemp(ref tireTempFL, slipFL, FxFL, FyFL);
+        UpdateSingleTemp(ref tireTempFR, slipFR, FxFR, FyFR);
+        UpdateSingleTemp(ref tireTempRL, slipRL, FxRL, FyRL);
+        UpdateSingleTemp(ref tireTempRR, slipRR, FxRR, FyRR);
+    }
+    /// <summary>
+    /// 온도 업데이트
+    /// </summary>
+    /// <param name="temp"></param>
+    /// <param name="slip"></param>
+    /// <param name="Fx"></param>
+    /// <param name="Fy"></param>
+    void UpdateSingleTemp(ref float temp, float slip, float Fx, float Fy)
+    {
+        float heat = MathUtility.Abs(slip) * (MathUtility.Abs(Fx) + MathUtility.Abs(Fy)) * heatGain;
+
+        float cooling = (temp - ambientTemp) * coolingRate;
+
+        temp += (heat - cooling) * Time.fixedDeltaTime;
+
+        temp = MathUtility.ClampValue(temp, 0f, 200f);
+    }
+    float GetTempGrip(float temp)
+    {
+        float optimal = 90f;
+        float range = 40f;
+
+        float diff = temp - optimal;
+
+        return MathUtility.Exp(-(diff * diff) / (2f * range * range));
+    }
+    void ApplyTemperatureGrip()
+    {
+        float gripFL = GetTempGrip(tireTempFL);
+        float gripFR = GetTempGrip(tireTempFR);
+        float gripRL = GetTempGrip(tireTempRL);
+        float gripRR = GetTempGrip(tireTempRR);
+
+        FxFL *= gripFL;
+        FyFL *= gripFL;
+
+        FxFR *= gripFR;
+        FyFR *= gripFR;
+
+        FxRL *= gripRL;
+        FyRL *= gripRL;
+
+        FxRR *= gripRR;
+        FyRR *= gripRR;
+    }
+    /// <summary>
+    /// 다운포스 계산
+    /// F = kV^2
+    /// </summary>
+    /// <returns></returns>
+    float ComputeDownforce()
+    {
+        return downforceCoeff * Ux * Ux;
+    }
+    #endregion
 }
