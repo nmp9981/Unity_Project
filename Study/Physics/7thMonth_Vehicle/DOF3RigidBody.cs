@@ -6,6 +6,24 @@ public enum DriveType
     RWD,
     AWD
 }
+/// <summary>
+/// 노면 타입
+/// </summary>
+public enum SurfaceType
+{
+    Dry,
+    Wet,
+    Snow
+}
+/// <summary>
+/// 타이어 종류
+/// </summary>
+public enum TireCompound
+{
+    Soft,
+    Medium,
+    Hard
+}
 
 public class DOF3RigidBody : MonoBehaviour
 {
@@ -51,6 +69,11 @@ public class DOF3RigidBody : MonoBehaviour
     float slipFL, slipFR, slipRL, slipRR;
     float wFL, wFR, wRL, wRR; // wheel angular velocity
     float R = 0.3f; // 타이어 반지름
+
+    TireCompound currentCompound = TireCompound.Medium;//타이어 종류
+    float compoundGrip = 1.0f;//기본 접지력
+    float compoundWearRate = 1.0f;//닳는 속도
+    float compoundHeatGain = 1.0f;//열 오르는 속도
 
     // ==== roll ====
     float roll;//차체 기울기, roll angle (rad)
@@ -136,6 +159,7 @@ public class DOF3RigidBody : MonoBehaviour
     float maxDriveForce = 8000f;
     float engineRPM;
     float downforceCoeff = 20f; // 튜닝값, 공기저항
+    float aeroBalance = 0.5f; // 0 = rear, 1 = front
 
     // ==== Suspension ====
     float springK = 30000f;     // 스프링 강성
@@ -150,6 +174,15 @@ public class DOF3RigidBody : MonoBehaviour
 
     float prevSusFL, prevSusFR, prevSusRL, prevSusRR;
     float prevFzFL, prevFzFR, prevFzRL, prevFzRR;
+
+    // ==== Tire Wear ====
+    float tireWearFL = 1.0f;
+    float tireWearFR = 1.0f;
+    float tireWearRL = 1.0f;
+    float tireWearRR = 1.0f;
+
+    float wearRate = 0.00001f;
+    float wearTempFactor = 0.00002f;
 
     // ===== 종력 =====
     float FxTotal;
@@ -235,6 +268,11 @@ public class DOF3RigidBody : MonoBehaviour
     float[] gearRatios = { 0f, 3.5f, 2.1f, 1.4f, 1.0f, 0.8f };
     float finalDrive = 3.2f;
 
+    // ==== 노면 ====
+    SurfaceType currentSurface = SurfaceType.Dry;
+    float surfaceGrip = 1.0f;
+    float surfaceSlipMultiplier = 1.0f;
+
     //Transform
     Transform3D transform3D = new Transform3D();
     CustomCollider3D collider3D;
@@ -283,10 +321,21 @@ public class DOF3RigidBody : MonoBehaviour
 
         //제어 시스템
         ApplyABS();
-        
+
+        UpdateSurfaceProperties();
+        UpdateCompoundProperties();
+
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
         ComputeLongitudinalTireForce();//Fx 계산
+
+        UpdateTireTemperature();  // 기존
+        UpdateTireWear();         // 🔥 추가
+
+        ApplyTemperatureGrip();   // 기존
+        ApplyWearGrip();          // 🔥 추가
+        ApplySurfaceEffect();
+        ApplyCompoundGrip();
 
         // 👉 🔥 여기 추가
         UpdateTireTemperature();
@@ -796,18 +845,20 @@ public class DOF3RigidBody : MonoBehaviour
         prevSusRR = susRR;
 
         // 바퀴 다운포스
-        float downforce = ComputeDownforce();
+        float totalDownforce = downforceCoeff * Ux * Ux;// F = kV^2
+        float speedFactor = MathUtility.ClampValue(Ux / 50f, 0f, 1f);
 
-        float frontShare = b / (a + b);
-        float rearShare = a / (a + b);
+        float dynamicBalance = MathUtility.Lerp(0.5f, aeroBalance, speedFactor);
+        float frontDownforce = totalDownforce * dynamicBalance;
+        float rearDownforce = totalDownforce * (1f - dynamicBalance);
 
-        float dfFront = downforce * frontShare;
-        float dfRear = downforce * rearShare;
+        // Front
+        FzFL += frontDownforce * 0.5f;
+        FzFR += frontDownforce * 0.5f;
 
-        FzFL += dfFront * 0.5f;
-        FzFR += dfFront * 0.5f;
-        FzRL += dfRear * 0.5f;
-        FzRR += dfRear * 0.5f;
+        // Rear
+        FzRL += rearDownforce * 0.5f;
+        FzRR += rearDownforce * 0.5f;
     }
     void UpdateSlip()
     {
@@ -1102,7 +1153,7 @@ public class DOF3RigidBody : MonoBehaviour
     /// <param name="Fy"></param>
     void UpdateSingleTemp(ref float temp, float slip, float Fx, float Fy)
     {
-        float heat = MathUtility.Abs(slip) * (MathUtility.Abs(Fx) + MathUtility.Abs(Fy)) * heatGain;
+        float heat = MathUtility.Abs(slip) * (MathUtility.Abs(Fx) + MathUtility.Abs(Fy)) * heatGain * compoundHeatGain;
 
         float cooling = (temp - ambientTemp) * coolingRate;
 
@@ -1138,14 +1189,123 @@ public class DOF3RigidBody : MonoBehaviour
         FxRR *= gripRR;
         FyRR *= gripRR;
     }
-    /// <summary>
-    /// 다운포스 계산
-    /// F = kV^2
-    /// </summary>
-    /// <returns></returns>
-    float ComputeDownforce()
+    #endregion
+
+    #region 타이어 함수
+    void UpdateTireWear()
     {
-        return downforceCoeff * Ux * Ux;
+        UpdateSingleWear(ref tireWearFL, slipFL, tireTempFL);
+        UpdateSingleWear(ref tireWearFR, slipFR, tireTempFR);
+        UpdateSingleWear(ref tireWearRL, slipRL, tireTempRL);
+        UpdateSingleWear(ref tireWearRR, slipRR, tireTempRR);
+    }
+
+    void UpdateSingleWear(ref float wear, float slip, float temp)
+    {
+        float slipWear = MathUtility.Abs(slip) * wearRate * compoundWearRate;
+
+        float tempWear = MathUtility.Max(temp - 90f, 0f) * wearTempFactor;
+
+        wear -= (slipWear + tempWear) * Time.fixedDeltaTime;
+
+        wear = MathUtility.ClampValue(wear, 0.5f, 1.0f);
+    }
+    void ApplyWearGrip()
+    {
+        FxFL *= tireWearFL;
+        FyFL *= tireWearFL;
+
+        FxFR *= tireWearFR;
+        FyFR *= tireWearFR;
+
+        FxRL *= tireWearRL;
+        FyRL *= tireWearRL;
+
+        FxRR *= tireWearRR;
+        FyRR *= tireWearRR;
+    }
+    #endregion
+
+    #region 노면
+    /// <summary>
+    /// 노면별 값 세팅
+    /// </summary>
+    void UpdateSurfaceProperties()
+    {
+        switch (currentSurface)
+        {
+            case SurfaceType.Dry:
+                surfaceGrip = 1.0f;
+                surfaceSlipMultiplier = 1.0f;
+                break;
+
+            case SurfaceType.Wet:
+                surfaceGrip = 0.7f;
+                surfaceSlipMultiplier = 1.3f;
+                break;
+
+            case SurfaceType.Snow:
+                surfaceGrip = 0.4f;
+                surfaceSlipMultiplier = 2.0f;
+                break;
+        }
+    }
+    void ApplySurfaceEffect()
+    {
+        FxFL *= surfaceGrip;
+        FyFL *= surfaceGrip;
+
+        FxFR *= surfaceGrip;
+        FyFR *= surfaceGrip;
+
+        FxRL *= surfaceGrip;
+        FyRL *= surfaceGrip;
+
+        FxRR *= surfaceGrip;
+        FyRR *= surfaceGrip;
+    }
+    #endregion
+
+    #region 타이어 종류
+    /// <summary>
+    /// 컴파운드 설정
+    /// </summary>
+    void UpdateCompoundProperties()
+    {
+        switch (currentCompound)
+        {
+            case TireCompound.Soft:
+                compoundGrip = 1.2f;
+                compoundWearRate = 2.0f;
+                compoundHeatGain = 1.5f;
+                break;
+
+            case TireCompound.Medium:
+                compoundGrip = 1.0f;
+                compoundWearRate = 1.0f;
+                compoundHeatGain = 1.0f;
+                break;
+
+            case TireCompound.Hard:
+                compoundGrip = 0.85f;
+                compoundWearRate = 0.5f;
+                compoundHeatGain = 0.7f;
+                break;
+        }
+    }
+    void ApplyCompoundGrip()
+    {
+        FxFL *= compoundGrip;
+        FyFL *= compoundGrip;
+
+        FxFR *= compoundGrip;
+        FyFR *= compoundGrip;
+
+        FxRL *= compoundGrip;
+        FyRL *= compoundGrip;
+
+        FxRR *= compoundGrip;
+        FyRR *= compoundGrip;
     }
     #endregion
 }
