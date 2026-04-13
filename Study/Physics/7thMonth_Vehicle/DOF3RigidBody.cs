@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum DriveType
@@ -23,6 +24,41 @@ public enum TireCompound
     Soft,
     Medium,
     Hard
+}
+/// <summary>
+/// 재생용
+/// </summary>
+public struct ReplayFrame
+{
+    public float time;
+
+    public Vector3 position;
+    public float yaw;
+
+    public float throttle;
+    public float brake;
+    public float steer;
+}
+
+[System.Serializable]
+public struct TelemetryFrame
+{
+    public float time;
+
+    // 차량 상태
+    public float Ux;
+    public float Uy;
+    public float yawRate;
+    public float steer;
+
+    // 타이어 슬립
+    public float slipFL, slipFR, slipRL, slipRR;
+
+    // 타이어 온도
+    public float tempFL, tempFR, tempRL, tempRR;
+
+    // 타이어 하중 (핵심 🔥)
+    public float FzFL, FzFR, FzRL, FzRR;
 }
 
 public class DOF3RigidBody : MonoBehaviour
@@ -273,6 +309,12 @@ public class DOF3RigidBody : MonoBehaviour
     float surfaceGrip = 1.0f;
     float surfaceSlipMultiplier = 1.0f;
 
+    // ==== 온도 ====
+    List<TelemetryFrame> telemetryLog;
+    float telemetryTimer;
+    float telemetryInterval = 0.05f; // 20Hz
+    int maxSamples = 5000;
+
     //Transform
     Transform3D transform3D = new Transform3D();
     CustomCollider3D collider3D;
@@ -283,6 +325,12 @@ public class DOF3RigidBody : MonoBehaviour
 
     [Header("차량 데이터")]
     public CarSetup currentSetup;
+
+    [Header("로그 데이터")]
+    public List<ReplayFrame> replayLog = new List<ReplayFrame>(5000);
+    bool isReplaying = false;
+    int replayIndex = 0;
+
 
     private void Start()
     {
@@ -297,10 +345,20 @@ public class DOF3RigidBody : MonoBehaviour
 
         if (Input.GetKey(KeyCode.W)) arbRear += 100f;
         if (Input.GetKey(KeyCode.S)) arbRear -= 100f;
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            StartReplay();
+        }
     }
 
     private void FixedUpdate()
     {
+        if (isReplaying)
+        {
+            PlayReplay();
+            return; // 🔥 물리 완전 차단
+        }
         // 0. 입력
         GetInput();
 
@@ -355,7 +413,39 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 9. 차량 운동 적용
         IntegrateVehicle();
+
+        RecordTelemetry();
+        RecordReplay(); // 🔥 추가
     }
+    /// <summary>
+    /// 재생 함수
+    /// </summary>
+    void PlayReplay()
+    {
+        if (replayIndex >= replayLog.Count)
+        {
+            isReplaying = false;
+            return;
+        }
+
+        var f = replayLog[replayIndex];
+
+        transform.position = f.position;
+        yaw = f.yaw;
+
+        transform.rotation = QuaternionUtility.Euler(0f, yaw * MathUtility.Rad2Deg, 0f);
+
+        replayIndex++;
+    }
+    /// <summary>
+    /// 재생 시작
+    /// </summary>
+    void StartReplay()
+    {
+        isReplaying = true;
+        replayIndex = 0;
+    }
+
     /// <summary>
     /// 데이터 셋업
     /// </summary>
@@ -383,6 +473,9 @@ public class DOF3RigidBody : MonoBehaviour
         // Tire
         baseMu = setup.baseMu;
         loadSensitivity = setup.loadSensitivity;
+
+        // 온도
+        telemetryLog = new List<TelemetryFrame>(5000);
     }
 
     /// <summary>
@@ -1306,6 +1399,98 @@ public class DOF3RigidBody : MonoBehaviour
 
         FxRR *= compoundGrip;
         FyRR *= compoundGrip;
+    }
+    #endregion
+
+    #region 온도
+    /// <summary>
+    /// 온도 기록
+    /// </summary>
+    void RecordTelemetry()
+    {
+        telemetryTimer += Time.fixedDeltaTime;
+
+        if (telemetryTimer < telemetryInterval)
+            return;
+
+        telemetryTimer = 0f;
+
+        TelemetryFrame frame = new TelemetryFrame();
+
+        frame.time = Time.time;
+
+        // 차량
+        frame.Ux = Ux;
+        frame.Uy = Uy;
+        frame.yawRate = r;
+        frame.steer = delta;
+
+        // 슬립
+        frame.slipFL = slipFL;
+        frame.slipFR = slipFR;
+        frame.slipRL = slipRL;
+        frame.slipRR = slipRR;
+
+        // 온도
+        frame.tempFL = tireTempFL;
+        frame.tempFR = tireTempFR;
+        frame.tempRL = tireTempRL;
+        frame.tempRR = tireTempRR;
+
+        // 하중 🔥 핵심
+        frame.FzFL = FzFL;
+        frame.FzFR = FzFR;
+        frame.FzRL = FzRL;
+        frame.FzRR = FzRR;
+
+        // 저장
+        if (telemetryLog.Count >= maxSamples)
+            telemetryLog.RemoveAt(0);
+
+        telemetryLog.Add(frame);
+    }
+    #endregion
+
+    #region 그래프 데이터 뽑기
+    public List<float> GetSpeedData()
+    {
+        List<float> data = new List<float>();
+
+        foreach (var f in telemetryLog)
+            data.Add(f.Ux);
+
+        return data;
+    }
+
+    public List<float> GetSlipRLData()
+    {
+        List<float> data = new List<float>();
+
+        foreach (var f in telemetryLog)
+            data.Add(f.slipRL);
+
+        return data;
+    }
+    /// <summary>
+    /// 기록 재생
+    /// </summary>
+    void RecordReplay()
+    {
+        ReplayFrame f = new ReplayFrame();
+
+        f.time = Time.time;
+
+        f.position = transform.position;
+        f.yaw = yaw;
+
+        f.throttle = inputThrottle;
+        f.brake = inputBrake;
+        f.steer = delta;
+
+        if (replayLog.Count >= maxSamples)
+            replayLog.RemoveAt(0);
+
+        replayLog.Add(f);
     }
     #endregion
 }
