@@ -1449,6 +1449,28 @@ public class DOF3RigidBody : MonoBehaviour
 
         telemetryLog.Add(frame);
     }
+    /// <summary>
+    /// 자동 튜닝
+    /// </summary>
+    /// <param name="f"></param>
+    public void AutoTune(TelemetryFrame f)
+    {
+        float rearSlip = MathUtility.Max(MathUtility.Abs(f.slipRL), MathUtility.Abs(f.slipRR));
+        float frontSlip = MathUtility.Max(MathUtility.Abs(f.slipFL), MathUtility.Abs(f.slipFR));
+
+        if (rearSlip > frontSlip + 0.1f)
+        {
+            // 오버스티어 → 뒤 안정화
+            arbRear += 100f;
+            lsdStrength -= 0.01f;
+        }
+
+        if (frontSlip > rearSlip + 0.1f)
+        {
+            // 언더스티어 → 앞 그립 증가
+            arbFront -= 100f;
+        }
+    }
     #endregion
 
     #region 그래프 데이터 뽑기
@@ -1474,7 +1496,7 @@ public class DOF3RigidBody : MonoBehaviour
     /// <summary>
     /// 기록 재생
     /// </summary>
-    void RecordReplay()
+    public void RecordReplay()
     {
         ReplayFrame f = new ReplayFrame();
 
