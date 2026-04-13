@@ -27,7 +27,13 @@ public class TelemetryGraph : MonoBehaviour
 
         texture.SetPixels(clearPixels);
     }
-
+    /// <summary>
+    /// 연결할 두 점을 찍는다.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    /// <param name="color"></param>
     public void Draw(List<float> data, float min, float max, Color color)
     {
         Clear();
@@ -37,8 +43,8 @@ public class TelemetryGraph : MonoBehaviour
 
         for (int i = 1; i < count; i++)
         {
-            float v0 = Mathf.InverseLerp(min, max, data[i - 1]);
-            float v1 = Mathf.InverseLerp(min, max, data[i]);
+            float v0 = MathUtility.InverseLerp(min, max, data[i - 1]);
+            float v1 = MathUtility.InverseLerp(min, max, data[i]);
 
             int x0 = (i - 1) * width / count;
             int x1 = i * width / count;
@@ -51,17 +57,25 @@ public class TelemetryGraph : MonoBehaviour
 
         texture.Apply();
     }
-
+    /// <summary>
+    /// 두 점을 연결해서 그린다
+    /// </summary>
+    /// <param name="x0"></param>
+    /// <param name="y0"></param>
+    /// <param name="x1"></param>
+    /// <param name="y1"></param>
+    /// <param name="color"></param>
     void DrawLine(int x0, int y0, int x1, int y1, Color color)
     {
-        int dx = Mathf.Abs(x1 - x0);
-        int dy = Mathf.Abs(y1 - y0);
-
+        int dx = (int)MathUtility.Abs(x1 - x0);
+        int dy = (int)MathUtility.Abs(y1 - y0);
+        
         int sx = x0 < x1 ? 1 : -1;
         int sy = y0 < y1 ? 1 : -1;
 
         int err = dx - dy;
 
+        //두 지점사이의 여러점을 찍음(출발지에서 목표치 도달할때까지)
         while (true)
         {
             texture.SetPixel(x0, y0, color);
