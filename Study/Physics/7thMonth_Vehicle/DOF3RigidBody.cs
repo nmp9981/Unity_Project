@@ -1,3 +1,5 @@
+using NUnit.Framework.Internal;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
@@ -65,6 +67,12 @@ public struct TelemetryFrame
 public class Waypoint
 {
     public Vector3 position;
+}
+[System.Serializable]
+public class TestResult
+{
+    public string setupName;
+    public float bestLap;
 }
 
 public class DOF3RigidBody : MonoBehaviour
@@ -346,6 +354,17 @@ public class DOF3RigidBody : MonoBehaviour
     public float waypointThreshold = 5f;
     float smoothSteer = 0f;
 
+    //랩 타이머
+    float lapStartTime;
+    float bestLapTime = float.MaxValue;
+    float lastLapTime;
+    int lapCount = 0;
+    public Transform startLine;
+    Vec3 lastPosition;
+
+    //결과 저장
+    List<TestResult> results = new List<TestResult>();
+
     private void Start()
     {
         InitForce();
@@ -430,6 +449,10 @@ public class DOF3RigidBody : MonoBehaviour
 
         // 9. 차량 운동 적용
         IntegrateVehicle();
+
+        // AI 운전→ Telemetry 기록→ Lap 측정→ Setup 비교→ 결과 출력
+        // 랩 타이머
+        UpdateLapTimer();
 
         RecordTelemetry();
         RecordReplay(); // 🔥 추가
@@ -1781,6 +1804,130 @@ public class DOF3RigidBody : MonoBehaviour
         {
             delta *= 1.1f;
         }
+    }
+    #endregion
+    #region 랩 타이머
+    /// <summary>
+    /// 라인 통과 감지
+    /// </summary>
+    void UpdateLapTimer()
+    {
+        Vec3 currentPos = new Vec3(transform.position.x, transform.position.y, transform.position.z );
+
+        Vec3 lineDir = new Vec3(startLine.forward.x, startLine.forward.y, startLine.forward.z);
+        Vec3 startPos = new Vec3(startLine.position.x, startLine.position.y, startLine.position.z);
+        Vec3 toCar = currentPos - startPos;
+
+        float dotNow = Vec3.Dot(lineDir, toCar);
+        float dotPrev = Vec3.Dot(lineDir, lastPosition - startPos);
+
+        // 앞 → 뒤 통과
+        if (dotPrev > 0f && dotNow <= 0f)
+        {
+            OnLapComplete();
+        }
+
+        lastPosition = currentPos;
+    }
+    /// <summary>
+    /// 랩 완료 처리
+    /// </summary>
+    void OnLapComplete()
+    {
+        if (lapCount == 0)
+        {
+            lapStartTime = Time.time;
+            lapCount++;
+            return;
+        }
+
+        lastLapTime = Time.time - lapStartTime;
+        lapStartTime = Time.time;
+
+        if (lastLapTime < bestLapTime)
+            bestLapTime = lastLapTime;
+
+        lapCount++;
+
+        Debug.Log($"Lap {lapCount} : {lastLapTime:F2}s (Best: {bestLapTime:F2}s)");
+    }
+    #endregion
+
+    #region 랩 결과 저장
+    /// <summary>
+    /// 자동 테스트 루프
+    /// </summary>
+    /// <param name="setups"></param>
+    /// <returns></returns>
+    IEnumerator RunAutoTest(List<CarSetup> setups)
+    {
+        foreach (var setup in setups)
+        {
+            ApplySetup(setup);
+
+            ResetCar();
+
+            yield return new WaitForSeconds(10f); // 안정화
+
+            yield return RunLaps(3);
+
+            SaveResult(setup.name);
+        }
+
+        PrintResults();
+    }
+    /// <summary>
+    /// 랩 실행
+    /// </summary>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    IEnumerator RunLaps(int count)
+    {
+        int startLap = lapCount;
+
+        while (lapCount < startLap + count)
+        {
+            yield return null;
+        }
+    }
+    /// <summary>
+    /// 결과 출력
+    /// </summary>
+    void PrintResults()
+    {
+        Debug.Log("===== TEST RESULTS =====");
+
+        foreach (var r in results)
+        {
+            Debug.Log($"{r.setupName} : {r.bestLap:F2}s");
+        }
+    }
+    /// <summary>
+    /// 차량 리셋
+    /// </summary>
+    void ResetCar()
+    {
+        transform.position = startLine.position + Vector3.forward * 5f;
+        yaw = startLine.eulerAngles.y * MathUtility.Deg2Rad;
+
+        Ux = Uy = r = 0f;
+
+        lapStartTime = Time.time;
+        lapCount = 0;
+    }
+    /// <summary>
+    /// 랩 결과 기록
+    /// </summary>
+    /// <param name="name"></param>
+    void SaveResult(string name)
+    {
+        TestResult r = new TestResult();
+        r.setupName = name;
+        r.bestLap = bestLapTime;
+
+        results.Add(r);
+
+        Debug.Log($"Saved: {name} - {bestLapTime:F2}s");
     }
     #endregion
 }
