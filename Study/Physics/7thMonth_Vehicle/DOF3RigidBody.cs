@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 public enum DriveType
 {
@@ -59,6 +60,11 @@ public struct TelemetryFrame
 
     // 타이어 하중 (핵심 🔥)
     public float FzFL, FzFR, FzRL, FzRR;
+}
+[System.Serializable]
+public class Waypoint
+{
+    public Vector3 position;
 }
 
 public class DOF3RigidBody : MonoBehaviour
@@ -331,6 +337,14 @@ public class DOF3RigidBody : MonoBehaviour
     bool isReplaying = false;
     int replayIndex = 0;
 
+    [Header("AI Driver")]
+    public bool useAI = true;
+    public List<Waypoint> path = new List<Waypoint>();
+
+    int currentIndex = 0;
+    public int lookAhead = 5;
+    public float waypointThreshold = 5f;
+    float smoothSteer = 0f;
 
     private void Start()
     {
@@ -360,7 +374,10 @@ public class DOF3RigidBody : MonoBehaviour
             return; // 🔥 물리 완전 차단
         }
         // 0. 입력
-        GetInput();
+        if (useAI)
+            UpdateAIInput();
+        else
+            GetInput();
 
         UpdateSlip();
         ApplyTCS();
@@ -1513,6 +1530,257 @@ public class DOF3RigidBody : MonoBehaviour
             replayLog.RemoveAt(0);
 
         replayLog.Add(f);
+    }
+    #endregion
+
+    #region AI 추척 로직
+    /// <summary>
+    /// AI 입력
+    /// </summary>
+    void UpdateAIInput()
+    {
+        //경로가 없음
+        if (path == null || path.Count == 0) return;
+
+        // 1. waypoint 진행
+        UpdateWaypoint();
+
+        // 2. 방향 계산
+        Vec3 localDir = GetLocalTargetDir();
+
+        // 3. 조향
+        float steer = CalculateSteer(localDir);
+        delta = steer * 0.6f; // 최대 조향각 스케일
+
+        // 🔥 4. Speed Control (핵심)
+        ApplySpeedControl();
+
+        // 🔥 5. 안정화 (오늘 핵심)
+        ApplySlipControl();
+        ApplyYawControl();
+        ApplyUnderOverSteerControl();
+    }
+    /// <summary>
+    /// 경로 업데이트
+    /// </summary>
+    void UpdateWaypoint()
+    {
+        if (path == null || path.Count == 0) return;
+
+        Vec3 currentTarget = new Vec3(path[currentIndex].position.x, 
+            path[currentIndex].position.y, path[currentIndex].position.z);
+
+        Vec3 pos = new Vec3(transform.position.x, transform.position.y, transform.position.z);
+        //현재 목표지점과 위치간 거리
+        float dist = VectorMathUtils.Dist(pos, currentTarget);
+
+        if (dist < waypointThreshold)
+        {
+            currentIndex++;
+
+            if (currentIndex >= path.Count)
+                currentIndex = 0;
+        }
+    }
+   
+    /// <summary>
+    /// 방향 계산
+    /// </summary>
+    /// <returns></returns>
+    Vec3 GetLocalTargetDir()
+    {
+        Vec3 target = GetTargetPositionDynamic();//타겟 위치
+
+        float worldDirX = target.x - transform.position.x;
+        float worldDirY = target.x - transform.position.y;
+        float worldDirZ = target.x - transform.position.z;
+        Vec3 worldDir = new Vec3(worldDirX, worldDirY, worldDirZ);
+
+        // 🔥 월드 → 로컬 변환
+        float cos = MathUtility.Cos(yaw);
+        float sin = MathUtility.Sin(yaw);
+
+        float localX = cos * worldDir.x + sin * worldDir.z;
+        float localZ = -sin * worldDir.x + cos * worldDir.z;
+
+        return new Vec3(localX, 0f, localZ).Normalized;
+    }
+    /// <summary>
+    /// Steer 각도(조향각) 계산
+    /// </summary>
+    /// <param name="localDir"></param>
+    /// <returns></returns>
+    float CalculateSteer(Vec3 localDir)
+    {
+        float angle = MathUtility.Atan2(localDir.x, localDir.z);
+        // 1. 감도 조절 (속도 기반)
+        float steerSensitivity = MathUtility.Lerp(1.5f, 0.5f, MathUtility.ClampValue(Ux / 30f,0,1));
+
+        float targetSteer = angle * steerSensitivity;
+
+        // 2. 스무딩 (핵심🔥)
+        smoothSteer = MathUtility.Lerp(smoothSteer, targetSteer, 5f * Time.fixedDeltaTime);
+
+        return MathUtility.ClampValue(smoothSteer, -1f, 1f);
+    }
+    /// <summary>
+    /// 타겟 방향을 향하게
+    /// </summary>
+    /// <returns></returns>
+    float GetDynamicLookAhead()
+    {
+        float minLook = 3f;
+        float maxLook = 12f;
+
+        float speedFactor = MathUtility.ClampValue(Ux / 30f,0,1);
+
+        return MathUtility.Lerp(minLook, maxLook, speedFactor);
+    }
+    /// <summary>
+    /// 타켓을 향한 속도 결정
+    /// </summary>
+    /// <returns></returns>
+    float GetLookAheadSpeed()
+    {
+        int lookIndex = currentIndex + 5;
+
+        if (lookIndex >= path.Count)
+            lookIndex %= path.Count;
+
+        return GetTargetSpeed(lookIndex);
+    }
+    /// <summary>
+    /// Throttle, Brake 제어
+    /// </summary>
+    void ApplySpeedControl()
+    {
+        float targetSpeed = GetLookAheadSpeed();
+
+        float error = targetSpeed - Ux;
+
+        if (error > 2f)
+        {
+            inputThrottle = 1f;
+            inputBrake = 0f;
+        }
+        else if (error < -2f)
+        {
+            inputThrottle = 0f;
+            inputBrake = MathUtility.ClampValue(-error / 10f,0,1);
+        }
+        else
+        {
+            inputThrottle = 0.3f;
+            inputBrake = 0f;
+        }
+    }
+    /// <summary>
+    /// 타겟 위치 계싼
+    /// </summary>
+    /// <returns></returns>
+    Vec3 GetTargetPositionDynamic()
+    {
+        int dynamicLook = MathUtility.RoundToInt(GetDynamicLookAhead());
+
+        int targetIndex = currentIndex + dynamicLook;
+
+        if (targetIndex >= path.Count)
+            targetIndex %= path.Count;
+
+        Vec3 currentTarget = new Vec3(path[targetIndex].position.x,
+            path[targetIndex].position.y, path[targetIndex].position.z);
+        return currentTarget;
+    }
+    /// <summary>
+    /// 곡률 계산
+    /// a,b,c 점의 두 벡터 ab,bc를 구한 뒤 두 벡터사이의 각을 반환
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    float GetCurvature(int index)
+    {
+        int prev = (index - 1 + path.Count) % path.Count;
+        int next = (index + 1) % path.Count;
+
+        Vec3 p0 = new Vec3(path[prev].position.x, path[prev].position.y, path[prev].position.z);
+        Vec3 p1 = new Vec3(path[index].position.x, path[index].position.y, path[index].position.z);
+        Vec3 p2 = new Vec3(path[next].position.x, path[next].position.y, path[next].position.z);
+
+        Vec3 d1 = (p1 - p0).Normalized;
+        Vec3 d2 = (p2 - p1).Normalized;
+
+        float angle = VectorMathUtils.Angle(d1, d2); // 0 ~ 180
+
+        return angle / 180f; // 0 ~ 1
+    }
+    /// <summary>
+    /// 곡률 -> 속도로 변환
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    float GetTargetSpeed(int index)
+    {
+        //곡률 구하기(각도)
+        float curvature = GetCurvature(index);
+
+        float maxSpeed = 35f;
+        float minSpeed = 10f;
+
+        return MathUtility.Lerp(maxSpeed, minSpeed, curvature);
+    }
+    /// <summary>
+    /// 슬립 제어
+    /// </summary>
+    void ApplySlipControl()
+    {
+        float rearSlip = MathUtility.Max(MathUtility.Abs(slipRL), MathUtility.Abs(slipRR));
+
+        float slipLimit = 0.2f;
+
+        if (rearSlip > slipLimit)
+        {
+            float reduce = MathUtility.InverseLerp(slipLimit, 0.5f, rearSlip);
+
+            inputThrottle *= (1f - reduce);
+        }
+    }
+    /// <summary>
+    /// Yaw 기반 Steering 제한
+    /// </summary>
+    void ApplyYawControl()
+    {
+        float yawLimit = 0.5f;
+
+        float absYaw = MathUtility.Abs(r);
+
+        if (absYaw > yawLimit)
+        {
+            float reduce = MathUtility.InverseLerp(yawLimit, 1.5f, absYaw);
+
+            delta *= (1f - reduce);
+        }
+    }
+    /// <summary>
+    /// 언더 스티어, 오버 스티어 보정
+    /// </summary>
+    void ApplyUnderOverSteerControl()
+    {
+        float frontSlip = MathUtility.Max(MathUtility.Abs(slipFL), MathUtility.Abs(slipFR));
+        float rearSlip = MathUtility.Max(MathUtility.Abs(slipRL), MathUtility.Abs(slipRR));
+
+        float diff = rearSlip - frontSlip;
+
+        // 오버스티어
+        if (diff > 0.05f)
+        {
+            inputThrottle *= 0.7f;
+            delta *= 0.8f;
+        }
+        // 언더스티어
+        else if (diff < -0.05f)
+        {
+            delta *= 1.1f;
+        }
     }
     #endregion
 }
