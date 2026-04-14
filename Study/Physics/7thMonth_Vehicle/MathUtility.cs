@@ -78,6 +78,15 @@ public static class MathUtility
     }
 
     /// <summary>
+    /// 정수로 반올림
+    /// </summary>
+    /// <returns></returns>
+    public static int RoundToInt(float x)
+    {
+        float x10 = x * 10;
+        return (x10 % 10 >= 5) ?(int)( x / 1 + 1) : (int)x / 1;
+    }
+    /// <summary>
     /// 절댓값 구하기
     /// </summary>
     /// <param name="a">실수</param>
