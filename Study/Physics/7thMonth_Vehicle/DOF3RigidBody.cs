@@ -29,6 +29,16 @@ public enum TireCompound
     Hard
 }
 /// <summary>
+/// 코너 종류
+/// </summary>
+public enum CornerPhase
+{
+    None,
+    Entry,
+    Apex,
+    Exit
+}
+/// <summary>
 /// 재생용
 /// </summary>
 public struct ReplayFrame
@@ -63,11 +73,31 @@ public struct TelemetryFrame
     // 타이어 하중 (핵심 🔥)
     public float FzFL, FzFR, FzRL, FzRR;
 }
+/// <summary>
+/// 코너 정보
+/// </summary>
+[System.Serializable]
+public class Corner
+{
+    public int start;
+    public int end;
+
+    public int entryStart;
+    public int apex;
+    public int lateApex;
+    public int exitEnd;
+}
+/// <summary>
+/// 지점 정보
+/// </summary>
 [System.Serializable]
 public class Waypoint
 {
-    public Vector3 position;
+    public Vec3 position;
 }
+/// <summary>
+/// 테스트 결과
+/// </summary>
 [System.Serializable]
 public class TestResult
 {
@@ -348,6 +378,7 @@ public class DOF3RigidBody : MonoBehaviour
     [Header("AI Driver")]
     public bool useAI = true;
     public List<Waypoint> path = new List<Waypoint>();
+    public List<Waypoint> racingLine = new List<Waypoint>();
 
     int currentIndex = 0;
     public int lookAhead = 5;
@@ -361,6 +392,9 @@ public class DOF3RigidBody : MonoBehaviour
     int lapCount = 0;
     public Transform startLine;
     Vec3 lastPosition;
+
+    // ====코너====
+    List<Corner> corners = new List<Corner>();
 
     //결과 저장
     List<TestResult> results = new List<TestResult>();
@@ -1576,7 +1610,9 @@ public class DOF3RigidBody : MonoBehaviour
         delta = steer * 0.6f; // 최대 조향각 스케일
 
         // 🔥 4. Speed Control (핵심)
-        ApplySpeedControl();
+        CornerPhase phase = GetCornerPhase(currentIndex);
+
+        ApplyCornerBehavior(phase);
 
         // 🔥 5. 안정화 (오늘 핵심)
         ApplySlipControl();
@@ -1612,7 +1648,7 @@ public class DOF3RigidBody : MonoBehaviour
     /// <returns></returns>
     Vec3 GetLocalTargetDir()
     {
-        Vec3 target = GetTargetPositionDynamic();//타겟 위치
+        Vec3 target = GetTargetFromRacingLine();//타겟 위치
 
         float worldDirX = target.x - transform.position.x;
         float worldDirY = target.x - transform.position.y;
@@ -1675,45 +1711,36 @@ public class DOF3RigidBody : MonoBehaviour
     /// <summary>
     /// Throttle, Brake 제어
     /// </summary>
-    void ApplySpeedControl()
+    void ApplyCornerBehavior(CornerPhase phase)
     {
-        float targetSpeed = GetLookAheadSpeed();
+        switch (phase)
+        {
+            case CornerPhase.Entry:
+                // 감속 + 바깥으로 벌림 준비
+                inputThrottle = 0.2f;
+                inputBrake = 0.3f;
+                break;
 
-        float error = targetSpeed - Ux;
+            case CornerPhase.Apex:
+                // 최대 회전
+                inputThrottle = 0.3f;
+                inputBrake = 0f;
+                break;
 
-        if (error > 2f)
-        {
-            inputThrottle = 1f;
-            inputBrake = 0f;
-        }
-        else if (error < -2f)
-        {
-            inputThrottle = 0f;
-            inputBrake = MathUtility.ClampValue(-error / 10f,0,1);
-        }
-        else
-        {
-            inputThrottle = 0.3f;
-            inputBrake = 0f;
+            case CornerPhase.Exit:
+                // 가속
+                inputThrottle = 1f;
+                inputBrake = 0f;
+                break;
+
+            default:
+                // 직선
+                inputThrottle = 1f;
+                inputBrake = 0f;
+                break;
         }
     }
-    /// <summary>
-    /// 타겟 위치 계싼
-    /// </summary>
-    /// <returns></returns>
-    Vec3 GetTargetPositionDynamic()
-    {
-        int dynamicLook = MathUtility.RoundToInt(GetDynamicLookAhead());
-
-        int targetIndex = currentIndex + dynamicLook;
-
-        if (targetIndex >= path.Count)
-            targetIndex %= path.Count;
-
-        Vec3 currentTarget = new Vec3(path[targetIndex].position.x,
-            path[targetIndex].position.y, path[targetIndex].position.z);
-        return currentTarget;
-    }
+    
     /// <summary>
     /// 곡률 계산
     /// a,b,c 점의 두 벡터 ab,bc를 구한 뒤 두 벡터사이의 각을 반환
@@ -1928,6 +1955,291 @@ public class DOF3RigidBody : MonoBehaviour
         results.Add(r);
 
         Debug.Log($"Saved: {name} - {bestLapTime:F2}s");
+    }
+    #endregion
+
+    #region 코너
+    /// <summary>
+    /// 코너 추출
+    /// </summary>
+    void DetectCorners()
+    {
+        corners.Clear();
+
+        bool inCorner = false;
+        int start = 0;
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            if (IsCorner(i))
+            {
+                if (!inCorner)//코너 안
+                {
+                    inCorner = true;
+                    start = i;
+                }
+            }
+            else
+            {
+                if (inCorner)//코너 밖
+                {
+                    int end = i;
+                    CreateCorner(start, end);
+                    inCorner = false;
+                }
+            }
+        }
+    }
+    /// <summary>
+    /// 코너 생성
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    void CreateCorner(int start, int end)
+    {
+        int length = (end - start + path.Count) % path.Count;
+
+        int apex = FindApex(start, length);
+        int lateApex = GetLateApex(apex, length);
+
+        Corner c = new Corner();
+        c.start = start;
+        c.end = end;
+        c.apex = apex;
+        c.lateApex = lateApex;
+
+        corners.Add(c);
+    }
+    /// <summary>
+    /// Entry ,Exit 분리
+    /// </summary>
+    /// <param name="c"></param>
+    void SplitCorner(ref Corner c)
+    {
+        int length = (c.end - c.start + path.Count) % path.Count;
+
+        // Entry = 앞 40%
+        int entryLength = (int)(length * 0.4f);
+
+        // Exit = 뒤 40%
+        int exitLength = (int)(length * 0.4f);
+
+        c.entryStart = c.start;
+        c.exitEnd = c.end;
+
+        // Apex는 이미 있음
+    }
+    /// <summary>
+    /// 현재 위치가 어떤 코너인지 파악
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    CornerPhase GetCornerPhase(int index)
+    {
+        foreach (var c in corners)
+        {
+            if (IsInside(index, c.start, c.end))
+            {
+                if (IsNear(index, c.lateApex, 2))
+                    return CornerPhase.Apex;
+
+                if (IsInside(index, c.start, c.lateApex))
+                    return CornerPhase.Entry;
+
+                return CornerPhase.Exit;
+            }
+        }
+        return CornerPhase.None;
+    }
+    /// <summary>
+    /// Inside 여부
+    /// </summary>
+    /// <param name="idx"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    bool IsInside(int idx, int start, int end)
+    {
+        if (start <= end)
+            return idx >= start && idx <= end;
+
+        return idx >= start || idx <= end;
+    }
+    /// <summary>
+    /// Near 여부
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="range"></param>
+    /// <returns></returns>
+    bool IsNear(int a, int b, int range)
+    {
+        return MathUtility.Abs(a - b) <= range;
+    }
+    /// <summary>
+    /// 레이싱 라인 초기화
+    /// </summary>
+    void GenerateRacingLine()
+    {
+        racingLine.Clear();
+
+        // 기본은 중앙선 복사
+        foreach (var wp in path)
+        {
+            Waypoint w = new Waypoint();
+            w.position = wp.position;
+            racingLine.Add(w);
+        }
+        foreach (var c in corners)
+        {
+            ApplyRacingLineToCorner(c);
+        }
+    }
+    float GetApexWeight(int idx, Corner c)
+    {
+        int dist = (int)MathUtility.Abs(idx - c.lateApex);
+
+        float maxDist = 10f; // 튜닝
+
+        return MathUtility.ClampValue(dist / maxDist,0,1);
+    }
+    /// <summary>
+    /// 경로의 법선벡터 구하기
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    Vec3 GetNormal(int index)
+    {
+        int next = (index + 1) % path.Count;
+
+        Vec3 dir = (path[next].position - path[index].position).Normalized;
+
+        // 오른쪽 법선
+        return new Vec3(-dir.z, 0f, dir.x);
+    }
+    /// <summary>
+    /// 실제 라인 변형
+    /// </summary>
+    /// <param name="c"></param>
+    void ApplyRacingLineToCorner(Corner c)
+    {
+        int length = (c.end - c.start + path.Count) % path.Count;
+
+        for (int i = 0; i < length; i++)
+        {
+            int idx = (c.start + i) % path.Count;
+
+            float t = (float)i / length;
+
+            float offset = 0f;
+
+            if (t < 0.5f)
+            {
+                // Entry → Apex
+                offset = MathUtility.Lerp(2.0f, -1.0f, t * 2f);
+            }
+            else
+            {
+                // Apex → Exit
+                offset = MathUtility.Lerp(-1.0f, 2.0f, (t - 0.5f) * 2f);
+            }
+
+            Vec3 normal = GetNormal(idx);
+            //중앙선 → 레이싱 라인
+            racingLine[idx].position += normal * offset;
+        }
+    }
+    /// <summary>
+    /// 레이싱라인의 타겟 가져오기
+    /// </summary>
+    /// <returns></returns>
+    Vec3 GetTargetFromRacingLine()
+    {
+        int dynamicLook = MathUtility.RoundToInt(GetDynamicLookAhead());
+
+        int targetIndex = (currentIndex + dynamicLook) % racingLine.Count;
+
+        return new Vec3(
+            racingLine[targetIndex].position.x,
+            racingLine[targetIndex].position.y,
+            racingLine[targetIndex].position.z
+        );
+    }
+    /// <summary>
+    /// 코너 감지
+    /// 두 선분이 이루는 각도와 임계각 비교
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    bool IsCorner(int index)
+    {
+        int prev = (index - 2 + path.Count) % path.Count;
+        int next = (index + 2) % path.Count;
+
+        Vec3 p0 = path[prev].position;
+        Vec3 p1 = path[index].position;
+        Vec3 p2 = path[next].position;
+
+        Vec3 d1 = (p1 - p0).Normalized;
+        Vec3 d2 = (p2 - p1).Normalized;
+
+        float angle = VectorMathUtils.Angle(d1, d2);
+
+        float threshold = 10f; // 🔥 튜닝 포인트 (8~15 추천)
+
+        return angle > threshold;
+    }
+    /// <summary>
+    /// 가장 꺽인 지점 찾기
+    /// 두 연속된 선분들 비교하면서 이루는 각도가 가장 큰것
+    /// </summary>
+    /// <param name="startIndex"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    int FindApex(int startIndex, int length)
+    {
+        float maxAngle = -1f;
+        int apexIndex = startIndex;
+
+        for (int i = 0; i < length; i++)
+        {
+            int idx = (startIndex + i) % path.Count;
+
+            int prev = (idx - 1 + path.Count) % path.Count;
+            int next = (idx + 1) % path.Count;
+
+            Vec3 p0 = path[prev].position;
+            Vec3 p1 = path[idx].position;
+            Vec3 p2 = path[next].position;
+
+            Vec3 d1 = (p1 - p0).Normalized;
+            Vec3 d2 = (p2 - p1).Normalized;
+
+            float angle = VectorMathUtils.Angle(d1, d2);
+
+            if (angle > maxAngle)
+            {
+                maxAngle = angle;
+                apexIndex = idx;
+            }
+        }
+
+        return apexIndex;
+    }
+    /// <summary>
+    /// LateApex 값 계산, 레이싱용 가장 크게 꺽인 코너
+    /// </summary>
+    /// <param name="apexIndex"></param>
+    /// <param name="cornerLength"></param>
+    /// <returns></returns>
+    int GetLateApex(int apexIndex, int cornerLength)
+    {
+        // 코너가 길수록 더 늦게
+        float factor = MathUtility.ClampValue(cornerLength / 20f,0,1);
+
+        int offset = MathUtility.RoundToInt(MathUtility.Lerp(2f, 6f, factor));
+
+        return (apexIndex + offset) % path.Count;
     }
     #endregion
 }
