@@ -39,6 +39,17 @@ public enum CornerPhase
     Exit
 }
 /// <summary>
+/// 코너 문제 유형
+/// </summary>
+enum CornerIssue
+{
+    None,
+    Understeer,
+    Oversteer,
+    TooFastEntry,
+    TooSlowExit
+}
+/// <summary>
 /// 재생용
 /// </summary>
 public struct ReplayFrame
@@ -490,6 +501,9 @@ public class DOF3RigidBody : MonoBehaviour
 
         RecordTelemetry();
         RecordReplay(); // 🔥 추가
+
+        ApplySpeedControlAdvanced();
+        ApplySmartBraking();
     }
     /// <summary>
     /// 재생 함수
@@ -2240,6 +2254,234 @@ public class DOF3RigidBody : MonoBehaviour
         int offset = MathUtility.RoundToInt(MathUtility.Lerp(2f, 6f, factor));
 
         return (apexIndex + offset) % path.Count;
+    }
+    /// <summary>
+    /// 곡률 -> 반지름
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    float GetRadius(int index)
+    {
+        int prev = (index - 1 + racingLine.Count) % racingLine.Count;
+        int next = (index + 1) % racingLine.Count;
+
+        Vec3 p0 = racingLine[prev].position;
+        Vec3 p1 = racingLine[index].position;
+        Vec3 p2 = racingLine[next].position;
+
+        Vec3 a = p1 - p0;
+        Vec3 b = p2 - p1;
+
+        float angle = VectorMathUtils.Angle(a, b) * MathUtility.Deg2Rad;
+
+        float length = a.Magnitude;
+
+        if (angle < 0.01f) return 999f; // 직선
+
+        return length / angle;
+    }
+    /// <summary>
+    /// 물리기반 목표 속도
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    float GetTargetSpeedAdvanced(int index)
+    {
+        float radius = GetRadius(index);
+
+        float mu = 1.2f; // 현재 타이어 grip
+        float g = 9.81f;
+
+        float maxSpeed = MathUtility.Root(mu * g * radius);
+
+        return MathUtility.ClampValue(maxSpeed, 5f, 50f);
+    }
+    /// <summary>
+    /// Look Ahead기반 감속
+    /// </summary>
+    /// <returns></returns>
+    float GetLookAheadSpeedAdvanced()
+    {
+        int lookIndex = currentIndex + 10;
+
+        if (lookIndex >= racingLine.Count)
+            lookIndex %= racingLine.Count;
+
+        return GetTargetSpeedAdvanced(lookIndex);
+    }
+    /// <summary>
+    /// 속도 제어
+    /// </summary>
+    void ApplySpeedControlAdvanced()
+    {
+        float targetSpeed = GetLookAheadSpeedAdvanced();
+
+        float error = targetSpeed - Ux;
+
+        // 🔥 브레이크는 더 공격적으로
+        if (error < -1f)
+        {
+            inputThrottle = 0f;
+            inputBrake = MathUtility.ClampValue(-error / 10f, 0f, 1f);
+        }
+        else if (error > 1f)
+        {
+            inputThrottle = 1f;
+            inputBrake = 0f;
+        }
+        else
+        {
+            inputThrottle = 0.4f;
+            inputBrake = 0f;
+        }
+    }
+    /// <summary>
+    /// 감속 예측
+    /// </summary>
+    /// <param name="currentSpeed"></param>
+    /// <param name="targetSpeed"></param>
+    /// <param name="distance"></param>
+    /// <returns></returns>
+    float PredictRequiredDecel(float currentSpeed, float targetSpeed, float distance)
+    {
+        if (distance <= 0.1f) return 0f;
+
+        return (currentSpeed * currentSpeed - targetSpeed * targetSpeed) / (2f * distance);
+    }
+    /// <summary>
+    /// 브레이크 적용
+    /// </summary>
+    void ApplySmartBraking()
+    {
+        int lookIndex = currentIndex + 10;
+
+        if (lookIndex >= racingLine.Count)
+            lookIndex %= racingLine.Count;
+
+        float targetSpeed = GetTargetSpeedAdvanced(lookIndex);
+
+        float distance = 10f; // lookAhead 거리 기반으로 바꿔도 됨
+
+        float requiredDecel = PredictRequiredDecel(Ux, targetSpeed, distance);
+
+        if (requiredDecel > 1f)
+        {
+            inputThrottle = 0f;
+            inputBrake = Mathf.Clamp(requiredDecel / 10f, 0f, 1f);
+        }
+    }
+    #endregion
+
+    #region AI 개선
+    /// <summary>
+    /// 슬립기반 문제 탐지
+    /// </summary>
+    /// <param name="f"></param>
+    /// <returns></returns>
+    bool IsBadCorner(TelemetryFrame f)
+    {
+        float rearSlip = Mathf.Max(Mathf.Abs(f.slipRL), Mathf.Abs(f.slipRR));
+        float frontSlip = Mathf.Max(Mathf.Abs(f.slipFL), Mathf.Abs(f.slipFR));
+
+        // 오버스티어 or 언더스티어
+        if (rearSlip > frontSlip + 0.1f) return true;
+        if (frontSlip > rearSlip + 0.1f) return true;
+
+        return false;
+    }
+    /// <summary>
+    /// 프레임 분석
+    /// </summary>
+    /// <param name="f"></param>
+    /// <returns></returns>
+    CornerIssue AnalyzeFrame(TelemetryFrame f)
+    {
+        float rearSlip = MathUtility.Max(MathUtility.Abs(f.slipRL), MathUtility.Abs(f.slipRR));
+        float frontSlip = MathUtility.Max(MathUtility.Abs(f.slipFL), MathUtility.Abs(f.slipFR));
+
+        if (rearSlip > frontSlip + 0.1f)
+            return CornerIssue.Oversteer;
+
+        if (frontSlip > rearSlip + 0.1f)
+            return CornerIssue.Understeer;
+
+        if (f.Ux > 30f && frontSlip > 0.2f)
+            return CornerIssue.TooFastEntry;
+
+        if (f.Ux < 15f)
+            return CornerIssue.TooSlowExit;
+
+        return CornerIssue.None;
+    }
+    /// <summary>
+    /// 라인 조정
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="issue"></param>
+    void AdjustRacingLine(int index, CornerIssue issue)
+    {
+        Vec3 normal = GetNormal(index);
+
+        float adjust = 0f;
+
+        switch (issue)
+        {
+            case CornerIssue.Understeer:
+                // 더 바깥 → 회전 여유 확보
+                adjust = 1.5f;
+                break;
+
+            case CornerIssue.Oversteer:
+                // 덜 aggressive
+                adjust = -1.0f;
+                break;
+
+            case CornerIssue.TooFastEntry:
+                // 더 바깥 → 감속 여유
+                adjust = 2.0f;
+                break;
+
+            case CornerIssue.TooSlowExit:
+                // 더 안쪽 → 빠른 exit
+                adjust = -2.0f;
+                break;
+        }
+        racingLine[index].position += normal * adjust * 0.1f;
+    }
+    /// <summary>
+    /// 속도 수정
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="issue"></param>
+    void AdjustSpeed(int index, CornerIssue issue)
+    {
+        if (issue == CornerIssue.TooFastEntry)
+        {
+            // 목표 속도 낮추기
+            speedProfile[index] *= 0.9f;
+        }
+
+        if (issue == CornerIssue.TooSlowExit)
+        {
+            speedProfile[index] *= 1.1f;
+        }
+    }
+    /// <summary>
+    /// 전체 학습 루프
+    /// </summary>
+    void OptimizeLap()
+    {
+        foreach (var f in telemetryLog)
+        {
+            int index = GetClosestWaypointIndex(f);
+
+            CornerIssue issue = AnalyzeFrame(f);
+
+            if (issue == CornerIssue.None) continue;
+
+            AdjustRacingLine(index, issue);
+            AdjustSpeed(index, issue);
+        }
     }
     #endregion
 }
