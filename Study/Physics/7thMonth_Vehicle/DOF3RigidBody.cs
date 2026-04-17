@@ -1,6 +1,7 @@
 using NUnit.Framework.Internal;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
@@ -2488,9 +2489,18 @@ public class DOF3RigidBody : MonoBehaviour
 
         if (requiredDecel > 1f)
         {
-            inputThrottle = 0f;
-            inputBrake = Mathf.Clamp(requiredDecel / 10f, 0f, 1f);
+            if (ShouldBrake())
+            {
+                inputBrake = ComputeBrakeInput();
+                inputThrottle = 0f;
+            }
+            else
+            {
+                inputThrottle = 1f;
+                inputBrake = 0;
+            }
         }
+        inputBrake = ApplyTrailBraking(inputBrake);
     }
     #endregion
 
@@ -2510,6 +2520,49 @@ public class DOF3RigidBody : MonoBehaviour
         if (frontSlip > rearSlip + 0.1f) return true;
 
         return false;
+    }
+    /// <summary>
+    /// Brake 입력값 계산
+    /// </summary>
+    float ComputeBrakeInput()
+    {
+        float dist = 0f;
+        int idx = currentIndex;
+
+        float currentSpeed = Ux;
+
+        while (dist < 100f)
+        {
+            int next = (idx + 1) % speedProfile.Count;
+
+            float segmentDist = MathUtility.Abs(speedProfile[idx] - speedProfile[next]);
+            dist += segmentDist;
+
+            float targetSpeed = speedProfile[next];
+
+            float brakeDist = GetBrakeDistance(currentSpeed, targetSpeed);
+
+            if (brakeDist >= dist)
+            {
+                float ratio = brakeDist / MathUtility.Max(dist, 0.1f);
+
+                return MathUtility.ClampValue(ratio,0,1);
+            }
+
+            idx = next;
+        }
+        return 0f;
+    }
+    /// <summary>
+    /// 조향, 브레이크 연동
+    /// </summary>
+    /// <param name="brakeInput"></param>
+    /// <returns></returns>
+    float ApplyTrailBraking(float brakeInput)
+    {
+        float steerFactor = 1f - MathUtility.Abs(inputSteer);
+
+        return brakeInput * steerFactor;
     }
     /// <summary>
     /// 프레임 분석
@@ -2568,7 +2621,9 @@ public class DOF3RigidBody : MonoBehaviour
                 adjust = -2.0f;
                 break;
         }
-        racingLine[index].position += normal * adjust * 0.1f;
+        float maxOffset = trackWidth * 0.5f;
+        Vec3 offset = racingLine[index].position - path[index].position;
+        racingLine[index].position = path[index].position + offset;
     }
     /// <summary>
     /// 속도 수정
@@ -2577,15 +2632,16 @@ public class DOF3RigidBody : MonoBehaviour
     /// <param name="issue"></param>
     void AdjustSpeed(int index, CornerIssue issue)
     {
+        float speedLearnRate = 0.02f;
+
         if (issue == CornerIssue.TooFastEntry)
         {
-            // 목표 속도 낮추기
-            speedProfile[index] *= 0.9f;
+            speedProfile[index] *= (1f - speedLearnRate);
         }
 
         if (issue == CornerIssue.TooSlowExit)
         {
-            speedProfile[index] *= 1.1f;
+            speedProfile[index] *= (1f + speedLearnRate);
         }
     }
     /// <summary>
@@ -2593,17 +2649,38 @@ public class DOF3RigidBody : MonoBehaviour
     /// </summary>
     void OptimizeLap()
     {
+        Dictionary<int, List<CornerIssue>> cornerIssues = new();
+
         foreach (var f in telemetryLog)
         {
             int index = GetClosestWaypointIndex(f);
 
-            CornerIssue issue = AnalyzeFrame(f);
+            var issue = AnalyzeFrame(f);
 
             if (issue == CornerIssue.None) continue;
 
-            AdjustRacingLine(index, issue);
-            AdjustSpeed(index, issue);
+            if (!cornerIssues.ContainsKey(index))
+                cornerIssues[index] = new List<CornerIssue>();
+
+            cornerIssues[index].Add(issue);
         }
+
+        foreach (var kv in cornerIssues)
+        {
+            int index = kv.Key;
+
+            CornerIssue finalIssue = GetDominantIssue(kv.Value);
+
+            AdjustRacingLine(index, finalIssue);
+            AdjustSpeed(index, finalIssue);
+        }
+    }
+    CornerIssue GetDominantIssue(List<CornerIssue> issues)
+    {
+        return issues
+            .GroupBy(x => x)
+            .OrderByDescending(g => g.Count())
+            .First().Key;
     }
     /// <summary>
     /// 타겟 위치 가져오기
@@ -2653,6 +2730,52 @@ public class DOF3RigidBody : MonoBehaviour
         float steer = MathUtility.Atan(curvature * wheelbase);
 
         return MathUtility.ClampValue(steer, -maxSteer, maxSteer);
+    }
+    /// <summary>
+    /// 브레이크 제동 거리
+    /// </summary>
+    /// <param name="currentSpeed"></param>
+    /// <param name="targetSpeed"></param>
+    /// <returns></returns>
+    float GetBrakeDistance(float currentSpeed, float targetSpeed)
+    {
+        if (currentSpeed <= targetSpeed)
+            return 0f;
+
+        float a = maxBrake; // 양수로 사용
+
+        return (currentSpeed * currentSpeed - targetSpeed * targetSpeed)
+               / (2f * a);
+    }
+    /// <summary>
+    /// 브레이크 결정
+    /// </summary>
+    /// <returns></returns>
+    bool ShouldBrake()
+    {
+        float dist = 0f;
+        int idx = currentIndex;
+
+        float currentSpeed = Ux;
+
+        while (dist < 100f) // 최대 탐색 거리
+        {
+            int next = (idx + 1) % speedProfile.Count;
+
+            float segmentDist = MathUtility.Abs(speedProfile[idx]- speedProfile[next]);
+            dist += segmentDist;
+
+            float targetSpeed = speedProfile[next];
+
+            float brakeDist = GetBrakeDistance(currentSpeed, targetSpeed);
+
+            if (brakeDist >= dist)
+                return true;
+
+            idx = next;
+        }
+
+        return false;
     }
     #endregion
 }
