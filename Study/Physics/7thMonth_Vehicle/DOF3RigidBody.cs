@@ -2,6 +2,7 @@ using NUnit.Framework.Internal;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 public enum DriveType
@@ -246,6 +247,9 @@ public class DOF3RigidBody : MonoBehaviour
     float maxSpeed = 55f; // m/s (약 200km/h)
     float FxDrag;
     float brake;
+    float maxSteer;
+    float maxAccel;
+    float maxBrake;
     float maxBrakeForce = 12000f;
     float maxDriveForce = 8000f;
     float engineRPM;
@@ -374,9 +378,10 @@ public class DOF3RigidBody : MonoBehaviour
     Transform3D transform3D = new Transform3D();
     CustomCollider3D collider3D;
 
-    //입력
+    // ==== 입력 ====
     float inputThrottle;
     float inputBrake;
+    float inputSteer;
 
     [Header("차량 데이터")]
     public CarSetup currentSetup;
@@ -404,11 +409,19 @@ public class DOF3RigidBody : MonoBehaviour
     public Transform startLine;
     Vec3 lastPosition;
 
+    // ==== 곡률 관련 ====
+    float minLookAhead = 4f;
+    float maxLookAhead = 20f;
+
+    float curvatureGain = 5f;
+    float steerLookReduce = 0.5f;
+
     // ====코너====
     List<Corner> corners = new List<Corner>();
 
     //결과 저장
     List<TestResult> results = new List<TestResult>();
+    List<float> speedProfile = new List<float>();
 
     private void Start()
     {
@@ -439,9 +452,15 @@ public class DOF3RigidBody : MonoBehaviour
         }
         // 0. 입력
         if (useAI)
+        {
+            UpdateCurrentIndex(); // 🔥 추가
             UpdateAIInput();
+        }
         else
+        {
             GetInput();
+        }
+
 
         UpdateSlip();
         ApplyTCS();
@@ -1632,6 +1651,24 @@ public class DOF3RigidBody : MonoBehaviour
         ApplySlipControl();
         ApplyYawControl();
         ApplyUnderOverSteerControl();
+
+        //AI
+        Vec3 target = GetTargetPositionDynamic();
+        inputSteer = ComputeSteering(target);
+        float targetSpeed = speedProfile[currentIndex];
+        float speedError = targetSpeed - Ux;
+
+        if (speedError > 0)
+        {
+            inputThrottle = MathUtility.ClampValue(speedError * 0.1f,0,1);
+            inputBrake = 0f;
+        }
+        else
+        {
+            inputThrottle = 0f;
+            inputBrake = MathUtility.ClampValue(-speedError * 0.1f,0,1);
+        }
+
     }
     /// <summary>
     /// 경로 업데이트
@@ -1702,12 +1739,101 @@ public class DOF3RigidBody : MonoBehaviour
     /// <returns></returns>
     float GetDynamicLookAhead()
     {
-        float minLook = 3f;
-        float maxLook = 12f;
+        // 1. 속도 기반
+        float speedFactor = MathUtility.Lerp(minLookAhead, maxLookAhead, Ux / maxSpeed);
 
-        float speedFactor = MathUtility.ClampValue(Ux / 30f,0,1);
+        // 2. 곡률 기반
+        float curvature = MathUtility.Max(GetCurvature(currentIndex), GetUpcomingCurvature());
+        float curvatureFactor = MathUtility.ClampValue(1f - curvature * curvatureGain,0,1);
 
-        return MathUtility.Lerp(minLook, maxLook, speedFactor);
+        // 3. 조향 기반
+        float steerFactor = 1f - MathUtility.Abs(inputSteer) * steerLookReduce;
+
+        // 최종
+        float lookAhead = speedFactor * curvatureFactor * steerFactor;
+
+        return MathUtility.ClampValue(lookAhead, minLookAhead, maxLookAhead);
+    }
+    /// <summary>
+    /// 반지름 가져오기
+    /// </summary>
+    /// <param name="curvature"></param>
+    /// <returns></returns>
+    float GetRadius(float curvature)
+    {
+        return 1f / MathUtility.Max(curvature, 0.001f);
+    }
+
+    void BuildSpeedProfile()
+    {
+        GenerateSpeedProfile();   // 기본 속도
+        ApplyBrakeLimit();        // 🔥 제일 중요
+        ApplyAccelerationLimit(); // 현실화
+    }
+    /// <summary>
+    /// 스피드 프로파일
+    /// </summary>
+    void GenerateSpeedProfile()
+    {
+        speedProfile.Clear();
+
+        for (int i = 0; i < racingLine.Count; i++)
+        {
+            float curvature = GetCurvature(i);
+            float radius = GetRadius(curvature);
+
+            float v = MathUtility.Root(mu * 9.81f * radius);
+
+            // 최대 속도 제한
+            v = MathUtility.Min(v, maxSpeed);
+
+            speedProfile.Add(v);
+        }
+    }
+    /// <summary>
+    /// 브레이크 제한
+    /// </summary>
+    void ApplyBrakeLimit()
+    {
+        for (int i = speedProfile.Count - 2; i >= 0; i--)
+        {
+            float dist = MathUtility.Abs(speedProfile[i]- speedProfile[i + 1]);
+
+            float vNext = speedProfile[i + 1];
+
+            float maxV = Mathf.Sqrt(
+                vNext * vNext + 2f * maxBrake * dist
+            );
+
+            speedProfile[i] = Mathf.Min(speedProfile[i], maxV);
+        }
+    }
+    /// <summary>
+    /// 가속 제한
+    /// </summary>
+    void ApplyAccelerationLimit()
+    {
+        for (int i = 1; i < speedProfile.Count; i++)
+        {
+            float dist = MathUtility.Abs(speedProfile[i-1] - speedProfile[i]);
+
+            float vPrev = speedProfile[i - 1];
+
+            float maxV = Mathf.Sqrt(
+                vPrev * vPrev + 2f * maxAccel * dist
+            );
+
+            speedProfile[i] = Mathf.Min(speedProfile[i], maxV);
+        }
+    }
+    /// <summary>
+    /// 앞을 봤을때의 곡률
+    /// </summary>
+    /// <returns></returns>
+    float GetUpcomingCurvature()
+    {
+        int lookIndex = (currentIndex + 5) % racingLine.Count;
+        return GetCurvature(lookIndex);
     }
     /// <summary>
     /// 타켓을 향한 속도 결정
@@ -1763,19 +1889,15 @@ public class DOF3RigidBody : MonoBehaviour
     /// <returns></returns>
     float GetCurvature(int index)
     {
-        int prev = (index - 1 + path.Count) % path.Count;
-        int next = (index + 1) % path.Count;
+        int prev = (index - 1 + racingLine.Count) % racingLine.Count;
+        int next = (index + 1) % racingLine.Count;
 
-        Vec3 p0 = new Vec3(path[prev].position.x, path[prev].position.y, path[prev].position.z);
-        Vec3 p1 = new Vec3(path[index].position.x, path[index].position.y, path[index].position.z);
-        Vec3 p2 = new Vec3(path[next].position.x, path[next].position.y, path[next].position.z);
+        Vec3 a = (racingLine[index].position - racingLine[prev].position).Normalized;
+        Vec3 b = (racingLine[next].position - racingLine[index].position).Normalized;
 
-        Vec3 d1 = (p1 - p0).Normalized;
-        Vec3 d2 = (p2 - p1).Normalized;
+        float angle = MathUtility.Acos(MathUtility.ClampValue(Vec3.Dot(a, b), -1f, 1f));
 
-        float angle = VectorMathUtils.Angle(d1, d2); // 0 ~ 180
-
-        return angle / 180f; // 0 ~ 1
+        return angle; // 클수록 코너
     }
     /// <summary>
     /// 곡률 -> 속도로 변환
@@ -2482,6 +2604,55 @@ public class DOF3RigidBody : MonoBehaviour
             AdjustRacingLine(index, issue);
             AdjustSpeed(index, issue);
         }
+    }
+    /// <summary>
+    /// 타겟 위치 가져오기
+    /// </summary>
+    /// <returns></returns>
+    Vec3 GetTargetPositionDynamic()
+    {
+        float lookAheadDist = GetDynamicLookAhead();
+
+        float dist = 0f;
+        int idx = currentIndex;
+
+        while (dist < lookAheadDist)
+        {
+            int next = (idx + 1) % racingLine.Count;
+
+            dist += (racingLine[next].position - racingLine[idx].position).Magnitude;
+
+            idx = next;
+        }
+        return racingLine[idx].position;
+    }
+    /// <summary>
+    /// 현재 위치 인덱스 업데이트
+    /// </summary>
+    void UpdateCurrentIndex()
+    {
+
+    }
+    /// <summary>
+    /// Steering 계산
+    /// </summary>
+    /// <returns></returns>
+    float ComputeSteering(Vec3 target)
+    {
+        Vec3 toTarget = target - new Vec3(transform.position.x, transform.position.y, transform.position.z);
+
+        float localX = Vec3.Dot(VectorMathUtils.LeftVector3D(), toTarget);
+        float localZ = Vec3.Dot(VectorMathUtils.FrontVector3D(), toTarget);
+
+        float Ld = toTarget.Magnitude;
+
+        if (Ld < 0.001f) return 0f;
+
+        float curvature = (2f * localX) / (Ld * Ld);
+
+        float steer = MathUtility.Atan(curvature * wheelbase);
+
+        return MathUtility.ClampValue(steer, -maxSteer, maxSteer);
     }
     #endregion
 }
