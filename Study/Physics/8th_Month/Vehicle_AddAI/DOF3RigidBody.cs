@@ -164,12 +164,14 @@ public class DOF3RigidBody : MonoBehaviour
     float Vy;
     float ay;
     float ax;
+    float Fx, Fy;
     float prevVy;
 
     // ==== 타이어 제어용 변수 ====
     float slipFL, slipFR, slipRL, slipRR;
     float wFL, wFR, wRL, wRR; // wheel angular velocity
     float R = 0.3f; // 타이어 반지름
+    float wheelOmegaFL, wheelOmegaFR, wheelOmegaRL, wheelOmegaRR;
 
     TireCompound currentCompound = TireCompound.Medium;//타이어 종류
     float compoundGrip = 1.0f;//기본 접지력
@@ -224,6 +226,7 @@ public class DOF3RigidBody : MonoBehaviour
     public float spring2Rear = 70000f;
 
     // Damper
+    float damperC = 4500f;
     public float damperCompFront = 3000f;
     public float damperRebFront = 7000f;
 
@@ -269,6 +272,10 @@ public class DOF3RigidBody : MonoBehaviour
     float springK = 30000f;     // 스프링 강성
     float springK2 = 80000f; // 비선형 계수 (핵심)
     float restLength = 0.3f;    // 기본 길이
+    float compressionFL, compressionFR, compressionRL, compressionRR;
+    float velocityFL, velocityFR, velocityRL, velocityRR;
+
+    float prevErrorFL, prevErrorFR, prevErrorRL, prevErrorRR;
 
     float susFL, susFR, susRL, susRR; // 현재 서스펜션 길이
 
@@ -350,6 +357,10 @@ public class DOF3RigidBody : MonoBehaviour
     float coolingRate = 0.5f;
     float ambientTemp = 25f;
 
+    // ==== Camber ====
+    float camberGain = 0.2f;
+    float camberFL, camberFR, camberRL, camberRR;
+
     // Roll 준비
     float trackWidth = 1.6f;   // m
     float Ixx = 600f;          // roll inertia
@@ -358,6 +369,9 @@ public class DOF3RigidBody : MonoBehaviour
     float Cphi = 50000f;        // roll damping
     float Kphi => KphiFront+KphiRear;
     float Iphi = 450f;
+    float cgHeight = 0.55f;
+    float rcFrontHeight = 0.20f;
+    float rcRearHeight = 0.25f;
 
     //기어
     int currentGear = 1;
@@ -2832,6 +2846,175 @@ public class DOF3RigidBody : MonoBehaviour
         }
 
         return false;
+    }
+    #endregion
+
+    #region 서스펜션 물리
+    /// <summary>
+    /// 서스펜션 타이어 통합
+    /// </summary>
+    /// <param name="dt"></param>
+    void UpdateSuspensionAndTires(float dt)
+    {
+        // 1. 가속도 기반 하중 이동 (롤센터)
+        ComputeRollCenterLoadTransfer();
+
+        // 2. 서스펜션 반응 → Fz 생성
+        UpdateSuspension(Time.fixedDeltaTime);
+
+        // 3. ARB 적용
+        ApplyARB();
+
+        // 4. 캠버 적용
+        ApplyCamber();
+
+        // 5. 타이어 힘 계산
+        ComputeTireForces();
+    }
+    /// <summary>
+    /// 서스펜션 변환
+    /// </summary>
+    /// <param name="dt"></param>
+    void UpdateSuspension(float dt)
+    {
+        float targetFzFL = computedLoadFL;
+
+        float errorFL = targetFzFL - FzFL;
+
+        float springForceFL = springK * errorFL;
+        float damperForceFL = damperC * (errorFL - prevErrorFL) / dt;
+
+        FzFL = springForceFL + damperForceFL;
+
+        prevErrorFL = errorFL;
+    }
+    /// <summary>
+    /// ARB계산
+    /// </summary>
+    void ApplyARB()
+    {
+        //압축 차이 계산
+        float deltaFront = compressionFL - compressionFR;
+        float deltaRear = compressionRL - compressionRR;
+
+        //ARB힘 계산
+        float arbForceFront = arbStiffnessFront * deltaFront;
+        float arbForceRear = arbStiffnessRear * deltaRear;
+
+        //Fz적용
+        FzFL -= arbForceFront;
+        FzFR += arbForceFront;
+
+        FzRL -= arbForceRear;
+        FzRR += arbForceRear;
+
+        FzFL = MathUtility.Max(0f, FzFL);
+        FzFR = MathUtility.Max(0f, FzFR);
+        FzRL = MathUtility.Max(0f, FzRL);
+        FzRR = MathUtility.Max(0f, FzRR);
+    }
+    /// <summary>
+    /// 롤 모먼트 계산
+    /// </summary>
+    void ComputeRollCenterLoadTransfer()
+    {
+        //롤 모먼트 계산
+        float rollMomentFront = (cgHeight - rcFrontHeight) * m * ay;
+        float rollMomentRear = (cgHeight - rcRearHeight) * m * ay;
+
+        //좌우 하중 이동으로 변환
+        float loadTransferFront = rollMomentFront / trackWidth;
+        float loadTransferRear = rollMomentRear / trackWidth;
+
+        //Fz에 적용
+        FzFL -= loadTransferFront * 0.5f;
+        FzFR += loadTransferFront * 0.5f;
+
+        FzRL -= loadTransferRear * 0.5f;
+        FzRR += loadTransferRear * 0.5f;
+    }
+    /// <summary>
+    /// 캠버 계산
+    /// </summary>
+    void ApplyCamber()
+    {
+        //캠버 정의
+        float camberFront = -2.5f * MathUtility.Deg2Rad;
+        float camberRear = -1.5f * MathUtility.Deg2Rad;
+
+        //타이어 힘 보정
+        float FyFL = PacejkaFy(alphaFL, FzFL);
+        FyFL *= (1f + camberGain * camberFront);
+        float FyRL = PacejkaFy(alphaFL, FzRL);
+        FyFL *= (1f + camberGain * camberRear);
+    }
+    /// <summary>
+    /// 타이어 힘 계산
+    /// </summary>
+    void ComputeTireForces()
+    {
+        float eps = 0.1f;
+
+        // 1. 각 바퀴 속도 계산 (차량 좌표계 기준)
+        Vec2 vFL = new Vec2(Ux - r * trackWidth * 0.5f, Vy + r * a);
+        Vec2 vFR = new Vec2(Ux + r * trackWidth * 0.5f, Vy + r * a);
+        Vec2 vRL = new Vec2(Ux - r * trackWidth * 0.5f, Vy - r * b);
+        Vec2 vRR = new Vec2(Ux + r * trackWidth * 0.5f, Vy - r * b);
+
+        // 2. 앞바퀴는 조향각 적용 (로컬 타이어 좌표계로 변환)
+        vFL = VectorMathUtils.Rotate(vFL, -delta);
+        vFR = VectorMathUtils.Rotate(vFR, -delta);
+
+        // 3. 슬립 계산
+        float alphaFL = Mathf.Atan2(vFL.y, Mathf.Abs(vFL.x) + eps);
+        float alphaFR = Mathf.Atan2(vFR.y, Mathf.Abs(vFR.x) + eps);
+        float alphaRL = Mathf.Atan2(vRL.y, Mathf.Abs(vRL.x) + eps);
+        float alphaRR = Mathf.Atan2(vRR.y, Mathf.Abs(vRR.x) + eps);
+
+        float slipFL = (wheelOmegaFL * R - vFL.x) / (Mathf.Abs(vFL.x) + eps);
+        float slipFR = (wheelOmegaFR * R - vFR.x) / (Mathf.Abs(vFR.x) + eps);
+        float slipRL = (wheelOmegaRL * R - vRL.x) / (Mathf.Abs(vRL.x) + eps);
+        float slipRR = (wheelOmegaRR * R - vRR.x) / (Mathf.Abs(vRR.x) + eps);
+
+        // 4. 타이어 힘 (Pacejka)
+        float FxFL = PacejkaFx(slipFL, FzFL);
+        float FxFR = PacejkaFx(slipFR, FzFR);
+        float FxRL = PacejkaFx(slipRL, FzRL);
+        float FxRR = PacejkaFx(slipRR, FzRR);
+
+        float FyFL = PacejkaFy(alphaFL, FzFL);
+        float FyFR = PacejkaFy(alphaFR, FzFR);
+        float FyRL = PacejkaFy(alphaRL, FzRL);
+        float FyRR = PacejkaFy(alphaRR, FzRR);
+
+        // 5. 캠버 적용 (목요일 내용)
+        FyFL *= (1f + camberGain * camberFL);
+        FyFR *= (1f + camberGain * camberFR);
+        FyRL *= (1f + camberGain * camberRL);
+        FyRR *= (1f + camberGain * camberRR);
+
+        // 6. Combined Slip (🔥 중요)
+        ApplyCombinedSlip(ref FxFL, ref FyFL, FzFL);
+        ApplyCombinedSlip(ref FxFR, ref FyFR, FzFR);
+        ApplyCombinedSlip(ref FxRL, ref FyRL, FzRL);
+        ApplyCombinedSlip(ref FxRR, ref FyRR, FzRR);
+
+        // 7. 앞바퀴 다시 차량 좌표계로 변환
+        Vec2 fFL = VectorMathUtils.Rotate(new Vec2(FxFL, FyFL), delta);
+        Vec2 fFR = VectorMathUtils.Rotate(new Vec2(FxFR, FyFR), delta);
+
+        Vec2 fRL = new Vec2(FxRL, FyRL);
+        Vec2 fRR = new Vec2(FxRR, FyRR);
+
+        // 8. 총 힘 & 모멘트
+        Fx = fFL.x + fFR.x + fRL.x + fRR.x;
+        Fy = fFL.y + fFR.y + fRL.y + fRR.y;
+
+        float Mz =
+            (fFL.y * a - fFL.x * trackWidth * 0.5f) +
+            (fFR.y * a + fFR.x * trackWidth * 0.5f) +
+            (fRL.y * -b - fRL.x * trackWidth * 0.5f) +
+            (fRR.y * -b + fRR.x * trackWidth * 0.5f);
     }
     #endregion
 }
