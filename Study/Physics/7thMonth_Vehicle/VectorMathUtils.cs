@@ -142,6 +142,23 @@ public static class VectorMathUtils
 
 
     /// <summary>
+/// 2차원 벡터 회전
+/// </summary>
+/// <param name="v">벡터</param>
+/// <param name="angle">회전 각</param>
+/// <returns></returns>
+public static Vec2 Rotate(Vec2 v, float angle)
+{
+    float cos = MathUtility.Cos(angle);
+    float sin = MathUtility.Sin(angle);
+
+    return new Vec2(
+        v.x * cos - v.y * sin,
+        v.x * sin + v.y * cos
+    );
+}
+    
+    /// <summary>
     /// 투영 벡터 구하기
     /// 벡터 v를 벡터 a로 정사영한 벡터 계산
     /// 벡터가 주어졌을때 계산
