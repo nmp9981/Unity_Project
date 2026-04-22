@@ -110,6 +110,15 @@ public class Waypoint
     public Vec3 position;
 }
 /// <summary>
+/// 다운포스 정보
+/// </summary>
+[System.Serializable]
+public struct AeroSetup
+{
+    public float wingAngle;     // 0 ~ 1
+    public float aeroBalance;   // 0 ~ 1
+}
+/// <summary>
 /// 테스트 결과
 /// </summary>
 [System.Serializable]
@@ -340,6 +349,7 @@ public class DOF3RigidBody : MonoBehaviour
     float maxRPM = 7000f;
 
     // ==== 제어용 변수 ====
+    float computedLoadFL;
     float slipTargetBrake = -0.1f;
     float slipTargetAccel = 0.1f;
     float slipThreshold = 0.02f;
@@ -396,6 +406,14 @@ public class DOF3RigidBody : MonoBehaviour
     float telemetryTimer;
     float telemetryInterval = 0.05f; // 20Hz
     int maxSamples = 5000;
+
+    // ==== 다운포스 ====
+    AeroSetup currentAero;
+   
+    float baseCl = -0.8f;
+    float maxCl = -2.0f;
+    float baseCd = 0.6f;
+    float maxCd = 1.2f;
 
     //Transform
     Transform3D transform3D = new Transform3D();
@@ -454,11 +472,14 @@ public class DOF3RigidBody : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKey(KeyCode.Q)) arbFront += 100f;
-        if (Input.GetKey(KeyCode.A)) arbFront -= 100f;
+        if (Input.GetKey(KeyCode.Q)) currentAero.wingAngle += 0.5f * Time.deltaTime;
+        if (Input.GetKey(KeyCode.A)) currentAero.wingAngle -= 0.5f * Time.deltaTime;
 
-        if (Input.GetKey(KeyCode.W)) arbRear += 100f;
-        if (Input.GetKey(KeyCode.S)) arbRear -= 100f;
+        if (Input.GetKey(KeyCode.W)) currentAero.aeroBalance += 0.5f * Time.deltaTime;
+        if (Input.GetKey(KeyCode.S)) currentAero.aeroBalance -= 0.5f * Time.deltaTime;
+
+        currentAero.wingAngle = MathUtility.ClampValue(currentAero.wingAngle,0,1);
+        currentAero.aeroBalance = MathUtility.ClampValue(currentAero.aeroBalance,0,1);
 
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -506,6 +527,7 @@ public class DOF3RigidBody : MonoBehaviour
         UpdateSurfaceProperties();
         UpdateCompoundProperties();
 
+        ApplyAero();//다운포스 적용
         // 6. Tire force (이제는 새로운 Fz 기반), 타이어 힘
         ComputeTireForce();
         ComputeLongitudinalTireForce();//Fx 계산
@@ -3015,6 +3037,59 @@ public class DOF3RigidBody : MonoBehaviour
             (fFR.y * a + fFR.x * trackWidth * 0.5f) +
             (fRL.y * -b - fRL.x * trackWidth * 0.5f) +
             (fRR.y * -b + fRR.x * trackWidth * 0.5f);
+    }
+    #endregion
+
+    #region 다운포스
+    /// <summary>
+    /// 다운포스 계산
+    /// </summary>
+    void ApplyAero()
+    {
+        float speed = MathUtility.Root(Ux * Ux + Vy * Vy);
+        if (speed < 0.1f) return;
+
+        // 1. 세팅 기반 계수
+        float Cl = MathUtility.Lerp(baseCl, maxCl, currentAero.wingAngle);
+        float Cd = MathUtility.Lerp(baseCd, maxCd, currentAero.wingAngle);
+
+        // 2. 다운포스
+        float downforce = 0.5f * airDensity * Cl * frontalArea * speed * speed;
+
+        // 3. 드래그
+        float drag = 0.5f * airDensity * Cd * frontalArea * speed * speed;
+
+        // --- 다운포스 분배 ---
+        float dfFront = downforce * currentAero.aeroBalance;
+        float dfRear = downforce * (1f - currentAero.aeroBalance);
+
+        FzFL += -(dfFront * 0.5f);
+        FzFR += -(dfFront * 0.5f);
+        FzRL += -(dfRear * 0.5f);
+        FzRR += -(dfRear * 0.5f);
+
+        // --- 드래그 적용 ---
+        if (speed > 0.1f)
+        {
+            float dirX = Ux / speed;
+            float dirY = Vy / speed;
+
+            Fx -= drag * dirX;
+            Fy -= drag * dirY;
+        }
+    }
+    /// <summary>
+    /// 공기저항 프리셋 적용
+    /// </summary>
+    /// <param name="type"></param>
+    void ApplyPreset(int type)
+    {
+        switch (type)
+        {
+            case 0: currentAero = new AeroSetup { wingAngle = 0.7f, aeroBalance = 0.4f }; break;
+            case 1: currentAero = new AeroSetup { wingAngle = 0.5f, aeroBalance = 0.5f }; break;
+            case 2: currentAero = new AeroSetup { wingAngle = 0.9f, aeroBalance = 0.6f }; break;
+        }
     }
     #endregion
 }
