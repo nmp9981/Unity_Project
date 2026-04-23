@@ -989,11 +989,11 @@ public class DOF3RigidBody : MonoBehaviour
         float alphaR_clamped = MathUtility.ClampValue(alphaR, -1.0f, 1.0f);
 
         // 3. Pacejka 적용
-        FyFL = PacejkaFy(alphaFL, FzFL)*MathUtility.Cos(camberFront);
-        FyFR = PacejkaFy(alphaFR, FzFR) * MathUtility.Cos(camberFront);
+        FyFL = PacejkaFy(alphaFL, FzFL, mu)*MathUtility.Cos(camberFront);
+        FyFR = PacejkaFy(alphaFR, FzFR, mu) * MathUtility.Cos(camberFront);
 
-        FyRL = PacejkaFy(alphaR_clamped, FzRL) * MathUtility.Cos(camberRear);
-        FyRR = PacejkaFy(alphaR_clamped, FzRR) * MathUtility.Cos(camberRear);
+        FyRL = PacejkaFy(alphaR_clamped, FzRL, mu) * MathUtility.Cos(camberRear);
+        FyRR = PacejkaFy(alphaR_clamped, FzRR, mu) * MathUtility.Cos(camberRear);
 
         // 4. 축 합산 (기존 유지)
         Fy_f = FyFL + FyFR;
@@ -1009,7 +1009,7 @@ public class DOF3RigidBody : MonoBehaviour
         float mu = baseMu * MathUtility.Pow(Fz, -0.1f); ;
         return MathUtility.Max(mu, 0.5f); // 최소 grip 보장
     }
-    float PacejkaFx(float slipRatio, float Fz)
+    float PacejkaFx(float slipRatio, float Fz, float mu)
     {
         float B = 12.0f;
         float C = 1.3f;
@@ -1025,7 +1025,7 @@ public class DOF3RigidBody : MonoBehaviour
 
         return Fx;
     }
-    float PacejkaFy(float alpha, float Fz)
+    float PacejkaFy(float alpha, float Fz, float mu)
     {
         float B = 10.0f;
         float C = 1.3f;
@@ -1244,10 +1244,10 @@ public class DOF3RigidBody : MonoBehaviour
     void ComputeLongitudinalTireForce()
     {
         // Pacejka 적용
-        FxFL = PacejkaFx(slipFL, FzFL);
-        FxFR = PacejkaFx(slipFR, FzFR);
-        FxRL = PacejkaFx(slipRL, FzRL);
-        FxRR = PacejkaFx(slipRR, FzRR);
+        FxFL = PacejkaFx(slipFL, FzFL,mu);
+        FxFR = PacejkaFx(slipFR, FzFR,mu);
+        FxRL = PacejkaFx(slipRL, FzRL,mu);
+        FxRR = PacejkaFx(slipRR, FzRR,mu);
     }
 
     /// <summary>
@@ -2965,9 +2965,9 @@ public class DOF3RigidBody : MonoBehaviour
         float camberRear = -1.5f * MathUtility.Deg2Rad;
 
         //타이어 힘 보정
-        float FyFL = PacejkaFy(alphaFL, FzFL);
+        float FyFL = PacejkaFy(alphaFL, FzFL, mu);
         FyFL *= (1f + camberGain * camberFront);
-        float FyRL = PacejkaFy(alphaFL, FzRL);
+        float FyRL = PacejkaFy(alphaFL, FzRL, mu);
         FyFL *= (1f + camberGain * camberRear);
     }
     /// <summary>
@@ -2999,15 +2999,15 @@ public class DOF3RigidBody : MonoBehaviour
         float slipRR = (wheelOmegaRR * R - vRR.x) / (Mathf.Abs(vRR.x) + eps);
 
         // 4. 타이어 힘 (Pacejka)
-        float FxFL = PacejkaFx(slipFL, FzFL);
-        float FxFR = PacejkaFx(slipFR, FzFR);
-        float FxRL = PacejkaFx(slipRL, FzRL);
-        float FxRR = PacejkaFx(slipRR, FzRR);
+        float FxFL = PacejkaFx(slipFL, FzFL, mu);
+        float FxFR = PacejkaFx(slipFR, FzFR, mu);
+        float FxRL = PacejkaFx(slipRL, FzRL, mu);
+        float FxRR = PacejkaFx(slipRR, FzRR, mu);
 
-        float FyFL = PacejkaFy(alphaFL, FzFL);
-        float FyFR = PacejkaFy(alphaFR, FzFR);
-        float FyRL = PacejkaFy(alphaRL, FzRL);
-        float FyRR = PacejkaFy(alphaRR, FzRR);
+        float FyFL = PacejkaFy(alphaFL, FzFL, mu);
+        float FyFR = PacejkaFy(alphaFR, FzFR, mu);
+        float FyRL = PacejkaFy(alphaRL, FzRL, mu);
+        float FyRR = PacejkaFy(alphaRR, FzRR, mu);
 
         // 5. 캠버 적용 (목요일 내용)
         FyFL *= (1f + camberGain * camberFL);
@@ -3090,6 +3090,68 @@ public class DOF3RigidBody : MonoBehaviour
             case 1: currentAero = new AeroSetup { wingAngle = 0.5f, aeroBalance = 0.5f }; break;
             case 2: currentAero = new AeroSetup { wingAngle = 0.9f, aeroBalance = 0.6f }; break;
         }
+    }
+   
+    /// <summary>
+    /// Combined Slip 포함 타이어 힘 계산 (Pacejka 기반)
+    /// </summary>
+    void ComputeTireForces(
+        float slipRatio,      // κ
+        float slipAngle,      // α (rad)
+        float Fz,             // 수직하중
+        float mu,             // 마찰계수
+
+        float kappaPeak,      // 종 슬립 peak
+        float alphaPeak,      // 횡 슬립 peak (rad)
+
+        out float Fx,
+        out float Fy)
+    {
+        // -------------------------
+        // 1. 기본 Pacejka 힘
+        // -------------------------
+        float Fx0 = PacejkaFx(slipRatio, Fz, mu);
+        float Fy0 = PacejkaFy(slipAngle, Fz, mu);
+
+        // -------------------------
+        // 2. 슬립 정규화
+        // -------------------------
+        float kappaNorm = slipRatio / (kappaPeak + 0.0001f);
+        float alphaNorm = MathUtility.Tan(slipAngle) / (MathUtility.Tan(alphaPeak) + 0.0001f);
+
+        // -------------------------
+        // 3. Combined Slip Weight
+        // -------------------------
+        float Gx = 1.0f / MathUtility.Root(1.0f + alphaNorm * alphaNorm);
+        float Gy = 1.0f / MathUtility.Root(1.0f + kappaNorm * kappaNorm);
+
+        // -------------------------
+        // 4. 적용
+        // -------------------------
+        Fx = Fx0 * Gx;
+        Fy = Fy0 * Gy;
+    }
+    /// <summary>
+    /// Yaw Damper 적용
+    /// </summary>
+    /// <param name="yawMoment"></param>
+    /// <param name="yawRate"></param>
+    void ApplyYawDamping(ref float yawMoment, float yawRate)
+    {
+        float damping = 2000f; // 튜닝 핵심
+
+        yawMoment -= yawRate * damping;
+    }
+    /// <summary>
+    /// 옆속도 줄이기
+    /// </summary>
+    /// <param name="FyTotal"></param>
+    /// <param name="Vy"></param>
+    void ApplyLateralDamping(ref float FyTotal, float Vy)
+    {
+        float damping = 1000f;
+
+        FyTotal -= Vy * damping;
     }
     #endregion
 }
