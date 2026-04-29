@@ -1,3 +1,5 @@
+using System;
+
 /// <summary>
 /// 점
 /// </summary>
@@ -53,30 +55,19 @@ public class Geometry
         //일직선
         if(baseCondition == 0 && addCondition == 0)
         {
-            //정렬
-            float px1, px2, px3, px4;
-            if (A.a.x > A.b.x)
-            {
-                px1 = A.b.x;
-                px2 = A.a.x;
-            }
-            else
-            {
-                px1 = A.a.x;
-                px2 = A.b.x;
-            }
-            if (B.a.x > B.b.x)
-            {
-                px3 = B.b.x;
-                px4 = B.a.x;
-            }
-            else
-            {
-                px3 = B.a.x;
-                px4 = B.b.x;
-            }
+            //각 선분의 최대, 최소
+            float minAX = MathF.Min(A.a.x,A.b.x);
+            float maxAX = MathF.Max(A.a.x, A.b.x);
+            float minAY = MathF.Min(A.a.y, A.b.y);
+            float maxAY = MathF.Max(A.a.y, A.b.y);
 
-            return (px2 >= px3 && px4 >= px1);
+            float minBX = MathF.Min(B.a.x, B.b.x);
+            float maxBX = MathF.Max(B.a.x, B.b.x);
+            float minBY = MathF.Min(B.a.y, B.b.y);
+            float maxBY = MathF.Max(B.a.y, B.b.y);
+
+            return (maxAX >= minBX && maxBX >= minAX)
+                && (maxAY >= minBY && maxBY >= minAY);
         }
 
         return (baseCondition<=0 && addCondition<=0);
